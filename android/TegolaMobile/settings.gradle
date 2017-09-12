@@ -1,0 +1,2 @@
+include ':Controller', ':Bootstrapper'
+project(':Controller').projectDir = new File(settingsDir, '../ControllerLib/Controller')

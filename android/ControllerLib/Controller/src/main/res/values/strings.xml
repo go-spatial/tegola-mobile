@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">TegolaMobile MVT Server Controller</string>
+
+    <string name="pkg">go_spatial.com.github.tegola.android.controllermodule</string>
+
+    <!-- provided for localization of Android System Notification Bar notifications if desired -->
+    <string name="start_server">Start MVT Server</string>
+    <string name="stop_server">Stop MVT Server</string>
+
+    <string name="tegola_version">0.4.0</string>
+</resources>

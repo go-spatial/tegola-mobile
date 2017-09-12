@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Tegola Mobile</string>
+    <string name="ctrlr_status">Controller Status:</string>
+    <string name="srvr_status">Server Status:</string>
+    <string name="starting">Starting...</string>
+    <string name="started">Started/Running!</string>
+    <string name="stopping">Stopping...</string>
+    <string name="stopped">Stopped</string>
+    <string name="lbl_get">GET</string>
+    <string name="uri_static">http://localhost:8080/</string>
+    <string name="go">go</string>
+    <string name="lbl_got">GOT</string>
+</resources>

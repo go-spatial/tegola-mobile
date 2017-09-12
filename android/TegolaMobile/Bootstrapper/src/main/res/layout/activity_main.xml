@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/vw_bootstrapper"
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="visible"
+                tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/btn_start_tegola_controller_fgs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="@string/start_server"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/tv_lbl_ctrlr_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/btn_start_tegola_controller_fgs"
+        android:editable="false"
+        android:text="@string/ctrlr_status"/>
+
+    <TextView
+        android:id="@+id/tv_val_ctrlr_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/btn_start_tegola_controller_fgs"
+        android:layout_toRightOf="@id/tv_lbl_ctrlr_status"
+        android:text="@string/stopped"
+        android:editable="false"
+        android:textAlignment="textEnd"/>
+
+    <TextView
+        android:id="@+id/tv_lbl_srvr_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/tv_lbl_ctrlr_status"
+        android:layout_marginBottom="20px"
+        android:editable="false"
+        android:text="@string/srvr_status"/>
+
+    <TextView
+        android:id="@+id/tv_val_srvr_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/tv_lbl_ctrlr_status"
+        android:layout_toRightOf="@id/tv_lbl_ctrlr_status"
+        android:text="@string/stopped"
+        android:editable="false"
+        android:textAlignment="textEnd"/>
+
+    <TextView
+        android:id="@+id/tv_lbl_get"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_lbl_srvr_status"
+        android:paddingRight="10px"
+        android:paddingTop="30px"
+        android:text="@string/lbl_get"/>
+
+    <TextView
+        android:id="@+id/tv_val_uri__static"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_lbl_srvr_status"
+        android:layout_marginBottom="35px"
+        android:layout_toRightOf="@+id/tv_lbl_get"
+        android:paddingTop="30px"
+        android:text="@string/uri_static"
+        android:textStyle="bold"
+        android:visibility="visible"/>
+
+    <EditText
+        android:id="@+id/edt_val_uri__dynamic"
+        style="@style/Widget.AppCompat.EditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/btn_go"
+        android:layout_below="@+id/tv_lbl_srvr_status"
+        android:layout_toRightOf="@+id/tv_val_uri__static"
+        android:editable="true"
+        android:ems="8"
+        android:inputType="textUri"
+        android:textAlignment="viewStart"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="visible"/>
+
+    <Button
+        android:id="@+id/btn_go"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_lbl_srvr_status"
+        android:layout_centerVertical="false"
+        android:layout_toRightOf="@+id/edt_val_uri__dynamic"
+        android:text="@string/go"
+        android:textSize="10sp"/>
+
+    <TextView
+        android:id="@+id/tv_lbl_got"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_go"
+        android:paddingRight="10px"
+        android:text="@string/lbl_got"/>
+
+    <TextView
+        android:id="@+id/tv_val_got_uri"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="false"
+        android:layout_below="@+id/btn_go"
+        android:layout_toRightOf="@+id/tv_lbl_got"
+        android:textAlignment="textEnd"
+        android:textStyle="italic"/>
+
+    <WebView
+        android:id="@+id/wv_mvt_renderer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/tv_lbl_got"
+        android:layout_centerHorizontal="true"
+        android:visibility="visible"/>
+</RelativeLayout>

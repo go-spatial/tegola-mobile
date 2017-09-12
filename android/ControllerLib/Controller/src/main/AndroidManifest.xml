@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="go_spatial.com.github.tegola.mobile.android.controller"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application>
+        <service android:name="go_spatial.com.github.tegola.mobile.android.controller.TCS">
+            <intent-filter>
+                <action android:name="go_spatial.com.github.tegola.android.controller.START_FOREGROUND"/>
+                <action android:name="go_spatial.com.github.tegola.android.controller.STOP_FOREGROUND"/>
+                <action android:name="go_spatial.com.github.tegola.android.controller.MVT_SERVER__START"/>
+                <action android:name="go_spatial.com.github.tegola.android.controller.MVT_SERVER__STOP"/>
+            </intent-filter>
+        </service>
+
+        <activity android:name="go_spatial.com.github.tegola.mobile.android.controller.ASNBContentActivity"/>
+    </application>
+
+</manifest>
