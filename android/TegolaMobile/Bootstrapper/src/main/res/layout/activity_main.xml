@@ -62,7 +62,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/tv_lbl_srvr_status"
         android:paddingRight="10px"
-        android:paddingTop="30px"
+        android:paddingTop="20px"
         android:text="@string/lbl_get"/>
 
     <TextView
@@ -72,7 +72,7 @@
         android:layout_below="@+id/tv_lbl_srvr_status"
         android:layout_marginBottom="35px"
         android:layout_toRightOf="@+id/tv_lbl_get"
-        android:paddingTop="30px"
+        android:paddingTop="20px"
         android:text="@string/uri_static"
         android:textStyle="bold"
         android:visibility="visible"/>
@@ -83,6 +83,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/btn_go"
+        android:layout_alignTop="@+id/tv_val_uri__static"
         android:layout_below="@+id/tv_lbl_srvr_status"
         android:layout_toRightOf="@+id/tv_val_uri__static"
         android:editable="true"
@@ -108,6 +109,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/btn_go"
+        android:layout_marginBottom="10px"
         android:paddingRight="10px"
         android:text="@string/lbl_got"/>
 

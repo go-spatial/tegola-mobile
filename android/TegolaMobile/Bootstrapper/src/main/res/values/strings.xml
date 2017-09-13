@@ -10,4 +10,5 @@
     <string name="uri_static">http://localhost:8080/</string>
     <string name="go">go</string>
     <string name="lbl_got">GOT</string>
+    <string name="tegola_bin_ver">0.4.0</string>
 </resources>

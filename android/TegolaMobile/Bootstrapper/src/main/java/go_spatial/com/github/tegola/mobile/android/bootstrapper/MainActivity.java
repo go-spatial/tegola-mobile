@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        setTitle(getString(R.string.app_name) + " - bin ver. " + getString(R.string.tegola_bin_ver));
+
         m_tv_val_ctrlr_status = (TextView)findViewById(R.id.tv_val_ctrlr_status);
         m_tv_val_srvr_status = (TextView)findViewById(R.id.tv_val_srvr_status);
         m_tv_val_uri__static = (TextView)findViewById(R.id.tv_val_uri__static);

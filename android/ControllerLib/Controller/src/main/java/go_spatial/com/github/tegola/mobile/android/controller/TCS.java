@@ -111,10 +111,10 @@ public class TCS extends Service {
                 ;
         if (!f_tegola_bin_executable.exists()) {
             //transfer matching tegola binary from raw resources based on device arch
-            Log.d(TAG, "init: creating executable tegola.bin from raw for " + Build.CPU_ABI + "...");
+            Log.d(TAG, "init: creating executable tegola.bin from raw for " + Build.CPU_ABI + " ABI, API Level " + Build.VERSION.SDK_INT + "...");
             boolean btegolaexecutablecreated = false;
             try {
-                btegolaexecutablecreated = make_tegola_executable(Constants.Enums.CPU_ABI.fromString(Build.CPU_ABI));
+                btegolaexecutablecreated = make_tegola_executable(Constants.Enums.CPU_ABI.fromString(Build.CPU_ABI), Build.VERSION.SDK_INT);
             } catch (Exceptions.UnsupportedArchitectureException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -138,17 +138,17 @@ public class TCS extends Service {
 
     }
 
-    private boolean make_tegola_executable(final Constants.Enums.CPU_ABI eArch) throws Exceptions.UnsupportedArchitectureException, IOException {
+    private boolean make_tegola_executable(final Constants.Enums.CPU_ABI eArch, final int api_level) throws Exceptions.UnsupportedArchitectureException, IOException {
         int id__raw_tegola_bin = -1;
         if (eArch == null) throw new Exceptions.UnsupportedArchitectureException("eArch is null");
         switch (eArch) {
             case armeabi:
             case armeabi_v7a: {
-                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__arm;
+                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__arm_api_15;
                 break;
             }
             case arm64_v8a: {
-                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__arm64;
+                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__arm64_api_21;
                 break;
             }
             default: throw new Exceptions.UnsupportedArchitectureException(eArch.name() + " does not yet have a corresponding tegola binary for Android");
