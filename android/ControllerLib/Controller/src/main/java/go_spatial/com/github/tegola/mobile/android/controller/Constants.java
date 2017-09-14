@@ -125,8 +125,8 @@ public class Constants {
             , arm64_v8a
             , x86
             , x86_64
-            , mips
-            , mips64
+            , mips  //arch not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
+            , mips64    //arch not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
             ;
 
             public static final CPU_ABI fromString(final String s) {

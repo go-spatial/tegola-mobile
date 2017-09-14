@@ -142,15 +142,27 @@ public class TCS extends Service {
         int id__raw_tegola_bin = -1;
         if (eArch == null) throw new Exceptions.UnsupportedArchitectureException("eArch is null");
         switch (eArch) {
+            //32-bit cpu architectures/ABIs
             case armeabi:
             case armeabi_v7a: {
-                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__arm_api_15;
+                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__api_15__arm;
                 break;
             }
+            case x86: {
+                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__api_15__x86;
+                break;
+            }
+
+            //64-bit cpu architectures/ABIs
             case arm64_v8a: {
-                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__arm64_api_21;
+                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__api_21__arm64;
                 break;
             }
+            case x86_64: {
+                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__api_21__x86_64;
+                break;
+            }
+
             default: throw new Exceptions.UnsupportedArchitectureException(eArch.name() + " does not yet have a corresponding tegola binary for Android");
         }
         InputStream inputstream_raw_tegola_bin = getResources().openRawResource(id__raw_tegola_bin);
@@ -189,7 +201,8 @@ public class TCS extends Service {
                 s_tegola_bin_executable_path = f_tegola_bin_executable.getPath()
                 , s_tegola_config_toml_path = f_tegola_config_toml.getPath()
                 ;
-        if (!(f_tegola_bin_executable.exists() && f_tegola_config_toml.exists())) throw new FileNotFoundException("either " + s_tegola_bin_executable_path + " or " + s_tegola_config_toml_path + " does not exist");
+        if (!(f_tegola_bin_executable.exists() && f_tegola_config_toml.exists()))
+            throw new FileNotFoundException("either " + s_tegola_bin_executable_path + " or " + s_tegola_config_toml_path + " does not exist");
         stop_tegola();
         Log.i(TAG, "start_tegola: starting new tegola server process...");
         Thread thread_tegola_monitor = new Thread(new Runnable() {
@@ -199,16 +212,17 @@ public class TCS extends Service {
                     Intent intent_notify_server_starting = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING);
                     sendBroadcast(intent_notify_server_starting);
                     m_process_tegola = Runtime.getRuntime().exec(new String[] {s_tegola_bin_executable_path, "--config=" + s_tegola_config_toml_path});
+                    BufferedReader reader_tegola_process_stdout = new BufferedReader(new InputStreamReader(m_process_tegola.getInputStream()));
                     m_process_tegola_is_running = true;
                     Intent intent_notify_server_started = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED);
                     sendBroadcast(intent_notify_server_started);
                     m_process_tegola.waitFor();
                     m_process_tegola_is_running = false;
-                    BufferedReader reader_tegola_process_stdout = new BufferedReader(new InputStreamReader(m_process_tegola.getInputStream()));
                     String s_line = "";
                     while ((s_line = reader_tegola_process_stdout.readLine())!= null) {
                         Log.i(TAG, "tegola_monitor_thread: " + s_line);
                     }
+                    reader_tegola_process_stdout.close();
                     Intent intent_notify_server_stopped = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED);
                     sendBroadcast(intent_notify_server_stopped);
                 } catch (InterruptedException e) {
