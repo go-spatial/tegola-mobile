@@ -12,37 +12,57 @@ android {
 
         versionProps.load(new FileInputStream(versionPropsFile))
 
-        def code = versionProps['VERSION_CODE'].toInteger()
+        def vCode = versionProps['VERSION_CODE'].toInteger()
         def vMajor = versionProps['VERSION_MAJOR'].toInteger()
         def vMinor = versionProps['VERSION_MINOR'].toInteger()
         def vSubMinor = versionProps['VERSION_SUBMINOR'].toInteger()
-        def vBuild = versionProps['VERSION_BUILD'].toInteger() + 1
-        vName = vMajor + "." + vMinor + "." + vSubMinor + "." + vBuild
+        def vBuild = versionProps['VERSION_BUILD'].toInteger()
 
         List<String> runTasks = gradle.startParameter.getTaskNames();
 
+        def b_isassemble = false
+        def assemble_type = "_unknown_"
         for (String item : runTasks) {
-            if (item.contains("assemble") && item.contains("Release")) {
-                code++
+            if (item.contains("assemble")) {    //only rev. build and code numbers for assemble tasks
+                b_isassemble = true
+                vBuild++
+                if (item.contains("Debug")) {
+                    assemble_type = "debug"
+                } else if (item.contains("Release")) {
+                    assemble_type = "release"
+                }
             }
         }
+        vName = vMajor + "." + vMinor + "." + vSubMinor + "." + vBuild
+        if (b_isassemble) {
+            project.logger.lifecycle("Assembling new " + assemble_type + " version " + vName.toString())
+        }
 
-        versionProps['VERSION_CODE'] = code.toString()
+        versionProps['VERSION_CODE'] = vCode.toString()
         versionProps['VERSION_MAJOR'] = vMajor.toString()
         versionProps['VERSION_MINOR'] = vMinor.toString()
         versionProps['VERSION_SUBMINOR'] = vSubMinor.toString()
         versionProps['VERSION_BUILD'] = vBuild.toString()
         versionProps.store(versionPropsFile.newWriter(), null)
 
+        def base_archive_name = "tegolamobile"
         defaultConfig {
             applicationId "go_spatial.com.github.tegola.mobile.android"
-            versionCode code
+            versionCode vCode
             versionName vName
-            archivesBaseName = "tegolamobile-$versionName"
+            archivesBaseName = base_archive_name
             minSdkVersion 15
             targetSdkVersion 26
-
             testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        }
+
+        applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                def finalName = base_archive_name + "-" + vName + "-" + variant.buildType.name + ".apk";
+                if (variant.buildType.name == "release") {  //only want to do this for releases
+                    output.outputFile = new File(output.outputFile.parent, finalName)
+                }
+            }
         }
     } else {
         throw new GradleException("Could not read version.properties!")

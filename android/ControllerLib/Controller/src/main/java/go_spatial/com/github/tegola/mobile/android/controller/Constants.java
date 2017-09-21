@@ -1,6 +1,8 @@
 package go_spatial.com.github.tegola.mobile.android.controller;
 
 
+import android.os.Build;
+
 public class Constants {
     public interface Strings {
         String PKG = "go_spatial.com.github.tegola.android.controller";
@@ -13,14 +15,21 @@ public class Constants {
             String MVT_SERVER__STOP = PKG + ".MVT_SERVER__STOP";
         }
         interface CTRLR_INTENT_BR_NOTIFICATIONS {
+            String EXTRA__KEY__MSG = "msg";
+
             String CONTROLLER__FOREGROUND_STARTING = PKG + "FOREGROUND_STARTING";
             String CONTROLLER__FOREGROUND_STARTED = PKG + "FOREGROUND_STARTED";
             String CONTROLLER__FOREGROUND_STOPPING = PKG + "FOREGROUND_STOPPING";
             String CONTROLLER__FOREGROUND_STOPPED = PKG + "FOREGROUND_STOPPED";
             String MVT_SERVER__STARTING = PKG + ".MVT_SERVER__STARTING";
             String MVT_SERVER__STARTED = PKG + ".MVT_SERVER__STARTED";
+            String MVT_SERVER__OUTPUT__STDERR = PKG + ".MVT_SERVER__OUTPUT__STDERR";
+                String MVT_SERVER__OUTPUT__STDERR__LINE = MVT_SERVER__OUTPUT__STDERR + "." + EXTRA__KEY__MSG;
+            String MVT_SERVER__OUTPUT__STDOUT = PKG + ".MVT_SERVER__OUTPUT__STDOUT";
+                String MVT_SERVER__OUTPUT__STDOUT__LINE = MVT_SERVER__OUTPUT__STDOUT + "." + EXTRA__KEY__MSG;
             String MVT_SERVER__STOPPING = PKG + ".MVT_SERVER__STOPPING";
             String MVT_SERVER__STOPPED = PKG + ".MVT_SERVER__STOPPED";
+
         }
         interface TEGOLA_ARG {
             String CONFIG = "config";
@@ -70,10 +79,11 @@ public class Constants {
             , CONTROLLER_FOREGROUND_STOPPED
             , MVT_SERVER__STARTING
             , MVT_SERVER__STARTED
+            , MVT_SERVER__OUTPUT__STDERR
+            , MVT_SERVER__OUTPUT__STDOUT
             , MVT_SERVER__STOPPING
             , MVT_SERVER__STOPPED
             ;
-
             public static final E_CTRLR_BR_NOTIFICATIONS fromString(final String s) {
                 switch (s) {
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STARTING: return E_CTRLR_BR_NOTIFICATIONS.CONTROLLER_FOREGROUND_STARTING;
@@ -82,6 +92,8 @@ public class Constants {
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPED: return E_CTRLR_BR_NOTIFICATIONS.CONTROLLER_FOREGROUND_STOPPED;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STARTING;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STARTED;
+                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR;
+                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STOPPING;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STOPPED;
                     default: return null;
@@ -96,6 +108,8 @@ public class Constants {
                     case CONTROLLER_FOREGROUND_STOPPED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPED;
                     case MVT_SERVER__STARTING: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING;
                     case MVT_SERVER__STARTED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED;
+                    case MVT_SERVER__OUTPUT__STDERR: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR;
+                    case MVT_SERVER__OUTPUT__STDOUT: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT;
                     case MVT_SERVER__STOPPING: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING;
                     case MVT_SERVER__STOPPED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED;
                     default: return null;
@@ -125,10 +139,9 @@ public class Constants {
             , arm64_v8a
             , x86
             , x86_64
-            , mips  //arch not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
-            , mips64    //arch not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
+            , mips
+            , mips64
             ;
-
             public static final CPU_ABI fromString(final String s) {
                 switch (s) {
                     case Strings.CPU_ABI.CPU_ABI__armeabi: return armeabi;
@@ -141,8 +154,9 @@ public class Constants {
                     default: return null;
                 }
             }
-
-
+            public static final CPU_ABI fromDevice() {
+                return fromString(Build.CPU_ABI);
+            }
             @Override
             public String toString() {
                 switch (this) {
@@ -153,6 +167,52 @@ public class Constants {
                     case x86_64: return Strings.CPU_ABI.CPU_ABI__x86_64;
                     case mips: return Strings.CPU_ABI.CPU_ABI__mips;
                     case mips64: return Strings.CPU_ABI.CPU_ABI__mips64;
+                    default: return null;
+                }
+            }
+        }
+        enum TEGOLA_BIN {
+            tegola_0_4_0_bin__api_15__arm
+            , tegola_0_4_0_bin__api_15__x86
+            , tegola_0_4_0_bin__api_21__arm64
+            , tegola_0_4_0_bin__api_21__x86_64
+            ;
+            public final CPU_ABI[] supported_ABIs() {
+                switch (this) {
+                    case tegola_0_4_0_bin__api_15__arm: return new CPU_ABI[]{CPU_ABI.armeabi, CPU_ABI.armeabi_v7a};
+                    case tegola_0_4_0_bin__api_15__x86: return new CPU_ABI[]{CPU_ABI.x86};
+                    case tegola_0_4_0_bin__api_21__arm64: return new CPU_ABI[]{CPU_ABI.arm64_v8a};
+                    case tegola_0_4_0_bin__api_21__x86_64: return new CPU_ABI[]{CPU_ABI.x86_64};
+                    default: return null;
+                }
+            }
+            public final Integer api_level() {
+                switch (this) {
+                    case tegola_0_4_0_bin__api_15__arm:
+                    case tegola_0_4_0_bin__api_15__x86: return 15;
+                    case tegola_0_4_0_bin__api_21__arm64:
+                    case tegola_0_4_0_bin__api_21__x86_64: return 21;
+                    default: return null;
+                }
+            }
+            public final Integer raw_res_id() {
+                switch (this) {
+                    case tegola_0_4_0_bin__api_15__arm: return R.raw.tegola_0_4_0_bin__api_15__arm;
+                    case tegola_0_4_0_bin__api_15__x86: return R.raw.tegola_0_4_0_bin__api_15__x86;
+                    case tegola_0_4_0_bin__api_21__arm64: return R.raw.tegola_0_4_0_bin__api_21__arm64;
+                    case tegola_0_4_0_bin__api_21__x86_64: return R.raw.tegola_0_4_0_bin__api_21__x86_64;
+                    default: return null;
+                }
+            }
+            public static final TEGOLA_BIN get_for(final CPU_ABI for_cpu_abi) {
+                switch (for_cpu_abi) {
+                    case armeabi:
+                    case armeabi_v7a: return tegola_0_4_0_bin__api_15__arm;
+                    case arm64_v8a: return tegola_0_4_0_bin__api_21__arm64;
+                    case x86: return tegola_0_4_0_bin__api_15__x86;
+                    case x86_64: return tegola_0_4_0_bin__api_21__x86_64;
+                    case mips:      //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
+                    case mips64:    //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
                     default: return null;
                 }
             }

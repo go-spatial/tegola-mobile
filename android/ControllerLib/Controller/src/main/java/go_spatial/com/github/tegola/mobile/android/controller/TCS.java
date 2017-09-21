@@ -70,16 +70,24 @@ public class TCS extends Service {
                     sendBroadcast(intent_notify_service_started);
                     init();
                     try {
-                        start_tegola();
+                        start_tegola(Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME);
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exceptions.UnsupportedCPUABIException e) {
+                        e.printStackTrace();
+                    } catch (Exceptions.InvalidTegolaArgumentException e) {
                         e.printStackTrace();
                     }
                     break;
                 }
                 case MVT_SERVER__START: {
                     try {
-                        start_tegola();
+                        start_tegola(Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME);
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exceptions.UnsupportedCPUABIException e) {
+                        e.printStackTrace();
+                    } catch (Exceptions.InvalidTegolaArgumentException e) {
                         e.printStackTrace();
                     }
                     break;
@@ -103,19 +111,20 @@ public class TCS extends Service {
     }
 
     private void init() {
-        //check for existence in app data directory of tegola binary and config.toml
+        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
+        //check for existence in app data files directory of tegola binary and config.toml
         File
                 f_filesDir = getFilesDir()
-                , f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + Constants.Strings.TEGOLA_BIN__NORMALIZED_FNAME)
+                , f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + e_tegola_bin.name())
                 , f_tegola_config_toml = new File(f_filesDir.getPath() + "/" + Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME)
                 ;
         if (!f_tegola_bin_executable.exists()) {
             //transfer matching tegola binary from raw resources based on device arch
-            Log.d(TAG, "init: creating executable tegola.bin from raw for " + Build.CPU_ABI + " ABI, API Level " + Build.VERSION.SDK_INT + "...");
+            Log.d(TAG, "init: creating executable tegola.bin from raw for " + Build.CPU_ABI + " ABI...");
             boolean btegolaexecutablecreated = false;
             try {
-                btegolaexecutablecreated = make_tegola_executable(Constants.Enums.CPU_ABI.fromString(Build.CPU_ABI), Build.VERSION.SDK_INT);
-            } catch (Exceptions.UnsupportedArchitectureException e) {
+                btegolaexecutablecreated = make_tegola_executable();
+            } catch (Exceptions.UnsupportedCPUABIException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -138,41 +147,20 @@ public class TCS extends Service {
 
     }
 
-    private boolean make_tegola_executable(final Constants.Enums.CPU_ABI eArch, final int api_level) throws Exceptions.UnsupportedArchitectureException, IOException {
-        int id__raw_tegola_bin = -1;
-        if (eArch == null) throw new Exceptions.UnsupportedArchitectureException("eArch is null");
-        switch (eArch) {
-            //32-bit cpu architectures/ABIs
-            case armeabi:
-            case armeabi_v7a: {
-                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__api_15__arm;
-                break;
-            }
-            case x86: {
-                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__api_15__x86;
-                break;
-            }
-
-            //64-bit cpu architectures/ABIs
-            case arm64_v8a: {
-                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__api_21__arm64;
-                break;
-            }
-            case x86_64: {
-                id__raw_tegola_bin = R.raw.tegola_0_4_0_bin__api_21__x86_64;
-                break;
-            }
-
-            default: throw new Exceptions.UnsupportedArchitectureException(eArch.name() + " does not yet have a corresponding tegola binary for Android");
-        }
-        InputStream inputstream_raw_tegola_bin = getResources().openRawResource(id__raw_tegola_bin);
+    private boolean make_tegola_executable() throws Exceptions.UnsupportedCPUABIException, IOException {
+        final Constants.Enums.CPU_ABI e_device_abi = Constants.Enums.CPU_ABI.fromDevice();
+        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(e_device_abi);
+        if (e_device_abi == null || e_tegola_bin == null)
+            throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
+        Log.d(TAG, "make_tegola_executable: bin is " + e_tegola_bin.name() + " for CPU_ABI " + Build.CPU_ABI);
+        InputStream inputstream_raw_tegola_bin = getResources().openRawResource(e_tegola_bin.raw_res_id());
         byte[] buf_raw_tegola = new byte[inputstream_raw_tegola_bin.available()];
         inputstream_raw_tegola_bin.read(buf_raw_tegola);
         inputstream_raw_tegola_bin.close();
-        FileOutputStream f_outputstream_tegola_bin = openFileOutput(Constants.Strings.TEGOLA_BIN__NORMALIZED_FNAME, Context.MODE_PRIVATE);
+        FileOutputStream f_outputstream_tegola_bin = openFileOutput(e_tegola_bin.name(), Context.MODE_PRIVATE);
         f_outputstream_tegola_bin.write(buf_raw_tegola);
         f_outputstream_tegola_bin.close();
-        File f_tegola_bin_executable = new File(getFilesDir().getPath() + "/" + Constants.Strings.TEGOLA_BIN__NORMALIZED_FNAME);
+        File f_tegola_bin_executable = new File(getFilesDir().getPath() + "/" + e_tegola_bin.name());
         return f_tegola_bin_executable.setExecutable(true);
     }
 
@@ -188,55 +176,161 @@ public class TCS extends Service {
         return f_tegola_config_toml.exists();
     }
 
-    private volatile Process m_process_tegola = null;
-    private volatile boolean m_process_tegola_is_running = false;
+    private Process m_process_tegola = null;
+    private Thread
+            m_thread_tegola_process_monitor = null
+            , m_thread_tegola_process_stdout_monitor = null
+            , m_thread_tegola_process_stderr_monitor = null;
+    private volatile boolean m_tegola_process_is_running = false;
 
-    private boolean start_tegola() throws IOException {
+    private boolean start_tegola(final String s_fname_config) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException {
+        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
+        if (e_tegola_bin == null)
+            throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
+        if (s_fname_config == null || s_fname_config.isEmpty())
+            throw new Exceptions.InvalidTegolaArgumentException(Constants.Strings.TEGOLA_ARG.CONFIG + ": is null or empty");
         File
                 f_filesDir = getFilesDir()
-                , f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + Constants.Strings.TEGOLA_BIN__NORMALIZED_FNAME)
-                , f_tegola_config_toml = new File(f_filesDir.getPath() + "/" + Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME);
-                ;
+                , f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + e_tegola_bin.name())
+                , f_tegola_config_toml = new File(f_filesDir.getPath() + "/" + s_fname_config);
         final String
                 s_tegola_bin_executable_path = f_tegola_bin_executable.getPath()
-                , s_tegola_config_toml_path = f_tegola_config_toml.getPath()
-                ;
-        if (!(f_tegola_bin_executable.exists() && f_tegola_config_toml.exists()))
-            throw new FileNotFoundException("either " + s_tegola_bin_executable_path + " or " + s_tegola_config_toml_path + " does not exist");
+                , s_tegola_config_toml_path = f_tegola_config_toml.getPath();
+        if (!f_tegola_bin_executable.exists())
+            throw new FileNotFoundException("tegola bin file " + s_tegola_bin_executable_path + " does not exist");
+        if (!f_tegola_config_toml.exists())
+            throw new FileNotFoundException("tegola config file " + s_tegola_config_toml_path + " does not exist");
+
         stop_tegola();
+
         Log.i(TAG, "start_tegola: starting new tegola server process...");
-        Thread thread_tegola_monitor = new Thread(new Runnable() {
+        Intent intent_notify_server_starting = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING);
+        sendBroadcast(intent_notify_server_starting);
+        String[] s_ary_cmdline = new String[]
+            {
+                s_tegola_bin_executable_path
+                , "--" + Constants.Strings.TEGOLA_ARG.CONFIG + "=" + s_tegola_config_toml_path
+            };
+        StringBuilder sb_cmdline = new StringBuilder();
+        for (int i = 0; i < s_ary_cmdline.length; i++) {
+            sb_cmdline.append(s_ary_cmdline[i]);
+            if (i < s_ary_cmdline.length - 1)
+                sb_cmdline.append(" ");
+        }
+        String s_cmdline = sb_cmdline.toString();
+        Log.d(TAG, "start_tegola: cmdline is '" + s_cmdline + "'");
+        m_process_tegola = Runtime.getRuntime().exec(s_cmdline);
+        Log.i(TAG, "start_tegola: process started");
+        Intent intent_notify_server_started = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED);
+        sendBroadcast(intent_notify_server_started);
+        m_tegola_process_is_running = true;
+
+        m_thread_tegola_process_stderr_monitor = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "tegola_stderr_monitor_thread: thread started");
+                InputStream input_stream_tegola_process_stderr = m_process_tegola != null ? m_process_tegola.getErrorStream() : null;
+                if (input_stream_tegola_process_stderr != null) {
+                    Log.d(TAG, "tegola_stderr_monitor_thread: got ref to stderr");
+                    BufferedReader reader_tegola_process_stderr = new BufferedReader(new InputStreamReader(input_stream_tegola_process_stderr));
+                    String s_line = "";
+                    while (!Thread.currentThread().isInterrupted()) {
+                        try {
+                            while ((s_line = reader_tegola_process_stderr.readLine()) != null) {
+                                Log.e(TAG, "tegola_STDERR_output: " + s_line);
+                                Intent intent_notify_server_output_stderr = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR);
+                                intent_notify_server_output_stderr.putExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR__LINE, s_line);
+                                sendBroadcast(intent_notify_server_output_stderr);
+                            }
+                            Thread.sleep(100);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e1) {
+                            //e.printStackTrace();
+                            if (reader_tegola_process_stderr != null) {
+                                try {
+                                    reader_tegola_process_stderr.close();
+                                } catch (IOException e2) {
+                                    //e2.printStackTrace();
+                                }
+                            }
+                            Log.d(TAG, "tegola_stderr_monitor_thread: thread interrupted");
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "tegola_stderr_monitor_thread: could not get ref to stderr!");
+                }
+                Log.d(TAG, "tegola_stderr_monitor_thread: thread exiting");
+            }
+        });
+        m_thread_tegola_process_stderr_monitor.start();
+
+        m_thread_tegola_process_stdout_monitor = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "tegola_stdout_monitor_thread: thread started");
+                InputStream input_stream_tegola_process_stdout = m_process_tegola != null ? m_process_tegola.getInputStream() : null;
+                if (input_stream_tegola_process_stdout != null) {
+                    Log.d(TAG, "tegola_stdout_monitor_thread: got ref to stdout");
+                    BufferedReader reader_tegola_process_stdout = new BufferedReader(new InputStreamReader(input_stream_tegola_process_stdout));
+                    String s_line = "";
+                    while (!Thread.currentThread().isInterrupted()) {
+                        try {
+                            while ((s_line = reader_tegola_process_stdout.readLine()) != null) {
+                                Log.d(TAG, "tegola_STDOUT_output: " + s_line);
+                                Intent intent_notify_server_output_stdout = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT);
+                                intent_notify_server_output_stdout.putExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT__LINE, s_line);
+                                sendBroadcast(intent_notify_server_output_stdout);
+                            }
+                            Thread.sleep(100);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e1) {
+                            //e.printStackTrace();
+                            if (reader_tegola_process_stdout != null) {
+                                try {
+                                    reader_tegola_process_stdout.close();
+                                } catch (IOException e2) {
+                                    //e2.printStackTrace();
+                                }
+                            }
+                            Log.d(TAG, "tegola_stdout_monitor_thread: thread interrupted");
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "tegola_stdout_monitor_thread: could not get ref to stdout!");
+                }
+                Log.d(TAG, "tegola_stdout_monitor_thread: thread exiting");
+            }
+        });
+        m_thread_tegola_process_stdout_monitor.start();
+
+        m_thread_tegola_process_monitor = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Intent intent_notify_server_starting = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING);
-                    sendBroadcast(intent_notify_server_starting);
-                    m_process_tegola = Runtime.getRuntime().exec(new String[] {s_tegola_bin_executable_path, "--config=" + s_tegola_config_toml_path});
-                    BufferedReader reader_tegola_process_stdout = new BufferedReader(new InputStreamReader(m_process_tegola.getInputStream()));
-                    m_process_tegola_is_running = true;
-                    Intent intent_notify_server_started = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED);
-                    sendBroadcast(intent_notify_server_started);
                     m_process_tegola.waitFor();
-                    m_process_tegola_is_running = false;
-                    String s_line = "";
-                    while ((s_line = reader_tegola_process_stdout.readLine())!= null) {
-                        Log.i(TAG, "tegola_monitor_thread: " + s_line);
-                    }
-                    reader_tegola_process_stdout.close();
+                    Log.i(TAG, "tegola_process_monitor_thread: process stopped");
+                    m_thread_tegola_process_stderr_monitor.interrupt();
+                    m_thread_tegola_process_stdout_monitor.interrupt();
+                } catch (InterruptedException e) {
+                    //e.printStackTrace();
+                } finally {
+                    m_thread_tegola_process_stdout_monitor = null;
+                    m_thread_tegola_process_stderr_monitor = null;
+                    m_process_tegola = null;
+                    m_tegola_process_is_running = false;
                     Intent intent_notify_server_stopped = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED);
                     sendBroadcast(intent_notify_server_stopped);
-                } catch (InterruptedException e) {
-                    m_process_tegola_is_running = false;
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    m_process_tegola_is_running = false;
-                    e.printStackTrace();
                 }
             }
         });
-        thread_tegola_monitor.start();
-        Log.i(TAG, "start_tegola: new tegola server process started: " + m_process_tegola_is_running);
-        return m_process_tegola_is_running;
+        m_thread_tegola_process_monitor.start();
+
+        //Log.i(TAG, "start_tegola: new tegola server process started: " + m_tegola_process_is_running);
+        return m_tegola_process_is_running;
     }
 
     private boolean stop_tegola() {
@@ -245,8 +339,18 @@ public class TCS extends Service {
             Intent intent_notify_server_stopping = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING);
             sendBroadcast(intent_notify_server_stopping);
             m_process_tegola.destroy();
+            if (m_thread_tegola_process_monitor != null) {
+                try {
+                    m_thread_tegola_process_monitor.join();
+                } catch (InterruptedException e) {
+                    //e.printStackTrace();
+                }
+                m_thread_tegola_process_monitor = null;
+            }
             m_process_tegola = null;
-            m_process_tegola_is_running = false;
+            m_tegola_process_is_running = false;
+            Intent intent_notify_server_stopped = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED);
+            sendBroadcast(intent_notify_server_stopped);
             return true;
         }
         Log.i(TAG, "stop_tegola: tegola mvt server is not currently running");
