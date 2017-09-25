@@ -23,6 +23,10 @@ public class Constants {
             String CONTROLLER__FOREGROUND_STOPPED = PKG + "FOREGROUND_STOPPED";
             String MVT_SERVER__STARTING = PKG + ".MVT_SERVER__STARTING";
             String MVT_SERVER__STARTED = PKG + ".MVT_SERVER__STARTED";
+                String MVT_SERVER__STARTED__PID = MVT_SERVER__STARTED + ".PID";
+                String MVT_SERVER__STARTED__VERSION = MVT_SERVER__STARTED + ".VERSION";
+            String MVT_SERVER__OUTPUT__LOGCAT = PKG + ".MVT_SERVER__OUTPUT__LOGCAT";
+                String MVT_SERVER__OUTPUT__LOGCAT__LINE = MVT_SERVER__OUTPUT__LOGCAT + "." + EXTRA__KEY__MSG;
             String MVT_SERVER__OUTPUT__STDERR = PKG + ".MVT_SERVER__OUTPUT__STDERR";
                 String MVT_SERVER__OUTPUT__STDERR__LINE = MVT_SERVER__OUTPUT__STDERR + "." + EXTRA__KEY__MSG;
             String MVT_SERVER__OUTPUT__STDOUT = PKG + ".MVT_SERVER__OUTPUT__STDOUT";
@@ -42,6 +46,22 @@ public class Constants {
             String CPU_ABI__x86_64 = "x86_64";
             String CPU_ABI__mips = "mips";
             String CPU_ABI__mips64 = "mips64";
+        }
+        interface SIG_NAME {
+            String SIGABRT = "SIGABRT";
+            String SIGFPE = "SIGFPE";
+            String SIGILL = "SIGILL";
+            String SIGINT = "SIGINT";
+            String SIGSEGV = "SIGSEGV";
+            String SIGTERM = "SIGTERM";
+        }
+        interface SIG_DESC {
+            String SIGABRT = "'abort', abnormal termination";
+            String SIGFPE = "floating point exception";
+            String SIGILL = "'illegal', invalid instruction";
+            String SIGINT = "'interrupt', interactive attention request sent to the program";
+            String SIGSEGV = "'segmentation violation/fault', invalid memory access";
+            String SIGTERM = "'terminate', termination request sent to the program";
         }
     }
 
@@ -79,6 +99,7 @@ public class Constants {
             , CONTROLLER_FOREGROUND_STOPPED
             , MVT_SERVER__STARTING
             , MVT_SERVER__STARTED
+            , MVT_SERVER__OUTPUT__LOGCAT
             , MVT_SERVER__OUTPUT__STDERR
             , MVT_SERVER__OUTPUT__STDOUT
             , MVT_SERVER__STOPPING
@@ -92,6 +113,7 @@ public class Constants {
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPED: return E_CTRLR_BR_NOTIFICATIONS.CONTROLLER_FOREGROUND_STOPPED;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STARTING;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STARTED;
+                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT;
                     case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STOPPING;
@@ -108,6 +130,7 @@ public class Constants {
                     case CONTROLLER_FOREGROUND_STOPPED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPED;
                     case MVT_SERVER__STARTING: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING;
                     case MVT_SERVER__STARTED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED;
+                    case MVT_SERVER__OUTPUT__LOGCAT: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT;
                     case MVT_SERVER__OUTPUT__STDERR: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR;
                     case MVT_SERVER__OUTPUT__STDOUT: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT;
                     case MVT_SERVER__STOPPING: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING;
@@ -186,7 +209,7 @@ public class Constants {
                     default: return null;
                 }
             }
-            public final Integer api_level() {
+            public final Integer target_api() {
                 switch (this) {
                     case tegola_0_4_0_bin__api_15__arm:
                     case tegola_0_4_0_bin__api_15__x86: return 15;
@@ -204,6 +227,15 @@ public class Constants {
                     default: return null;
                 }
             }
+            public final String version_string() {
+                switch (this) {
+                    case tegola_0_4_0_bin__api_15__arm:
+                    case tegola_0_4_0_bin__api_15__x86:
+                    case tegola_0_4_0_bin__api_21__arm64:
+                    case tegola_0_4_0_bin__api_21__x86_64: return "0.4.0";
+                    default: return null;
+                }
+            }
             public static final TEGOLA_BIN get_for(final CPU_ABI for_cpu_abi) {
                 switch (for_cpu_abi) {
                     case armeabi:
@@ -213,6 +245,37 @@ public class Constants {
                     case x86_64: return tegola_0_4_0_bin__api_21__x86_64;
                     case mips:      //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
                     case mips64:    //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
+                    default: return null;
+                }
+            }
+        }
+        enum SIGNAL {
+            SIGABRT     //note: we should not handle this signal but we include it here for the sake of completion - see https://en.wikipedia.org/wiki/C_signal_handling
+            , SIGFPE
+            , SIGILL
+            , SIGINT    //note: we should not handle this signal but we include it here for the sake of completion - see https://en.wikipedia.org/wiki/C_signal_handling
+            , SIGSEGV
+            , SIGTERM   //note: we should not handle this signal but we include it here for the sake of completion - see https://en.wikipedia.org/wiki/C_signal_handling
+            ;
+            public static final SIGNAL fromString(final String s) {
+                switch (s) {
+                    case Strings.SIG_NAME.SIGABRT: return SIGABRT;
+                    case Strings.SIG_NAME.SIGFPE: return SIGFPE;
+                    case Strings.SIG_NAME.SIGILL: return SIGILL;
+                    case Strings.SIG_NAME.SIGINT: return SIGINT;
+                    case Strings.SIG_NAME.SIGSEGV: return SIGSEGV;
+                    case Strings.SIG_NAME.SIGTERM: return SIGTERM;
+                    default: return null;
+                }
+            }
+            public final String description() {
+                switch (this) {
+                    case SIGABRT: return Strings.SIG_DESC.SIGABRT;
+                    case SIGFPE: return Strings.SIG_DESC.SIGFPE;
+                    case SIGILL: return Strings.SIG_DESC.SIGILL;
+                    case SIGINT: return Strings.SIG_DESC.SIGINT;
+                    case SIGSEGV: return Strings.SIG_DESC.SIGSEGV;
+                    case SIGTERM: return Strings.SIG_DESC.SIGTERM;
                     default: return null;
                 }
             }

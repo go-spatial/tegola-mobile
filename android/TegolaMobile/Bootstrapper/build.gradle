@@ -22,13 +22,13 @@ android {
 
         def b_isassemble = false
         def assemble_type = "_unknown_"
-        for (String item : runTasks) {
-            if (item.contains("assemble")) {    //only rev. build and code numbers for assemble tasks
+        for (String rt : runTasks) {
+            if (rt.contains("assemble")) {    //only rev. build and code numbers for assemble tasks
                 b_isassemble = true
                 vBuild++
-                if (item.contains("Debug")) {
+                if (rt.contains("Debug")) {
                     assemble_type = "debug"
-                } else if (item.contains("Release")) {
+                } else if (rt.contains("Release")) {
                     assemble_type = "release"
                 }
             }

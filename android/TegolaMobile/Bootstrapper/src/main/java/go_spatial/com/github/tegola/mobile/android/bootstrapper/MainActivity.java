@@ -4,14 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -19,16 +17,12 @@ import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.TCS;
 
 public class MainActivity extends AppCompatActivity {
+    private TextView m_tv_val_anddro_device_info = null;
     private TextView m_tv_val_ctrlr_status = null;
     private TextView m_tv_val_srvr_status = null;
     private ScrollView m_scrvw_tegola_console_output = null;
     private TextView m_tv_tegola_console_output = null;
-    private TextView m_tv_lbl_get_uri = null;
-    private TextView m_tv_val_get_uri__static = null;
-    private EditText m_et_val_get_uri__dynamic = null;
-    private Button m_btn_get_uri_go = null;
-    private TextView m_tv_lbl_got_uri = null;
-    private TextView m_tv_val_got_uri = null;
+
     private BroadcastReceiver m_rcvr_ctrlr_notifications = null;
     private static IntentFilter m_ctrlr_notifications_filter = null;
 
@@ -38,30 +32,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setTitle(getString(R.string.app_name) + " - build " + BuildConfig.VERSION_NAME);
 
+        m_tv_val_anddro_device_info = (TextView)findViewById(R.id.tv_val_andro_device_info);
+        StringBuilder sb_andro_dev_nfo = new StringBuilder();
+        sb_andro_dev_nfo.append("CPU_ABI " + Constants.Enums.CPU_ABI.fromDevice().toString());
+        sb_andro_dev_nfo.append(", API " + Build.VERSION.SDK_INT /*+ " \"" + Build.VERSION.CODENAME + "\""*/);
+        m_tv_val_anddro_device_info.setText(sb_andro_dev_nfo.toString());
+
         m_tv_val_ctrlr_status = (TextView)findViewById(R.id.tv_val_tegola_ctrlr_status);
         m_tv_val_srvr_status = (TextView)findViewById(R.id.tv_val_tegola_srvr_status);
         m_scrvw_tegola_console_output = (ScrollView)findViewById(R.id.scrvw_tegola_console_output);
         m_tv_tegola_console_output = (TextView)findViewById(R.id.tv_tegola_console_output);
-        m_tv_lbl_get_uri = (TextView)findViewById(R.id.tv_lbl_get_uri);
-        m_tv_val_get_uri__static = (TextView)findViewById(R.id.tv_val_get_uri__static);
-        m_et_val_get_uri__dynamic = (EditText)findViewById(R.id.edt_val_get_uri__dynamic);
-        m_btn_get_uri_go = (Button)findViewById(R.id.btn_get_uri_go);
-        m_btn_get_uri_go.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(m_tv_val_get_uri__static.getText());
-                sb.append(m_et_val_get_uri__dynamic.getText());
-                String s_uri = sb.toString();
-                if (!s_uri.startsWith("http://") && !s_uri.startsWith("https://"))
-                    s_uri = "http://" + s_uri;
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(s_uri));
-                startActivity(browserIntent);
-                //m_wv_mvt_got_uri_renderer.loadUrl(sb.toString());
-            }
-        });
-        m_tv_lbl_got_uri = (TextView)findViewById(R.id.tv_lbl_got_uri);
-        m_tv_val_got_uri = (TextView)findViewById(R.id.tv_val_got_uri);
 
         onMVTServerStopped();
         onControllerStopped();
@@ -73,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         m_ctrlr_notifications_filter.addAction(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPED);
         m_ctrlr_notifications_filter.addAction(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING);
         m_ctrlr_notifications_filter.addAction(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED);
+        m_ctrlr_notifications_filter.addAction(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT);
         m_ctrlr_notifications_filter.addAction(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR);
         m_ctrlr_notifications_filter.addAction(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT);
         m_ctrlr_notifications_filter.addAction(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING);
@@ -103,7 +84,14 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
                     case MVT_SERVER__STARTED: {
-                        onMVTServerStarted();
+                        onMVTServerStarted(
+                            intent.getStringExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED__VERSION)
+                            , intent.getIntExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED__PID, -1)
+                        );
+                        break;
+                    }
+                    case MVT_SERVER__OUTPUT__LOGCAT: {
+                        onMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT__LINE));
                         break;
                     }
                     case MVT_SERVER__OUTPUT__STDERR: {
@@ -155,52 +143,42 @@ public class MainActivity extends AppCompatActivity {
         m_tv_val_srvr_status.setText(getString(R.string.starting));
     }
 
-    private void onMVTServerStarted() {
-        m_tv_val_srvr_status.setText(getString(R.string.started));
-        m_tv_lbl_get_uri.setVisibility(View.VISIBLE);
-        m_tv_val_get_uri__static.setVisibility(View.VISIBLE);
-        m_et_val_get_uri__dynamic.setText("");
-        m_et_val_get_uri__dynamic.setVisibility(View.VISIBLE);
-        m_btn_get_uri_go.setEnabled(true);
-        m_btn_get_uri_go.setVisibility(View.VISIBLE);
-        m_tv_val_got_uri.setText("");
-        m_tv_lbl_got_uri.setVisibility(View.VISIBLE);
-        m_tv_val_got_uri.setText("");
-        m_tv_val_got_uri.setVisibility(View.VISIBLE);
+    private void onMVTServerStarted(final String version, final int pid) {
+        final StringBuilder sb_srvr_status = new StringBuilder();
+        sb_srvr_status.append(getString(R.string.started));
+        if (version != null && !version.isEmpty())
+            sb_srvr_status.append(" version " + version);
+        if (pid != -1)
+            sb_srvr_status.append(" , pid " + pid + "");
+        m_tv_val_srvr_status.setText(sb_srvr_status.toString());
+    }
+
+    private void onMVTServerOutputLogcat(final String logcat_line) {
+        sv_append_mvt_server_console_output("<LOGCAT> " + logcat_line);
     }
 
     private void onMVTServerOutputStdErr(final String stderr_line) {
-        sv_append_mvt_server_console_output(stderr_line);
+        sv_append_mvt_server_console_output("<STDERR> " + stderr_line);
     }
 
     private void onMVTServerOutputStdOut(final String stdout_line) {
-        sv_append_mvt_server_console_output(stdout_line);
+        sv_append_mvt_server_console_output("<STDOUT> " + stdout_line);
     }
 
     private void sv_append_mvt_server_console_output(final String s) {
         m_tv_tegola_console_output.append(s + "\n");
-        m_scrvw_tegola_console_output.post(new Runnable() {
+        m_scrvw_tegola_console_output.postDelayed(new Runnable() {
             public void run() {
                 m_scrvw_tegola_console_output.fullScroll(View.FOCUS_DOWN);
             }
-        });
+        }, 250);
     }
 
     private void onMVTServerStopping() {
-        m_btn_get_uri_go.setEnabled(false);
         m_tv_val_srvr_status.setText(getString(R.string.stopping));
     }
 
     private void onMVTServerStopped() {
-        m_tv_lbl_get_uri.setVisibility(View.GONE);
-        m_tv_val_get_uri__static.setVisibility(View.GONE);
-        m_et_val_get_uri__dynamic.setText("");
-        m_et_val_get_uri__dynamic.setVisibility(View.GONE);
-        m_btn_get_uri_go.setVisibility(View.GONE);
-        m_tv_val_got_uri.setText("");
-        m_tv_lbl_got_uri.setVisibility(View.GONE);
-        m_tv_val_got_uri.setText("");
-        m_tv_val_got_uri.setVisibility(View.GONE);
         m_tv_val_srvr_status.setText(getString(R.string.stopped));
     }
 
