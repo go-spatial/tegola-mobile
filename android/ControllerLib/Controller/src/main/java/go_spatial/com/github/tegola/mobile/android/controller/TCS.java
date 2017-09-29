@@ -172,7 +172,7 @@ public class TCS extends Service {
     }
 
     private boolean transfer_tegola_default_config_toml() throws IOException {
-        InputStream inputstream_raw_config_toml = getResources().openRawResource(R.raw.config_toml__osm);
+        InputStream inputstream_raw_config_toml = getResources().openRawResource(R.raw.config_toml);
         byte[] buf_raw_config_toml = new byte[inputstream_raw_config_toml.available()];
         inputstream_raw_config_toml.read(buf_raw_config_toml);
         inputstream_raw_config_toml.close();
