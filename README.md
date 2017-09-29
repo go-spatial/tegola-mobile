@@ -125,4 +125,8 @@ Since tegola is written in Golang, we must use Golang build tools in combination
 			 - `tegola_bin__android_x86_64` (for CPU_ABI: x86_64)
 
 #### Build Tegola Mobile APK with Android Studio
-From Android Studio, select `Build|Build APK` or `Build|Generate Signed APK`
+Note that Tegola Mobile APK will not build until you place your tegola config within the raw resources location of the Android Studio project.
+- file location:`$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/`
+- file name: `config_toml`
+
+You are now ready to build the APK.  From Android Studio, select `Build|Build APK` or `Build|Generate Signed APK`.
