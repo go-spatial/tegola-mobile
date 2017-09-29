@@ -15,25 +15,25 @@ To be able to do this for Android targets, this means that we must *manually* cr
 At the time of this writing, the latest version of golang (https://golang.org/dl) is version 1.9 and supports cross-compiling tegola for the following Android platforms
 
 - CPU architecture: arm
- - golang "GOOS": "android"
- - golang "GOARCH": "arm"
- - supported Android arm CPU_ABIs: armeabi, armeabi-v7a
- - supported Android APIs: 15 through 26
+	- golang "GOOS": "android"
+ 	- golang "GOARCH": "arm"
+ 	- supported Android arm CPU_ABIs: armeabi, armeabi-v7a
+ 	- supported Android APIs: 15 through 26
 - CPU architecture: arm64
- - golang "GOOS": "android"
- - golang "GOARCH": "arm64"
- - supported Android arm CPU_ABIs: arm64-v8a
- - supported Android APIs: 15 through 26
+ 	- golang "GOOS": "android"
+ 	- golang "GOARCH": "arm64"
+ 	- supported Android arm CPU_ABIs: arm64-v8a
+ 	- supported Android APIs: 15 through 26
 - CPU architecture: x86
- - "GOOS": "android"
- - "GOARCH": "386"
- - supported Android arm CPU_ABIs: x86
- - supported Android APIs: 15 through 26
+ 	- "GOOS": "android"
+ 	- "GOARCH": "386"
+ 	- supported Android arm CPU_ABIs: x86
+ 	- supported Android APIs: 15 through 26
 - CPU architecture: x86_64
- - "GOOS": "android"
- - "GOARCH": "amd64"
- - supported Android arm CPU_ABIs: x86_64
- - supported Android APIs: 15 through 26
+ 	- "GOOS": "android"
+ 	- "GOARCH": "amd64"
+ 	- supported Android arm CPU_ABIs: x86_64
+ 	- supported Android APIs: 15 through 26
 
 ##Building Tegola Mobile from Source
 #####Summary
