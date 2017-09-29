@@ -114,8 +114,8 @@ Since tegola is written in Golang, we must use Golang build tools in combination
  7. Clone/pull *your* forked **tegola** version branch repo to `$GOPATH/src/github.com/terranodo/tegola/` to update sources
  8. Cross-compile tegola Android-platform binaries with Golang build tools
 	 - Execute the "build all" schell script:
-		 - On **Linux** build-hosts: `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/linux/buildbuild_tegola_android_all.sh`  
-		 - On **Windows** build-hosts: `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/win/buildbuild_tegola_android_all.bat`
+		 - On **Linux** build-hosts: `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/linux/build_tegola_android_all.sh`  
+		 - On **Windows** build-hosts: `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/win/build_tegola_android_all.bat`
 	 - Provided go-build cross-compilation succeeds, tegola android-platform binaries will be placed within the raw resource directory of the Android Studio project
 		 - file location:  `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/`
 		 - filenames:
