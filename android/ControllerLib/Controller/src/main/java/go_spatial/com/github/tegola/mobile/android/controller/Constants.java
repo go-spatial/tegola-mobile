@@ -195,54 +195,54 @@ public class Constants {
             }
         }
         enum TEGOLA_BIN {
-            tegola_0_4_0_bin__api_15__arm
-            , tegola_0_4_0_bin__api_15__x86
-            , tegola_0_4_0_bin__api_21__arm64
-            , tegola_0_4_0_bin__api_21__x86_64
+            tegola_bin__arm
+            , tegola_bin__x86
+            , tegola_bin__arm64
+            , tegola_bin__x86_64
             ;
             public final CPU_ABI[] supported_ABIs() {
                 switch (this) {
-                    case tegola_0_4_0_bin__api_15__arm: return new CPU_ABI[]{CPU_ABI.armeabi, CPU_ABI.armeabi_v7a};
-                    case tegola_0_4_0_bin__api_15__x86: return new CPU_ABI[]{CPU_ABI.x86};
-                    case tegola_0_4_0_bin__api_21__arm64: return new CPU_ABI[]{CPU_ABI.arm64_v8a};
-                    case tegola_0_4_0_bin__api_21__x86_64: return new CPU_ABI[]{CPU_ABI.x86_64};
+                    case tegola_bin__arm: return new CPU_ABI[]{CPU_ABI.armeabi, CPU_ABI.armeabi_v7a};
+                    case tegola_bin__x86: return new CPU_ABI[]{CPU_ABI.x86};
+                    case tegola_bin__arm64: return new CPU_ABI[]{CPU_ABI.arm64_v8a};
+                    case tegola_bin__x86_64: return new CPU_ABI[]{CPU_ABI.x86_64};
                     default: return null;
                 }
             }
-            public final Integer target_api() {
+            public final Integer min_api() {
                 switch (this) {
-                    case tegola_0_4_0_bin__api_15__arm:
-                    case tegola_0_4_0_bin__api_15__x86: return 15;
-                    case tegola_0_4_0_bin__api_21__arm64:
-                    case tegola_0_4_0_bin__api_21__x86_64: return 21;
+                    case tegola_bin__arm:
+                    case tegola_bin__x86: return 15;
+                    case tegola_bin__arm64:
+                    case tegola_bin__x86_64: return 21;
                     default: return null;
                 }
             }
             public final Integer raw_res_id() {
                 switch (this) {
-                    case tegola_0_4_0_bin__api_15__arm: return R.raw.tegola_0_4_0_bin__api_15__arm;
-                    case tegola_0_4_0_bin__api_15__x86: return R.raw.tegola_0_4_0_bin__api_15__x86;
-                    case tegola_0_4_0_bin__api_21__arm64: return R.raw.tegola_0_4_0_bin__api_21__arm64;
-                    case tegola_0_4_0_bin__api_21__x86_64: return R.raw.tegola_0_4_0_bin__api_21__x86_64;
+                    case tegola_bin__arm: return R.raw.tegola_bin__android_arm;
+                    case tegola_bin__x86: return R.raw.tegola_bin__android_x86;
+                    case tegola_bin__arm64: return R.raw.tegola_bin__android_arm64;
+                    case tegola_bin__x86_64: return R.raw.tegola_bin__android_x86_64;
                     default: return null;
                 }
             }
             public final String version_string() {
                 switch (this) {
-                    case tegola_0_4_0_bin__api_15__arm:
-                    case tegola_0_4_0_bin__api_15__x86:
-                    case tegola_0_4_0_bin__api_21__arm64:
-                    case tegola_0_4_0_bin__api_21__x86_64: return "0.4.0";
+                    case tegola_bin__arm:
+                    case tegola_bin__x86:
+                    case tegola_bin__arm64:
+                    case tegola_bin__x86_64: return "0.4.0";
                     default: return null;
                 }
             }
             public static final TEGOLA_BIN get_for(final CPU_ABI for_cpu_abi) {
                 switch (for_cpu_abi) {
                     case armeabi:
-                    case armeabi_v7a: return tegola_0_4_0_bin__api_15__arm;
-                    case arm64_v8a: return tegola_0_4_0_bin__api_21__arm64;
-                    case x86: return tegola_0_4_0_bin__api_15__x86;
-                    case x86_64: return tegola_0_4_0_bin__api_21__x86_64;
+                    case armeabi_v7a: return tegola_bin__arm;
+                    case arm64_v8a: return tegola_bin__arm64;
+                    case x86: return tegola_bin__x86;
+                    case x86_64: return tegola_bin__x86_64;
                     case mips:      //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
                     case mips64:    //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
                     default: return null;
