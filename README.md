@@ -81,9 +81,9 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-15, 
 	 3. Execute shell command: `gomobile init`
 		 - note that this will create gomobile dependency files necessary for cross-compilation within
 			 - `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_386`
-			 - `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_386`
-			 - `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_386`
-			 - and `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_386`   
+			 - `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_amd64`
+			 - `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_arm`
+			 - and `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_arm64`   
  19. Download and install Python
  20. Add path to Python `/bin` subdirectory to your PATH environment variable
  21. Set environment variable MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME to `"$MY_ANDROID_HOME/ndk-standalone-toolchain"`
