@@ -35,15 +35,16 @@ At the time of this writing, the latest version of golang (https://golang.org/dl
  	- supported Android arm CPU_ABIs: x86_64
  	- supported Android APIs: 15 through 26
 
-##Building Tegola Mobile from Source
-#####Summary
+
+## Building Tegola Mobile from Source
+##### Summary
 Building Tegola Mobile is a two-step process.  First, the Tegola Mobile Android Studio project houses Android-platform-specific binaries of a specific version of the tegola server within raw resources that must be built/precompiled from source.  We intend to build one APK per tegola feature/sourcecode version.
 
  - Note that when cross-compiling the tegola binary for Android Golang build tools in conjunction with the NDK standlone toolchains, we target the minimum API-level that a given architecture supports for the purpose of backward compatibility.  This is because targeting a higher API target renders the binary incompatible on older platforms.  For example, if we target API-26 (the latest version of Android at the time of this writing) when building the arm version of the tegola binary, the binary will run on arm/API-26 devices but is not guaranteed to do so on devices with arm/API-level<26 devices.  Whereas the inverse is true - i.e. a tegola binary version targeting arm/API-15 will run on the arm/API-15 platform as well as the arm/API-26 platform.
 
 After precompiling tegola Android-platform binaries, all four - for arm/API-15, arm64/API-21, x86/API-15, and x86_64/API-21 - are placed within the raw resources location of the Android Studio project.  Note that we have written buildscripts to take the headache out of this part of the process.  The APK can then be built from Tegola Mobile sources with the Android Studio project.
 
-####Build-Host Configuration
+#### Build-Host Configuration
  1. Download and install latest **JDK** (http://www.oracle.com/technetwork/java/javase/downloads/index.html) for your host environment
  2. Add path to Java `/bin` subdirectory to your PATH environment variable
  3. Download and install the latest version of **Golang** (https://golang.org/dl/)
@@ -84,7 +85,7 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-15, 
 			 - `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_386`
 			 - and `$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_386`   
  19. Download and install Python
- 20. Add path to Python "/bin" subdirectory to your PATH environment variable
+ 20. Add path to Python `/bin` subdirectory to your PATH environment variable
  21. Set environment variable MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME to `"$MY_ANDROID_HOME/ndk-standalone-toolchain"`
  22. Build Android NDK Standalone Toolchains
 	 - For Android-platform: *arm/API 15* (minimum 32-bit arm)
@@ -101,7 +102,7 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-15, 
 		 - Execute shell command:  `python \$MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86_64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64 --force`
 
 
-####Build Tegola Android-Platform Target Binaries
+#### Build Tegola Android-Platform Target Binaries
 Since tegola is written in Golang, we must use Golang build tools in combination with the NDK Standalone Toolchains (see above) to cross-compile the four supported Android-platform tegola binaries.  Note that these steps must be completed each time you want to target a new revision or different feature version of tegola (for Android).
 
  1. (Only once) Fork the github **tegola-mobile** repo (https://github.com/sacontreras/tegola-mobile, *but you know that already if you are reading this*) for your github account if you have not already done so
