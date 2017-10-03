@@ -68,7 +68,7 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-15, 
 		 - `NDK`
 	  5. Click `Apply`
 	  6. If any components need to be installed or updated, Android Studio SDK Manager will notify you module-by-module; click `OK` each time and the respective module will be downloaded/installed - note that installing the NDK usually takes a very long time so don't be alarmed when it does
- 13. Set environment variable MY_ANDROID_HOME to the root directory of where **Android Studio SDK Manager** installed the components from step 12 - this is typically `\Android`
+ 13. Set environment variable MY_ANDROID_HOME to the root directory of where **Android Studio SDK Manager** installed the components from step 12 - this is typically `/Android`
  14. Set environment variable MY_ANDROID_SDK_HOME to `"$MY_ANDROID_HOME/sdk"` - note: make sure case is correct since on Windows this directory name is in lower case, while on Linux it is "Sdk"
  15. Set environment variable MY_ANDROID_NDK_HOME to `"$MY_ANDROID_HOME/ndk-bundle"`
  16. Add `"$MY_ANDROID_SDK_HOME/tools"` to your PATH environment variable
@@ -105,7 +105,7 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-15, 
 #### Build Tegola Android-Platform Target Binaries
 Since tegola is written in Golang, we must use Golang build tools in combination with the NDK Standalone Toolchains (see above) to cross-compile the four supported Android-platform tegola binaries.  Note that these steps must be completed each time you want to target a new revision or different feature version of tegola (for Android).
 
- 1. (Only once) Fork the github **tegola-mobile** repo (https://github.com/sacontreras/tegola-mobile, *but you know that already if you are reading this*) for your github account if you have not already done so
+ 1. (Only once) Fork the github **tegola-mobile** repo (https://github.com/terranodo/tegola-mobile, *but you know that already if you are reading this*) for your github account if you have not already done so
  2. (Only once) Create directory `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/`
  3. Clone/pull *your* forked **tegola-mobile** repo to `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/` to update sources
  4. (Only once) Fork the github **tegola** repo (https://github.com/terranodo/tegola) for your github account if you have not already done so
@@ -138,7 +138,7 @@ You are now ready to build the APK.
 
 
 ### Running Tegola Mobile APK
-1. First you need to install **Tegola Mobile** on your target device - note that this can be an emulator an physical Android device
+1. First you need to install **Tegola Mobile** on your target device - note that this can be an emulator or a physical Android device
 2. If you want to run **Tegola Mobile** within the Android Studio debugger
 	1. you will need:
 	 	- physical device with USB Debugging enabled, attached via USB
