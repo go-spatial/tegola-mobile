@@ -56,7 +56,7 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-15, 
  9. Download and install the latest version of **Android Studio** (https://developer.android.com/studio/index.html#downloads) for your host environment
  10. Create Android Studio workspace directory if you have not already done so
  11. Set environment variable MY_ANDROID_STUDIO_WORKSPACE to the root of your Android Studio workspace directory
- 12. Download and install/update **Android SDKs**, **Build Tools**, and **NDK** *via Android Studio*
+ 12. Download and install/update **Android SDKs**, **Build Tools**, and **NDK** *via **Android Studio SDK Manager***
 	  1. Launch Android Studio - note that on Linux environments, if this is the first time launching Android Studio, the launcher will run through first-time environment setup, which takes several minutes to complete while it downloads necessary supporting files
 	  2. From Android Studio launcher, select `Configure|SDK Manager`; this will launch the Android Studio SDK Manager in a new Window but will be entitled "Default Settings"
 	  3. In the right pane, select the `SDK Tools` tab
@@ -68,7 +68,7 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-15, 
 		 - `NDK`
 	  5. Click `Apply`
 	  6. If any components need to be installed or updated, Android Studio SDK Manager will notify you module-by-module; click `OK` each time and the respective module will be downloaded/installed - note that installing the NDK usually takes a very long time so don't be alarmed when it does
- 13. Set environment variable MY_ANDROID_HOME to the root of your Android Studio installation directory
+ 13. Set environment variable MY_ANDROID_HOME to the root directory of where **Android Studio SDK Manager** installed the components from step 12 - this is typically `\Android`
  14. Set environment variable MY_ANDROID_SDK_HOME to `"$MY_ANDROID_HOME/sdk"` - note: make sure case is correct since on Windows this directory name is in lower case, while on Linux it is "Sdk"
  15. Set environment variable MY_ANDROID_NDK_HOME to `"$MY_ANDROID_HOME/ndk-bundle"`
  16. Add `"$MY_ANDROID_SDK_HOME/tools"` to your PATH environment variable
@@ -124,9 +124,29 @@ Since tegola is written in Golang, we must use Golang build tools in combination
 			 - `tegola_bin__android_x86` (for CPU_ABI: x86)
 			 - `tegola_bin__android_x86_64` (for CPU_ABI: x86_64)
 
-#### Build Tegola Mobile APK with Android Studio
-Note that Tegola Mobile APK will not build until you place your tegola config within the raw resources location of the Android Studio project.
-- file location:`$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/`
-- file name: `config_toml`
 
-You are now ready to build the APK.  From Android Studio, select `Build|Build APK` or `Build|Generate Signed APK`.
+#### Build Tegola Mobile APK with Android Studio
+You are now ready to build the APK.
+
+1. Start Android Studio
+2. Open the **Tegola Mobile** Android Studio project from the Android Studio launcher by clicking `Open an Existing Android Studio project`
+3. Navigate to the Tegola Mobile Android Studio project directory, location at `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TegolaMobile` and click `OK`
+4. Note that Tegola Mobile APK will not build until you place your tegola config file in the Tegola Mobile Android Studio project raw resources location
+	- file destination: `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/`
+	- file name: `config_toml`
+5. From Android Studio, select `Build|Build APK` or `Build|Generate Signed APK` - note that to build a signed APK you will need to generate a keystore and signing certificate if you have not already done so
+
+
+### Running Tegola Mobile APK
+1. First you need to install **Tegola Mobile** on your target device - note that this can be an emulator an physical Android device
+2. If you want to run **Tegola Mobile** within the Android Studio debugger
+	1. you will need:
+	 	- physical device with USB Debugging enabled, attached via USB
+	 	- _OR_, set up and run an instance of an Android Device Emulator - see https://developer.android.com/studio/run/managing-avds.html
+	2. From Android Studio, select `Run|Debug Bootstrapper` - note that Android Studio will
+		1. build a debug version of the APK
+		2. automatically install it, provided you have either an instance AVD running or a USB-debuggable Android device attached to your build-host
+		3. automatically launch the main activity - note that currently the Bootstrapper will automatically start TCS (Tegola Controller Service), which will in turn automatically spawn a new child process of tegola mvt server/daemon
+3. _OR_, if you do not want to attach the Android Studio debugger, you will need to install the debug version or the signed version of the Tegola Mobile APK via ADB
+	1. see https://developer.android.com/studio/command-line/adb.html
+	2. you will need to manually launch Tegola Mobile from Android's app drawer by "clicking" the Tegola Mobile launcher icon
