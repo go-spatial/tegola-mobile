@@ -8,32 +8,51 @@ public class Constants {
         String PKG = "go_spatial.com.github.tegola.android.controller";
         String TEGOLA_BIN__NORMALIZED_FNAME = "tegola.bin";
         String TEGOLA_CONFIG_TOML__NORMALIZED_FNAME = "config.toml";
-        interface CTRLR_INTENT_ACTION {
-            String CONTROLLER__START_FOREGROUND = PKG + "START_FOREGROUND";
-            String CONTROLLER__STOP_FOREGROUND = PKG + "STOP_FOREGROUND";
-            String MVT_SERVER__START = PKG + ".MVT_SERVER__START";
-            String MVT_SERVER__STOP = PKG + ".MVT_SERVER__STOP";
-        }
-        interface CTRLR_INTENT_BR_NOTIFICATIONS {
-            String EXTRA__KEY__MSG = "msg";
+        interface INTENT {
+            interface ACTION {
+                String EXTRA__KEY__CONFIG = "CONFIG";
+                String EXTRA__KEY__MSG = "MSG";
+                String EXTRA__KEY__VERSION = "VERSION";
+                String EXTRA__KEY__PID = "PID";
+                String EXTRA__KEY__REASON = "REASON";
+                String EXTRA__KEY__REMOTE = "REMOTE";
 
-            String CONTROLLER__FOREGROUND_STARTING = PKG + "FOREGROUND_STARTING";
-            String CONTROLLER__FOREGROUND_STARTED = PKG + "FOREGROUND_STARTED";
-            String CONTROLLER__FOREGROUND_STOPPING = PKG + "FOREGROUND_STOPPING";
-            String CONTROLLER__FOREGROUND_STOPPED = PKG + "FOREGROUND_STOPPED";
-            String MVT_SERVER__STARTING = PKG + ".MVT_SERVER__STARTING";
-            String MVT_SERVER__STARTED = PKG + ".MVT_SERVER__STARTED";
-                String MVT_SERVER__STARTED__PID = MVT_SERVER__STARTED + ".PID";
-                String MVT_SERVER__STARTED__VERSION = MVT_SERVER__STARTED + ".VERSION";
-            String MVT_SERVER__OUTPUT__LOGCAT = PKG + ".MVT_SERVER__OUTPUT__LOGCAT";
-                String MVT_SERVER__OUTPUT__LOGCAT__LINE = MVT_SERVER__OUTPUT__LOGCAT + "." + EXTRA__KEY__MSG;
-            String MVT_SERVER__OUTPUT__STDERR = PKG + ".MVT_SERVER__OUTPUT__STDERR";
-                String MVT_SERVER__OUTPUT__STDERR__LINE = MVT_SERVER__OUTPUT__STDERR + "." + EXTRA__KEY__MSG;
-            String MVT_SERVER__OUTPUT__STDOUT = PKG + ".MVT_SERVER__OUTPUT__STDOUT";
-                String MVT_SERVER__OUTPUT__STDOUT__LINE = MVT_SERVER__OUTPUT__STDOUT + "." + EXTRA__KEY__MSG;
-            String MVT_SERVER__STOPPING = PKG + ".MVT_SERVER__STOPPING";
-            String MVT_SERVER__STOPPED = PKG + ".MVT_SERVER__STOPPED";
+                interface FGS_CONTROL_REQUEST {
+                    String FGS__START_FOREGROUND = PKG + "START_FOREGROUND";
+                    String FGS__STOP_FOREGROUND = PKG + "STOP_FOREGROUND";
+                }
+                interface MVT_SERVER_CONTROL_REQUEST {
+                    String MVT_SERVER__START = PKG + ".MVT_SERVER__START";
+                    String MVT_SERVER__STOP = PKG + ".MVT_SERVER__STOP";
+                    interface EXTRA__KEY {
+                        String MVT_SERVER__START__CONFIG = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG;
+                        String MVT_SERVER__START__CONFIG__REMOTE = MVT_SERVER__START + "." + EXTRA__KEY__REMOTE;
+                    }
+                }
+                interface CTRLR_NOTIFICATION {
+                    String CONTROLLER__FOREGROUND_STARTING = PKG + "FOREGROUND_STARTING";
+                    String CONTROLLER__FOREGROUND_STARTED = PKG + "FOREGROUND_STARTED";
+                    String CONTROLLER__FOREGROUND_STOPPING = PKG + "FOREGROUND_STOPPING";
+                    String CONTROLLER__FOREGROUND_STOPPED = PKG + "FOREGROUND_STOPPED";
+                    String MVT_SERVER__STARTING = PKG + ".MVT_SERVER__STARTING";
+                    String MVT_SERVER__START_FAILED = ".MVT_SERVER__STARTING";
+                    String MVT_SERVER__STARTED = PKG + ".MVT_SERVER__STARTED";
+                    String MVT_SERVER__OUTPUT__LOGCAT = PKG + ".MVT_SERVER__OUTPUT__LOGCAT";
+                    String MVT_SERVER__OUTPUT__STDERR = PKG + ".MVT_SERVER__OUTPUT__STDERR";
+                    String MVT_SERVER__OUTPUT__STDOUT = PKG + ".MVT_SERVER__OUTPUT__STDOUT";
+                    String MVT_SERVER__STOPPING = PKG + ".MVT_SERVER__STOPPING";
+                    String MVT_SERVER__STOPPED = PKG + ".MVT_SERVER__STOPPED";
 
+                    interface EXTRA__KEY {
+                        String MVT_SERVER__START_FAILED__REASON = MVT_SERVER__START_FAILED + "." + EXTRA__KEY__REASON;
+                        String MVT_SERVER__STARTED__VERSION = MVT_SERVER__STARTED + "." + EXTRA__KEY__VERSION;
+                        String MVT_SERVER__STARTED__PID = MVT_SERVER__STARTED + "." + EXTRA__KEY__PID;
+                        String MVT_SERVER__OUTPUT__LOGCAT__LINE = MVT_SERVER__OUTPUT__LOGCAT + "." + EXTRA__KEY__MSG;
+                        String MVT_SERVER__OUTPUT__STDERR__LINE = MVT_SERVER__OUTPUT__STDERR + "." + EXTRA__KEY__MSG;
+                        String MVT_SERVER__OUTPUT__STDOUT__LINE = MVT_SERVER__OUTPUT__STDOUT + "." + EXTRA__KEY__MSG;
+                    }
+                }
+            }
         }
         interface TEGOLA_ARG {
             String CONFIG = "config";
@@ -66,38 +85,54 @@ public class Constants {
     }
 
     public interface Enums {
-        enum E_CTRLR_INTENT_ACTION {
-            CONTROLLER__START_FOREGROUND
-            , CONTROLLER__STOP_FOREGROUND
-            , MVT_SERVER__START
-            , MVT_SERVER__STOP
+        enum E_INTENT_ACTION__FGS_CONTROL_REQUEST {
+            FGS__STOP_FOREGROUND
+            , FGS__START_FOREGROUND
             ;
-            public static final E_CTRLR_INTENT_ACTION fromString(final String s) {
+
+            public static final E_INTENT_ACTION__FGS_CONTROL_REQUEST fromString(final String s) {
                 switch (s) {
-                    case Strings.CTRLR_INTENT_ACTION.CONTROLLER__START_FOREGROUND: return CONTROLLER__START_FOREGROUND;
-                    case Strings.CTRLR_INTENT_ACTION.CONTROLLER__STOP_FOREGROUND: return CONTROLLER__STOP_FOREGROUND;
-                    case Strings.CTRLR_INTENT_ACTION.MVT_SERVER__START: return MVT_SERVER__START;
-                    case Strings.CTRLR_INTENT_ACTION.MVT_SERVER__STOP: return MVT_SERVER__STOP;
+                    case Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND: return FGS__START_FOREGROUND;
+                    case Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__STOP_FOREGROUND: return FGS__STOP_FOREGROUND;
                     default: return null;
                 }
             }
             @Override
             public String toString() {
                 switch (this) {
-                    case CONTROLLER__START_FOREGROUND: return Strings.CTRLR_INTENT_ACTION.CONTROLLER__START_FOREGROUND;
-                    case CONTROLLER__STOP_FOREGROUND: return Strings.CTRLR_INTENT_ACTION.CONTROLLER__STOP_FOREGROUND;
-                    case MVT_SERVER__START: return Strings.CTRLR_INTENT_ACTION.MVT_SERVER__START;
-                    case MVT_SERVER__STOP: return Strings.CTRLR_INTENT_ACTION.MVT_SERVER__STOP;
+                    case FGS__START_FOREGROUND: return Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND;
+                    case FGS__STOP_FOREGROUND: return Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__STOP_FOREGROUND;
                     default: return null;
                 }
             }
         }
-        enum E_CTRLR_BR_NOTIFICATIONS {
+        enum E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST {
+            MVT_SERVER__START
+            , MVT_SERVER__STOP
+            ;
+            public static final E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST fromString(final String s) {
+                switch (s) {
+                    case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START: return MVT_SERVER__START;
+                    case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP: return MVT_SERVER__STOP;
+                    default: return null;
+                }
+            }
+            @Override
+            public String toString() {
+                switch (this) {
+                    case MVT_SERVER__START: return Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START;
+                    case MVT_SERVER__STOP: return Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP;
+                    default: return null;
+                }
+            }
+        }
+        enum E_INTENT_ACTION__CTRLR_NOTIFICATION {
             CONTROLLER_FOREGROUND_STARTING
             , CONTROLLER_FOREGROUND_STARTED
             , CONTROLLER_FOREGROUND_STOPPING
             , CONTROLLER_FOREGROUND_STOPPED
             , MVT_SERVER__STARTING
+            , MVT_SERVER__START_FAILED
             , MVT_SERVER__STARTED
             , MVT_SERVER__OUTPUT__LOGCAT
             , MVT_SERVER__OUTPUT__STDERR
@@ -105,36 +140,38 @@ public class Constants {
             , MVT_SERVER__STOPPING
             , MVT_SERVER__STOPPED
             ;
-            public static final E_CTRLR_BR_NOTIFICATIONS fromString(final String s) {
+            public static final E_INTENT_ACTION__CTRLR_NOTIFICATION fromString(final String s) {
                 switch (s) {
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STARTING: return E_CTRLR_BR_NOTIFICATIONS.CONTROLLER_FOREGROUND_STARTING;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STARTED: return E_CTRLR_BR_NOTIFICATIONS.CONTROLLER_FOREGROUND_STARTED;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPING: return E_CTRLR_BR_NOTIFICATIONS.CONTROLLER_FOREGROUND_STOPPING;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPED: return E_CTRLR_BR_NOTIFICATIONS.CONTROLLER_FOREGROUND_STOPPED;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STARTING;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STARTED;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STOPPING;
-                    case Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED: return E_CTRLR_BR_NOTIFICATIONS.MVT_SERVER__STOPPED;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING: return CONTROLLER_FOREGROUND_STARTING;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED: return CONTROLLER_FOREGROUND_STARTED;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPING: return CONTROLLER_FOREGROUND_STOPPING;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPED: return CONTROLLER_FOREGROUND_STOPPED;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING: return MVT_SERVER__STARTING;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED: return MVT_SERVER__START_FAILED;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED: return MVT_SERVER__STARTED;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT: return MVT_SERVER__OUTPUT__LOGCAT;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR: return MVT_SERVER__OUTPUT__STDERR;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT: return MVT_SERVER__OUTPUT__STDOUT;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING: return MVT_SERVER__STOPPING;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED: return MVT_SERVER__STOPPED;
                     default: return null;
                 }
             }
             @Override
             public String toString() {
                 switch (this) {
-                    case CONTROLLER_FOREGROUND_STARTING: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STARTING;
-                    case CONTROLLER_FOREGROUND_STARTED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STARTED;
-                    case CONTROLLER_FOREGROUND_STOPPING: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPING;
-                    case CONTROLLER_FOREGROUND_STOPPED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STOPPED;
-                    case MVT_SERVER__STARTING: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING;
-                    case MVT_SERVER__STARTED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED;
-                    case MVT_SERVER__OUTPUT__LOGCAT: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT;
-                    case MVT_SERVER__OUTPUT__STDERR: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR;
-                    case MVT_SERVER__OUTPUT__STDOUT: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT;
-                    case MVT_SERVER__STOPPING: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING;
-                    case MVT_SERVER__STOPPED: return Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED;
+                    case CONTROLLER_FOREGROUND_STARTING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING;
+                    case CONTROLLER_FOREGROUND_STARTED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED;
+                    case CONTROLLER_FOREGROUND_STOPPING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPING;
+                    case CONTROLLER_FOREGROUND_STOPPED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPED;
+                    case MVT_SERVER__STARTING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING;
+                    case MVT_SERVER__START_FAILED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED;
+                    case MVT_SERVER__STARTED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED;
+                    case MVT_SERVER__OUTPUT__LOGCAT: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT;
+                    case MVT_SERVER__OUTPUT__STDERR: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR;
+                    case MVT_SERVER__OUTPUT__STDOUT: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT;
+                    case MVT_SERVER__STOPPING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING;
+                    case MVT_SERVER__STOPPED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED;
                     default: return null;
                 }
             }
@@ -155,6 +192,10 @@ public class Constants {
                     default: return null;
                 }
             }
+        }
+        enum TEGOLA_CONFIG_TYPE {
+            LOCAL
+            , REMOTE;
         }
         enum CPU_ABI {  //provides string mapping to Build.CPU_ABI; see https://developer.android.com/ndk/guides/abis.html
             armeabi

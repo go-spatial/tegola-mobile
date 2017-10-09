@@ -3,12 +3,18 @@ package go_spatial.com.github.tegola.mobile.android.controller;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -23,11 +29,20 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 
 
-public class TCS extends Service {
-    private static final String TAG = TCS.class.getName();
+public class ControllerFGS extends Service {
+    private static final String TAG = ControllerFGS.class.getName();
 
+    private BroadcastReceiver m_br_client_control_request = null;
+    private IntentFilter m_filter_br_client_control_request = null;
+    private final boolean m_br_client_control_request_onReceive_in_worker_thread = true;  //change to false if you want this to run on the main UI thread (but this is not a good idea as it will slow down the UI since all the work will be done there)
+    private HandlerThread m_handlerthread_br_client_control_request = null;
+    private Looper m_looper_handler_br_client_control_request = null;
+    private Handler m_handler_br_client_control_request = null;
+
+
+    //statically load libraries here
     static {
-        System.loadLibrary("tcsnativeauxsupp");
+        System.loadLibrary("tcsnativeauxsupp"); //for signal trapping - note that this will convert native signals (only three we are interested in) into java exceptions
     }
 
     @Nullable
@@ -40,22 +55,26 @@ public class TCS extends Service {
 
     @Override
     public int onStartCommand(Intent intent, /*@IntDef(value = {Service.START_FLAG_REDELIVERY, Service.START_FLAG_RETRY}, flag = true)*/ int flags, int startId) {
-        Constants.Enums.E_CTRLR_INTENT_ACTION eIntent = Constants.Enums.E_CTRLR_INTENT_ACTION.fromString(intent != null ? intent.getAction() : null);
-        if (eIntent != null) {
-            switch (eIntent) {
-                case CONTROLLER__START_FOREGROUND: {
-                    Log.i(TAG, "Received MVT Controller Start Foreground Intent");
+        Constants.Enums.E_INTENT_ACTION__FGS_CONTROL_REQUEST e_fgs_ctrl_request = Constants.Enums.E_INTENT_ACTION__FGS_CONTROL_REQUEST.fromString(intent != null ? intent.getAction() : null);
+        if (e_fgs_ctrl_request != null) {
+            switch (e_fgs_ctrl_request) {
+                case FGS__START_FOREGROUND: {
+                    Log.i(TAG, "Received FGS__START_FOREGROUND request");
+
+                    Intent intent_notify_service_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING);
+                    sendBroadcast(intent_notify_service_starting);
+
                     Intent notificationIntent = new Intent(this, ASNBContentActivity.class);
-                    notificationIntent.setAction(Constants.Strings.CTRLR_INTENT_ACTION.MVT_SERVER__START);
+                    notificationIntent.setAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
                     notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-                    Intent startServerIntent = new Intent(this, TCS.class);
-                    startServerIntent.setAction(Constants.Strings.CTRLR_INTENT_ACTION.MVT_SERVER__START);
+                    Intent startServerIntent = new Intent(this, ControllerFGS.class);
+                    startServerIntent.setAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
                     PendingIntent pstartServerIntent = PendingIntent.getService(this, 0, startServerIntent, 0);
 
-                    Intent stopServerIntent = new Intent(this, TCS.class);
-                    stopServerIntent.setAction(Constants.Strings.CTRLR_INTENT_ACTION.MVT_SERVER__STOP);
+                    Intent stopServerIntent = new Intent(this, ControllerFGS.class);
+                    stopServerIntent.setAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
                     PendingIntent pstopServerIntent = PendingIntent.getService(this, 0, stopServerIntent, 0);
 
                     Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
@@ -71,40 +90,15 @@ public class TCS extends Service {
                             .addAction(android.R.drawable.ic_media_play, getString(R.string.start_server), pstartServerIntent)
                             .addAction(android.R.drawable.ic_media_pause, getString(R.string.stop_server), pstopServerIntent).build();
                     startForeground(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, notification);
-                    Intent intent_notify_service_started = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.CONTROLLER__FOREGROUND_STARTED);
-                    sendBroadcast(intent_notify_service_started);
+
                     init();
-                    try {
-                        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());   //for now since we only support one version of tegola per CPU_ABI; later we will support multiple based on tegola versions available...
-                        start_tegola(e_tegola_bin, Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exceptions.UnsupportedCPUABIException e) {
-                        e.printStackTrace();
-                    } catch (Exceptions.InvalidTegolaArgumentException e) {
-                        e.printStackTrace();
-                    }
+
+                    Intent intent_notify_service_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED);
+                    sendBroadcast(intent_notify_service_started);
                     break;
                 }
-                case MVT_SERVER__START: {
-                    try {
-                        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());   //for now since we only support one version of tegola per CPU_ABI; later we will support multiple based on tegola versions available...
-                        start_tegola(e_tegola_bin, Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exceptions.UnsupportedCPUABIException e) {
-                        e.printStackTrace();
-                    } catch (Exceptions.InvalidTegolaArgumentException e) {
-                        e.printStackTrace();
-                    }
-                    break;
-                }
-                case MVT_SERVER__STOP: {
-                    stop_tegola();
-                    break;
-                }
-                case CONTROLLER__STOP_FOREGROUND: {
-                    Log.i(TAG, "Received MVT Controller Stop Foreground Intent");
+                case FGS__STOP_FOREGROUND: {
+                    Log.i(TAG, "Received FGS__STOP_FOREGROUND request");
                     stop_tegola();
                     stopForeground(true);
                     stopSelf();
@@ -118,6 +112,41 @@ public class TCS extends Service {
     }
 
     private void init() {
+        //set BR to listen for client mvt-server-control-request
+        m_filter_br_client_control_request = new IntentFilter();
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
+        m_br_client_control_request = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Constants.Enums.E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST e_mvt_srvr_ctrl_request = Constants.Enums.E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST.fromString(intent != null ? intent.getAction() : null);
+                switch (e_mvt_srvr_ctrl_request) {
+                    case MVT_SERVER__START: {
+                        Log.i(TAG, "Received MVT_SERVER__START request");
+                        handle_mvt_server_control_request__start(
+                            intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG)
+                            , intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, false)
+                        );
+                        break;
+                    }
+                    case MVT_SERVER__STOP: {
+                        Log.i(TAG, "Received MVT_SERVER__STOP request");
+                        handle_mvt_server_control_request__stop();
+                        break;
+                    }
+                }
+            }
+        };
+        if (m_br_client_control_request_onReceive_in_worker_thread) {
+            m_handlerthread_br_client_control_request = new HandlerThread("Thread_BroadcastReceiver_CliCtrlRequest_TCS");
+            m_handlerthread_br_client_control_request.start();
+            m_looper_handler_br_client_control_request = m_handlerthread_br_client_control_request.getLooper();
+        } else
+            m_looper_handler_br_client_control_request = getApplicationContext().getMainLooper();  //then this is the looper for the main ui thread - hence onReceive() of broadcast receiver runs in main ui's thread
+        m_handler_br_client_control_request = new Handler(m_looper_handler_br_client_control_request);
+        getApplicationContext().registerReceiver(m_br_client_control_request, m_filter_br_client_control_request, null, m_handler_br_client_control_request);
+
+
         final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
         //check for existence in app data files directory of tegola binary and config.toml
         File
@@ -139,19 +168,6 @@ public class TCS extends Service {
             Log.d(TAG, "init: make_tegola_executable() returned --> " + btegolaexecutablecreated);
         }
         Log.d(TAG, "init: " + f_tegola_bin_executable.getPath() + " exists --> " + f_tegola_bin_executable.exists());
-        if (!f_tegola_config_toml.exists()) {
-            //transfer default config.toml from raw resources
-            Log.d(TAG, "init: transferring default config.toml from raw...");
-            boolean btegoladefaultconfigtransfered = false;
-            try {
-                btegoladefaultconfigtransfered = transfer_tegola_default_config_toml();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Log.d(TAG, "init: transfer_tegola_default_config_toml() returned: " + btegoladefaultconfigtransfered);
-        }
-        Log.d(TAG, "init: " + f_tegola_config_toml.getPath() + " exists --> " + f_tegola_config_toml.exists());
-
     }
 
     private boolean make_tegola_executable() throws Exceptions.UnsupportedCPUABIException, IOException {
@@ -169,18 +185,6 @@ public class TCS extends Service {
         f_outputstream_tegola_bin.close();
         File f_tegola_bin_executable = new File(getFilesDir().getPath() + "/" + e_tegola_bin.name());
         return f_tegola_bin_executable.setExecutable(true);
-    }
-
-    private boolean transfer_tegola_default_config_toml() throws IOException {
-        InputStream inputstream_raw_config_toml = getResources().openRawResource(R.raw.config_toml);
-        byte[] buf_raw_config_toml = new byte[inputstream_raw_config_toml.available()];
-        inputstream_raw_config_toml.read(buf_raw_config_toml);
-        inputstream_raw_config_toml.close();
-        FileOutputStream f_outputstream_tegola_default_config_toml = openFileOutput(Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME, Context.MODE_PRIVATE);
-        f_outputstream_tegola_default_config_toml.write(buf_raw_config_toml);
-        f_outputstream_tegola_default_config_toml.close();
-        File f_tegola_config_toml = new File(getFilesDir().getPath() + "/" + Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME);
-        return f_tegola_config_toml.exists();
     }
 
     private Process m_process_tegola = null;
@@ -204,28 +208,53 @@ public class TCS extends Service {
         return pid;
     }
 
-    private boolean start_tegola(final Constants.Enums.TEGOLA_BIN e_tegola_bin, final String s_fname_config) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException {
-        if (e_tegola_bin == null)
-            throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
+    private void handle_mvt_server_control_request__start(@NonNull final String s_config_toml, final boolean remote_config) {
+        try {
+            final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
+            start_tegola(s_config_toml, remote_config);  //note that this function internally handles sending the MVT_SERVER__STARTING and MVT_SERVER__STARTED notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
+        } catch (IOException e) {
+            e.printStackTrace();
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            sendBroadcast(intent_notify_mvt_server_start_failed);
+        } catch (Exceptions.UnsupportedCPUABIException e) {
+            e.printStackTrace();
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            sendBroadcast(intent_notify_mvt_server_start_failed);
+        } catch (Exceptions.InvalidTegolaArgumentException e) {
+            e.printStackTrace();
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            sendBroadcast(intent_notify_mvt_server_start_failed);
+        }
+    }
+
+    private void handle_mvt_server_control_request__stop() {
+        stop_tegola();
+    }
+
+    private boolean start_tegola(final String s_fname_config, final boolean remote_config) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException {
         if (s_fname_config == null || s_fname_config.isEmpty())
             throw new Exceptions.InvalidTegolaArgumentException(Constants.Strings.TEGOLA_ARG.CONFIG + ": is null or empty");
+        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
         File
                 f_filesDir = getFilesDir()
                 , f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + e_tegola_bin.name())
-                , f_tegola_config_toml = new File(f_filesDir.getPath() + "/" + s_fname_config);
+                , f_tegola_config_toml = (remote_config ? null : new File(f_filesDir.getPath() + "/" + s_fname_config));
         final String
                 s_tegola_bin_executable_path = f_tegola_bin_executable.getPath()
-                , s_tegola_config_toml_path = f_tegola_config_toml.getPath();
+                , s_tegola_config_toml_path = (remote_config ? null : f_tegola_config_toml.getPath());
         if (!f_tegola_bin_executable.exists())
             throw new FileNotFoundException("tegola bin file " + s_tegola_bin_executable_path + " does not exist");
-        if (!f_tegola_config_toml.exists())
+        if (!(!remote_config && f_tegola_config_toml.exists()))
             throw new FileNotFoundException("tegola config file " + s_tegola_config_toml_path + " does not exist");
 
         stop_tegola();
 
         Log.i(TAG, "start_tegola: starting new tegola server process...");
         //notify br_receivers (if any) server starting
-        Intent intent_notify_server_starting = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTING);
+        Intent intent_notify_server_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING);
         sendBroadcast(intent_notify_server_starting);
 
         //build and exec tegola cmd line in new process
@@ -242,7 +271,7 @@ public class TCS extends Service {
             m_thread_tegola_process_stderr_monitor = null;
             m_process_tegola = null;
             m_tegola_process_is_running = false;
-            Intent intent_notify_server_stopped = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED);
+            Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
             sendBroadcast(intent_notify_server_stopped);
             return false;
         }
@@ -254,10 +283,10 @@ public class TCS extends Service {
         Log.i(TAG, "start_tegola: server process " + (pid_process_tegola != -1 ? "(pid " + pid_process_tegola + ") ": "") + "started");
 
         //start tegola process logcat cat monitor and notify br receivers MVT_SERVER__STARTED
-        Intent intent_notify_server_started = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED);
-        intent_notify_server_started.putExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED__VERSION, e_tegola_bin.version_string());
+        Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED);
+        intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION, e_tegola_bin.version_string());
         if (pid_process_tegola != -1)
-            intent_notify_server_started.putExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STARTED__PID, pid_process_tegola);
+            intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, pid_process_tegola);
         sendBroadcast(intent_notify_server_started);
 
         //now start tegola logcat monitor specifc to tegola process (before stderr and stdout monitors since there is always the possibility tegola could segfault or trigger some other native signal)
@@ -283,8 +312,8 @@ public class TCS extends Service {
                                 try {
                                     while ((s_line = reader_logcat_monitor_process.readLine()) != null) {
                                         if (s_line.contains(pid_process_tegola + ":")) {
-                                            Intent intent_notify_server_output_logcat = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT);
-                                            intent_notify_server_output_logcat.putExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__LOGCAT__LINE, s_line);
+                                            Intent intent_notify_server_output_logcat = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT);
+                                            intent_notify_server_output_logcat.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__LOGCAT__LINE, s_line);
                                             sendBroadcast(intent_notify_server_output_logcat);
                                         }
                                     }
@@ -329,8 +358,8 @@ public class TCS extends Service {
                         try {
                             while ((s_line = reader_tegola_process_stderr.readLine()) != null) {
                                 Log.e(TAG, "tegola_STDERR_output: " + s_line);
-                                Intent intent_notify_server_output_stderr = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR);
-                                intent_notify_server_output_stderr.putExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDERR__LINE, s_line);
+                                Intent intent_notify_server_output_stderr = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR);
+                                intent_notify_server_output_stderr.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDERR__LINE, s_line);
                                 sendBroadcast(intent_notify_server_output_stderr);
                             }
                             Thread.sleep(100);
@@ -371,8 +400,8 @@ public class TCS extends Service {
                         try {
                             while ((s_line = reader_tegola_process_stdout.readLine()) != null) {
                                 Log.d(TAG, "tegola_STDOUT_output: " + s_line);
-                                Intent intent_notify_server_output_stdout = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT);
-                                intent_notify_server_output_stdout.putExtra(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__OUTPUT__STDOUT__LINE, s_line);
+                                Intent intent_notify_server_output_stdout = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT);
+                                intent_notify_server_output_stdout.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDOUT__LINE, s_line);
                                 sendBroadcast(intent_notify_server_output_stdout);
                             }
                             Thread.sleep(100);
@@ -417,7 +446,7 @@ public class TCS extends Service {
                     m_thread_tegola_process_logcat_monitor = null;
                     m_process_tegola = null;
                     m_tegola_process_is_running = false;
-                    Intent intent_notify_server_stopped = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED);
+                    Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
                     sendBroadcast(intent_notify_server_stopped);
                 }
             }
@@ -430,7 +459,7 @@ public class TCS extends Service {
     private boolean stop_tegola() {
         if (m_process_tegola != null) {
             Log.i(TAG, "stop_tegola: killing current running instance of tegola mvt server...");
-            Intent intent_notify_server_stopping = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPING);
+            Intent intent_notify_server_stopping = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING);
             sendBroadcast(intent_notify_server_stopping);
             m_process_tegola.destroy();
             if (m_thread_tegola_process_monitor != null) {
@@ -443,7 +472,7 @@ public class TCS extends Service {
             }
             m_process_tegola = null;
             m_tegola_process_is_running = false;
-            Intent intent_notify_server_stopped = new Intent(Constants.Strings.CTRLR_INTENT_BR_NOTIFICATIONS.MVT_SERVER__STOPPED);
+            Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
             sendBroadcast(intent_notify_server_stopped);
             return true;
         }

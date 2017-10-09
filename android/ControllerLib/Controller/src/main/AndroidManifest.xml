@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.READ_LOGS"/>
 
     <application>
-        <service android:name="go_spatial.com.github.tegola.mobile.android.controller.TCS"/>
+        <service android:name="go_spatial.com.github.tegola.mobile.android.controller.ControllerFGS"/>
         <activity android:name="go_spatial.com.github.tegola.mobile.android.controller.ASNBContentActivity"/>
     </application>
 

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/layout_config_file_editor"
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:visibility="visible"
+              tools:context=".ConfigFileEditorActivity">
+
+    <!-- file contents layout: BEGIN -->
+    <ScrollView
+        android:id="@+id/scvw_config_file_contents"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="horizontal|vertical"
+        android:soundEffectsEnabled="true">
+
+        <go_spatial.com.github.tegola.mobile.android.bootstrapper.CustomEditText
+            android:id="@+id/edt_config_file_contents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:bufferType="editable"
+            android:enabled="true"
+            android:inputType="text|textMultiLine|textImeMultiLine"/>
+
+    </ScrollView>
+    <!-- file contents layout: END -->
+
+</LinearLayout>

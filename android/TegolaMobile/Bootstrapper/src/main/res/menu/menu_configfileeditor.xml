@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ConfigFileEditorActivity">
+
+    <item
+        android:id="@+id/menu_item__cfg_file_editor__edit"
+        android:icon="@android:drawable/ic_menu_edit"
+        app:showAsAction="always"
+        android:title="@string/edit_config_file"/>
+
+    <item
+        android:id="@+id/menu_item__cfg_file_editor__commit_changes"
+        android:icon="@android:drawable/ic_menu_save"
+        app:showAsAction="always"
+        android:title="@string/commit_config_file_changes"/>
+
+    <item
+        android:id="@+id/menu_item__cfg_file_editor__revert_changes"
+        android:icon="@android:drawable/ic_menu_revert"
+        app:showAsAction="always"
+        android:title="@string/revert_config_file_changes"/>
+
+    <item
+        android:id="@+id/menu_item__cfg_file_editor__close"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        app:showAsAction="always"
+        android:title="@string/close_config_file"/>
+
+</menu>

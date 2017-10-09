@@ -1,137 +1,459 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout android:id="@+id/vw_bootstrapper"
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="visible"
-                tools:context=".MainActivity">
+<LinearLayout android:id="@+id/layout_bootstrapper"
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:visibility="visible"
+              tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/tv_lbl_andro_device_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="5dp"
-        android:editable="false"
-        android:enabled="true"
-        android:paddingRight="5dp"
-        android:paddingEnd="5dp"
-        android:text="@string/android_device_info"
-        android:textSize="14sp"
-        android:visibility="visible"/>
+    <ScrollView
+        android:id="@+id/sv_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
 
-    <TextView
-        android:id="@+id/tv_val_andro_device_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@id/tv_lbl_andro_device_info"
-        android:layout_toEndOf="@id/tv_lbl_andro_device_info"
-        android:editable="false"
-        android:enabled="true"
-        android:text="**placeholder__device_info"
-        android:textAlignment="viewEnd"
-        android:layout_gravity="end"
-        android:textSize="14sp"
-        android:visibility="visible"/>
-
-    <TextView
-        android:id="@+id/tv_lbl_ctrlr_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/tv_lbl_andro_device_info"
-        android:layout_marginBottom="5dp"
-        android:editable="false"
-        android:enabled="true"
-        android:paddingRight="5dp"
-        android:paddingEnd="5dp"
-        android:text="@string/ctrlr_status"
-        android:textSize="14sp"
-        android:visibility="visible"/>
-
-    <TextView
-        android:id="@+id/tv_val_tegola_ctrlr_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/tv_lbl_andro_device_info"
-        android:layout_toRightOf="@id/tv_lbl_ctrlr_status"
-        android:layout_toEndOf="@id/tv_lbl_ctrlr_status"
-        android:editable="false"
-        android:enabled="true"
-        android:text="@string/stopped"
-        android:textAlignment="viewEnd"
-        android:layout_gravity="end"
-        android:textSize="14sp"
-        android:visibility="visible"/>
-
-    <TextView
-        android:id="@+id/tv_lbl_srvr_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/tv_lbl_ctrlr_status"
-        android:layout_marginBottom="10dp"
-        android:editable="false"
-        android:enabled="true"
-        android:paddingRight="5dp"
-        android:paddingEnd="5dp"
-        android:text="@string/srvr_status"
-        android:textSize="14sp"
-        android:visibility="visible"/>
-
-    <TextView
-        android:id="@+id/tv_val_tegola_srvr_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@+id/tv_lbl_ctrlr_status"
-        android:layout_toRightOf="@+id/tv_lbl_srvr_status"
-        android:layout_toEndOf="@+id/tv_lbl_srvr_status"
-        android:editable="false"
-        android:text="@string/stopped"
-        android:textAlignment="viewEnd"
-        android:layout_gravity="end"
-        android:textSize="14sp"
-        android:visibility="visible"/>
-
-    <TextView
-        android:id="@+id/tv_lbl_srvr_console_output"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/tv_lbl_srvr_status"
-        android:text="@string/srvr_console_ouput"/>
-
-    <LinearLayout android:id="@+id/tegola_console_output_container"
-                  xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:layout_width="fill_parent"
-                  android:layout_height="200dp"
-                  android:layout_below="@+id/tv_lbl_srvr_console_output"
-                  android:background="@android:color/background_dark"
-                  android:orientation="vertical"
-                  android:visibility="visible">
-
-        <ScrollView
-            android:id="@+id/scrvw_tegola_console_output"
-            android:layout_width="fill_parent"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fillViewport="true"
-            android:scrollbars="vertical">
+            android:orientation="vertical">
+            <!-- device info section: BEGIN -->
+            <LinearLayout
+                android:id="@+id/sect__andro_dev_nfo"
+                style="@style/Section"
+                android:layout_marginTop="0dp">
+                <!-- device info section heading: BEGIN -->
+                <LinearLayout
+                    android:id="@+id/sect__andro_dev_nfo__heading"
+                    style="@style/Section_Heading">
 
-            <TextView
-                android:id="@+id/tv_tegola_console_output"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_weight="1.0"/>
-        </ScrollView>
-    </LinearLayout>
+                    <RelativeLayout
+                        style="@style/Section_Heading_Content">
 
-</RelativeLayout>
+                        <Button
+                            android:id="@+id/btn_sect__andro_dev_nfo__expand"
+                            style="@style/Expandable_Section_Heading_Button"/>
+
+                        <TextView
+                            android:id="@+id/tv_sect_heading_lbl__andro_device_info"
+                            style="@style/Section_Heading_Content_Label"
+                            android:layout_alignBottom="@+id/btn_sect__andro_dev_nfo__expand"
+                            android:layout_alignTop="@+id/btn_sect__andro_dev_nfo__expand"
+                            android:layout_centerVertical="false"
+                            android:layout_toLeftOf="@+id/btn_sect__andro_dev_nfo__expand"
+                            android:layout_toStartOf="@+id/btn_sect__andro_dev_nfo__expand"
+                            android:text="@string/android_device_info"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:id="@+id/vw_sect_heading_underscore__andro_dev_nfo"
+                        style="@style/Section_Heading_Underscore"/>
+                </LinearLayout>
+                <!-- device info section heading: END -->
+                <!-- dev nfo section content: BEGIN -->
+                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                    android:id="@+id/sect_content__andro_dev_nfo"
+                    style="@style/Section_Content"
+                    app:ael_duration="400"
+                    app:ael_expanded="false"
+                    app:ael_interpolator="bounce"
+                    app:ael_orientation="vertical">
+                    <!-- dev nfo section content item: CPU_ABI - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__CPU_ABI"
+                        style="@style/Section_Content_Item"
+                        android:layout_alignParentTop="true">
+
+                        <TextView
+                            android:id="@+id/tv_lbl_CPU_ABI"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/cpu_abi"
+                            android:visibility="visible"/>
+
+                        <TextView
+                            android:id="@+id/tv_val_CPU_ABI"
+                            style="@style/Section_Content_Item_Content"
+                            android:text="**placeholder__cpu_abi**"
+                            android:visibility="visible"/>
+                    </LinearLayout>
+                    <!-- dev nfo section content item: CPU_ABI - END -->
+                    <!-- dev nfo section content item: API level - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__API_level"
+                        style="@style/Section_Content_Item"
+                        android:layout_below="@+id/sect_content__item__CPU_ABI">
+
+                        <TextView
+                            android:id="@+id/tv_lbl_API_level"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/api_level"
+                            android:visibility="visible"/>
+
+                        <TextView
+                            android:id="@+id/tv_val_API_level"
+                            style="@style/Section_Content_Item_Content"
+                            android:text="**placeholder__api_level**"
+                            android:visibility="visible"/>
+                    </LinearLayout>
+                    <!-- dev nfo section content item: API level - BEGIN -->
+                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+                <!-- dev nfo section content: END -->
+            </LinearLayout>
+            <!-- device info section: END -->
+            <!-- controller info section: BEGIN -->
+            <LinearLayout
+                android:id="@+id/sect__ctrlr_nfo"
+                style="@style/Section">
+                <!-- controller info section heading: BEGIN -->
+                <LinearLayout
+                    android:id="@+id/sect__ctrlr_nfo__heading"
+                    style="@style/Section_Heading">
+
+                    <RelativeLayout
+                        style="@style/Section_Heading_Content">
+
+                        <Button
+                            android:id="@+id/btn_sect__ctrlr_nfo__expand"
+                            style="@style/Expandable_Section_Heading_Button"/>
+
+                        <TextView
+                            android:id="@+id/tv_sect_heading_lbl__ctrlr_nfo"
+                            style="@style/Section_Heading_Content_Label"
+                            android:layout_alignBottom="@+id/btn_sect__ctrlr_nfo__expand"
+                            android:layout_alignTop="@+id/btn_sect__ctrlr_nfo__expand"
+                            android:layout_toLeftOf="@+id/btn_sect__ctrlr_nfo__expand"
+                            android:layout_toStartOf="@+id/btn_sect__ctrlr_nfo__expand"
+                            android:text="@string/ctrlr_info"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:id="@+id/vw_sect_heading_underscore__ctrlr_nfo"
+                        style="@style/Section_Heading_Underscore"/>
+                </LinearLayout>
+                <!-- controller info section heading: END -->
+                <!-- controller nfo section content: BEGIN -->
+                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                    android:id="@+id/sect_content__ctrlr_nfo"
+                    style="@style/Section_Content"
+                    app:ael_duration="400"
+                    app:ael_expanded="false"
+                    app:ael_interpolator="bounce"
+                    app:ael_orientation="vertical">
+                    <!-- controller nfo section content - STATUS - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__ctrlr_status"
+                        style="@style/Section_Content_Item"
+                        android:layout_alignParentTop="true">
+
+                        <TextView
+                            android:id="@+id/tv_lbl_ctrlr_status"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/ctrlr_status"
+                            android:visibility="visible"/>
+
+                        <TextView
+                            android:id="@+id/tv_val_tegola_ctrlr_status"
+                            style="@style/Section_Content_Item_Content"
+                            android:text="@string/stopped"
+                            android:visibility="visible"/>
+                    </LinearLayout>
+                    <!-- controller nfo section content - STATUS - END -->
+                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+                <!-- controller nfo section content: END -->
+            </LinearLayout>
+            <!-- controller info section: END -->
+            <!-- srvr info section: BEGIN -->
+            <LinearLayout
+                android:id="@+id/sect__srvr_nfo"
+                style="@style/Section"
+                android:layout_height="match_parent">
+                <!-- srvr info section heading: BEGIN -->
+                <LinearLayout
+                    android:id="@+id/sect__srvr_info__heading"
+                    style="@style/Section_Heading">
+
+                    <RelativeLayout
+                        style="@style/Section_Heading_Content">
+
+                        <TextView
+                            android:id="@+id/tv_sect_heading_lb_l_srvr_info"
+                            style="@style/Section_Heading_Content_Label"
+                            android:text="@string/srvr_info"/>
+                    </RelativeLayout>
+
+                    <View
+                        android:id="@+id/vw_sect_heading_underscore__srvr_nfo"
+                        style="@style/Section_Heading_Underscore"/>
+                </LinearLayout>
+                <!-- srvr info section heading: END -->
+                <!-- srvr nfo section content: BEGIN -->
+                <LinearLayout
+                    android:id="@+id/sect_content__srvr_nfo"
+                    style="@style/Section_Content"
+                    android:layout_height="match_parent">
+                    <!-- srvr nfo section content - CONFIG type - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__config_type"
+                        style="@style/Section_Content_Item">
+
+                        <TextView
+                            android:id="@+id/tvl_lbl_config_type"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/srvr_config_type"
+                            android:visibility="visible"/>
+
+                        <RadioGroup
+                            android:id="@+id/rg_val_config_type_sel"
+                            style="@style/Section_Content_Item_Content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="start"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/rb_val_config_type_sel__local"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="20dp"
+                                android:layout_marginRight="20dp"
+                                android:button="@null"
+                                android:drawableLeft="@android:drawable/btn_radio"
+                                android:drawableStart="@android:drawable/btn_radio"
+                                android:text="@string/srvr_config_type__local"
+                                android:textSize="14sp"/>
+
+                            <RadioButton
+                                android:id="@+id/rb_val_config_type_sel__remote"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:button="@null"
+                                android:drawableLeft="@android:drawable/btn_radio"
+                                android:drawableStart="@android:drawable/btn_radio"
+                                android:text="@string/srvr_config_type__remote"
+                                android:textSize="14sp"/>
+                        </RadioGroup>
+                    </LinearLayout>
+                    <!-- srvr nfo section content - CONFIG type - END -->
+                    <!-- srvr nfo section content - CONFIG selection - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__config_sel"
+                        style="@style/Section_Content_Item">
+
+                        <TextView
+                            android:id="@+id/tv_lbl_config_sel"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/srvr_config_sel"
+                            android:visibility="visible"/>
+
+                        <RelativeLayout
+                            android:id="@+id/config_sel_container__local"
+                            style="@style/Section_Content_Item_Content"
+                            android:orientation="horizontal">
+
+                            <RelativeLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                                <TextView
+                                    android:id="@+id/tv_lbl_config_sel_local_import"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentTop="true"
+                                    android:layout_alignParentRight="true"
+                                    android:layout_alignParentEnd="true"
+                                    android:paddingRight="12dp"
+                                    android:layout_marginBottom="3dp"
+                                    android:text="Import"
+                                    android:textSize="12sp"/>
+
+                                <ImageButton
+                                    android:id="@+id/btn_config_sel_local_import__googledrive"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_alignEnd="@+id/tv_lbl_config_sel_local_import"
+                                    android:layout_alignRight="@+id/tv_lbl_config_sel_local_import"
+                                    android:layout_below="@+id/tv_lbl_config_sel_local_import"
+                                    android:background="@android:color/holo_red_dark"
+                                    android:src="@drawable/ic_cloud_off_black_24dp"/>
+
+                                <View
+                                    android:id="@+id/vw_vert_div__config_sel_local_import"
+                                    android:layout_width="1dp"
+                                    android:layout_height="25dp"
+                                    android:layout_alignBottom="@id/btn_config_sel_local_import__googledrive"
+                                    android:layout_alignTop="@id/btn_config_sel_local_import__googledrive"
+                                    android:layout_marginEnd="5dp"
+                                    android:layout_marginLeft="5dp"
+                                    android:layout_marginRight="5dp"
+                                    android:layout_marginStart="5dp"
+                                    android:layout_toLeftOf="@id/btn_config_sel_local_import__googledrive"
+                                    android:layout_toStartOf="@id/btn_config_sel_local_import__googledrive"
+                                    android:background="@android:color/holo_blue_light"/>
+
+                                <ImageButton
+                                    android:id="@+id/btn_config_sel_local_import__sdcard"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_alignBottom="@id/btn_config_sel_local_import__googledrive"
+                                    android:layout_alignTop="@id/btn_config_sel_local_import__googledrive"
+                                    android:layout_toLeftOf="@id/vw_vert_div__config_sel_local_import"
+                                    android:layout_toStartOf="@id/vw_vert_div__config_sel_local_import"
+                                    android:background="@android:color/holo_red_dark"
+                                    android:src="@drawable/ic_sd_card_black_24dp"/>
+
+                                <ImageButton
+                                    android:id="@+id/btn_config_sel_local__edit_file"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_alignBottom="@id/btn_config_sel_local_import__sdcard"
+                                    android:layout_alignTop="@id/btn_config_sel_local_import__sdcard"
+                                    android:layout_marginRight="20dp"
+                                    android:layout_toLeftOf="@id/btn_config_sel_local_import__sdcard"
+                                    android:layout_toStartOf="@id/btn_config_sel_local_import__sdcard"
+                                    android:background="?attr/colorButtonNormal"
+                                    android:src="@drawable/ic_mode_edit_black_24dp"
+                                    android:visibility="gone"/>
+
+                                <go_spatial.com.github.tegola.mobile.android.bootstrapper.CustomSpinner
+                                    android:id="@+id/spinner_val_config_sel__local"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="25dp"
+                                    android:layout_alignBottom="@id/btn_config_sel_local_import__sdcard"
+                                    android:layout_alignParentBottom="@id/btn_config_sel_local__edit_file"
+                                    android:layout_alignParentLeft="true"
+                                    android:layout_alignParentStart="true"
+                                    android:layout_alignTop="@id/btn_config_sel_local__edit_file"
+                                    android:layout_toLeftOf="@id/btn_config_sel_local__edit_file"
+                                    android:layout_toStartOf="@id/btn_config_sel_local__edit_file"/>
+
+                            </RelativeLayout>
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:id="@+id/config_sel_container__remote"
+                            style="@style/Section_Content_Item_Content"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btn_config_sel_remote_apply_changes"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentRight="true"
+                                android:text="@string/apply_changes"/>
+
+                            <TextView
+                                android:id="@+id/tv_lbl_config_sel__https_prefix"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignBottom="@id/btn_config_sel_remote_apply_changes"
+                                android:layout_alignParentLeft="true"
+                                android:layout_alignParentStart="true"
+                                android:layout_alignTop="@id/btn_config_sel_remote_apply_changes"
+                                android:layout_centerVertical="false"
+                                android:gravity="center_vertical"
+                                android:text="https://"/>
+
+                            <EditText
+                                android:id="@+id/edt_val_config_sel__remote"
+                                style="@style/Widget.AppCompat.EditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_alignBottom="@id/btn_config_sel_remote_apply_changes"
+                                android:layout_alignTop="@id/btn_config_sel_remote_apply_changes"
+                                android:layout_toEndOf="@id/tv_lbl_config_sel__https_prefix"
+                                android:layout_toLeftOf="@id/btn_config_sel_remote_apply_changes"
+                                android:layout_toRightOf="@id/tv_lbl_config_sel__https_prefix"
+                                android:layout_toStartOf="@id/btn_config_sel_remote_apply_changes"
+                                android:gravity="center_vertical"
+                                android:inputType="textUri"
+                                android:singleLine="true"
+                                android:text=""/>
+                        </RelativeLayout>
+                    </LinearLayout>
+                    <!-- srvr nfo section content - CONFIG selection - END -->
+                    <!-- srvr nfo section content - STATUS - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__srvr_status"
+                        style="@style/Section_Content_Item">
+
+                        <TextView
+                            android:id="@+id/tv_lbl_srvr_status"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/srvr_status"
+                            android:visibility="visible"/>
+
+                        <RelativeLayout
+                            style="@style/Section_Content_Item_Content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <Button
+                                android:id="@+id/btn_srvr_ctrl"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentRight="true"
+                                android:text="@string/start"
+                                android:visibility="visible"/>
+
+                            <TextView
+                                android:id="@+id/tv_val_srvr_status"
+                                style="@style/Section_Content_Item_Content_Text"
+                                android:layout_alignBottom="@+id/btn_srvr_ctrl"
+                                android:layout_alignTop="@+id/btn_srvr_ctrl"
+                                android:layout_toLeftOf="@+id/btn_srvr_ctrl"
+                                android:layout_toStartOf="@+id/btn_srvr_ctrl"
+                                android:gravity="center_vertical"
+                                android:text="@string/stopped"/>
+                        </RelativeLayout>
+                    </LinearLayout>
+                    <!-- srvr nfo section content - STATUS - END -->
+                    <!-- srvr nfo section content - CONSOLE OUTPUT - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__srvr_console_output"
+                        style="@style/Section_Content_Item"
+                        android:layout_height="match_parent">
+
+                        <TextView
+                            android:id="@+id/tv_lbl_srvr_console_output"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/srvr_console_ouput"
+                            android:visibility="visible"/>
+
+                        <LinearLayout
+                            android:id="@+id/srvr_console_output_container"
+                            style="@style/Section_Content_Item_Content"
+                            xmlns:android="http://schemas.android.com/apk/res/android"
+                            android:layout_width="fill_parent"
+                            android:layout_height="match_parent"
+                            android:background="@android:color/background_dark"
+                            android:orientation="vertical"
+                            android:visibility="visible">
+
+                            <ScrollView
+                                android:id="@+id/scrvw_tegola_console_output"
+                                android:layout_width="fill_parent"
+                                android:layout_height="match_parent"
+                                android:fillViewport="true"
+                                android:scrollbars="vertical">
+
+                                <TextView
+                                    android:id="@+id/tv_tegola_console_output"
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1.0"/>
+                            </ScrollView>
+                        </LinearLayout>
+                    </LinearLayout>
+                    <!-- srvr nfo section content - CONSOLE OUTPUT - END -->
+                </LinearLayout>
+                <!-- srvr nfo section content: END -->
+            </LinearLayout>
+            <!-- srvr info section: END -->
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

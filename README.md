@@ -90,16 +90,16 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-15, 
  22. Build Android NDK Standalone Toolchains
 	 - For Android-platform: *arm/API 15* (minimum 32-bit arm)
 		 - Execute shell command: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-15/arm`
-		 - Execute shell command:  `python \$MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm --api 15 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-15/arm --force`
+		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm --api 15 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-15/arm --force`
 	 - For Android-platform: *x86/API 15* (minimum 32-bit x86)
 		 - Execute shell command: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-15/x86`
-		 - Execute shell command:  `python \$MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86 --api 15 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-15/x86 --force`
+		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86 --api 15 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-15/x86 --force`
 	 - For Android-platform: *arm64/API 21* (minimum 64-bit arm)
 		 - Execute shell command: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64`
-		 - Execute shell command:  `python \$MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64 --force`
+		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64 --force`
 	 - For Android-platform: *x86_64/API 21* (minimum 64-bit x86)
 		 - Execute shell command: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64`
-		 - Execute shell command:  `python \$MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86_64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64 --force`
+		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86_64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64 --force`
 
 
 #### Build Tegola Android-Platform Target Binaries
@@ -137,7 +137,7 @@ You are now ready to build the APK.
 5. From Android Studio, select `Build|Build APK` or `Build|Generate Signed APK` - note that to build a signed APK you will need to generate a keystore and signing certificate if you have not already done so
 
 
-### Running Tegola Mobile APK
+## Running Tegola Mobile APK
 1. First you need to install **Tegola Mobile** on your target device - note that this can be an emulator or a physical Android device
 2. If you want to run **Tegola Mobile** within the Android Studio debugger
 	1. you will need:
