@@ -131,9 +131,7 @@ You are now ready to build the APK.
 1. Start Android Studio
 2. Open the **Tegola Mobile** Android Studio project from the Android Studio launcher by clicking `Open an Existing Android Studio project`
 3. Navigate to the Tegola Mobile Android Studio project directory, location at `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TegolaMobile` and click `OK`
-4. Note that Tegola Mobile APK will not build until you place your tegola config file in the Tegola Mobile Android Studio project raw resources location
-	- file destination: `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/`
-	- file name: `config_toml`
+4. (optional) If you want to leverage Tegola Mobile's embedded runtime GoogleDrive import functionality you MUST create both an app API key and an OAuth client ID for the Tegola Mobile app - note that this is required since every APK is signed - be it debug or release - by Android Studio each time it is built by **your** keystore
 5. From Android Studio, select `Build|Build APK` or `Build|Generate Signed APK` - note that to build a signed APK you will need to generate a keystore and signing certificate if you have not already done so
 
 
@@ -150,3 +148,8 @@ You are now ready to build the APK.
 3. _OR_, if you do not want to attach the Android Studio debugger, you will need to install the debug version or the signed version of the Tegola Mobile APK via ADB
 	1. see https://developer.android.com/studio/command-line/adb.html
 	2. you will need to manually launch Tegola Mobile from Android's app drawer by "clicking" the Tegola Mobile launcher icon
+4. Note that the **tegola binary** requires a tegola config in order to run - a config TOML file must exist either locally or remotely - and Tegola Mobile will prompt you accordingly on its first run, based on whether you select local or remote Config Selection
+	- local:
+		1. import via Google Drive - _but this will only work if you have created an API key and OAuth client id in your Google Developer Console_ 
+		2. import via SD
+	- remote: specify a known/existing config.toml https endpoint
