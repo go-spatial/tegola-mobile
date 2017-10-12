@@ -2,20 +2,28 @@ package go_spatial.com.github.tegola.mobile.android.bootstrapper;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -44,6 +52,7 @@ import com.google.android.gms.drive.OpenFileActivityBuilder;
 import com.google.android.gms.drive.query.Filter;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.SearchableField;
+import com.ipaulpro.afilechooser.utils.FileUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -57,8 +66,6 @@ import go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.REQUES
 import go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.ControllerFGS;
-
-import static go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.*;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = MainActivity.class.getName();
@@ -104,9 +111,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private BroadcastReceiver m_br_ctrlr_notifications = null;
     private IntentFilter m_br_ctrlr_notifications_filter = null;
 
-    private Enums.E_CONTROLLER_STATE m_ctrlr_state = Enums.E_CONTROLLER_STATE.CONTROLLER_FOREGROUND_STOPPED;
-    private Enums.E_SERVER_STATE m_srvr_state = Enums.E_SERVER_STATE.MVT_SERVER__STOPPED;
-
     private GoogleApiClient m_google_api_client = null;
     private DriveId m_google_drive_id;
 
@@ -139,33 +143,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         m_scrvw_tegola_console_output = (ScrollView)findViewById(R.id.scrvw_tegola_console_output);
         m_tv_tegola_console_output = (TextView)findViewById(R.id.tv_tegola_console_output);
 
-        //set up associated UI objects auxiliary objects if any - e.g. data adapters
+        //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
         m_spinner_val_config_sel_local__dataadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, m_spinner_val_config_sel_local__items);
         m_spinner_val_config_sel_local__dataadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         m_spinner_val_config_sel_local.setAdapter(m_spinner_val_config_sel_local__dataadapter);
+        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
 
         //associate listeners for user-UI-interaction
-        m_btn_sect__andro_dev_nfo__expand.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggle_expandable_section(R.id.sect_content__andro_dev_nfo);
-            }
-        });
-        m_btn_sect__ctrlr_nfo__expand.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggle_expandable_section(R.id.sect_content__ctrlr_nfo);
-            }
-        });
-        m_rb_val_config_type_sel__local.setOnCheckedChangeListener(m_rb_val_config_type_sel__local__OnCheckedChangeListener);
-        m_spinner_val_config_sel_local.setOnItemSelectedListener(m_spinner_val_config_sel_local__OnItemSelectedListener);
-        m_btn_config_sel_local__edit_file.setOnClickListener(m_btn_config_sel_local__edit_file__OnClickListener);
-        m_btn_config_sel_local_import__sdcard.setOnClickListener(m_btn_config_sel_local_import__sdcard__OnClickListener);
-        m_btn_config_sel_local_import__googledrive.setOnClickListener(m_btn_config_sel_local_import__googledrive__OnClickListener);
-        m_rb_val_config_type_sel__remote.setOnCheckedChangeListener(m_rb_val_config_type_sel__remote__OnCheckedChangeListener);
-        m_edt_val_config_sel__remote.setOnEditorActionListener(m_edt_val_config_sel__remote__OnEditorActionListener);
-        m_btn_config_sel_remote_apply_changes.setOnClickListener(m_btn_config_sel_remote_apply_changes__OnClickListener);
-        m_btn_srvr_ctrl.setOnClickListener(m_btn_srvr_ctrl__OnClickListener);
+        m_btn_sect__andro_dev_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
+        m_btn_sect__ctrlr_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
+        m_rb_val_config_type_sel__local.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_config_type_sel__local);
+        m_spinner_val_config_sel_local.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_config_sel_local);
+        m_btn_config_sel_local__edit_file.setOnClickListener(OnClickListener__m_btn_config_sel_local__edit_file);
+        m_btn_config_sel_local_import__sdcard.setOnClickListener(OnClickListener__m_btn_config_sel_local_import__sdcard);
+        m_btn_config_sel_local_import__googledrive.setOnClickListener(OnClickListener__m_btn_config_sel_local_import__googledrive);
+        m_rb_val_config_type_sel__remote.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_config_type_sel__remote);
+        m_edt_val_config_sel__remote.setOnEditorActionListener(OnEditorActionListener__m_edt_val_config_sel__remote);
+        m_edt_val_config_sel__remote.setOnFocusChangeListener(OnFocusChangeListener__m_edt_val_config_sel__remote);
+        m_btn_config_sel_remote_apply_changes.setOnClickListener(OnClickListener__m_btn_config_sel_remote_apply_changes);
+        m_btn_srvr_ctrl.setOnClickListener(OnClickListener__m_btn_srvr_ctrl);
 
 
 
@@ -255,7 +251,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         //set title to build version
         setTitle(getString(R.string.app_name) + " - build " + BuildConfig.VERSION_NAME);
 
-        //add content to UI...
         //set andro_dev info fixed val content
         m_tv_val_CPU_ABI.setText(Constants.Enums.CPU_ABI.fromDevice().toString());
         m_tv_val_API_level.setText(Build.VERSION.SDK);
@@ -263,16 +258,34 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         OnMVTServerStopped();
         OnControllerStopped();
 
-        //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TYPE_SEL__REMOTE val
-        if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue() == true) {
-            m_rb_val_config_type_sel__remote.setChecked(true);
-        } else {
-            m_rb_val_config_type_sel__local.setChecked(true);
-        }
+        //set expandable sections UI initial "expanded" state
+        m_vw_sect_content__andro_dev_nfo.collapse();
+        m_vw_sect_content__andro_dev_nfo.setExpanded(false);
+        m_vw_sect_content__ctrlr_nfo.expand();
+        m_vw_sect_content__ctrlr_nfo.setExpanded(true);
 
-        start_controller_fgs();
+        //now queue up initial automated UI actions
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //reconcile expandable sections UI with initial "expanded" state
+                m_vw_sect_content__andro_dev_nfo.callOnClick();
+                m_vw_sect_content__ctrlr_nfo.callOnClick();
 
-        m_scvw_main__scroll_max();
+                //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TYPE_SEL__REMOTE val
+                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue() == true) {
+                    m_rb_val_config_type_sel__remote.setChecked(true);
+                } else {
+                    m_rb_val_config_type_sel__local.setChecked(true);
+                }
+
+                //adjust main scroll view (since expandable sections may or may not have been expanded/collapsed based on initial settings)
+                m_scvw_main__scroll_max();
+
+                //finally, start the controller foreground service
+                start_controller_fgs();
+            }
+        }, 50);
     }
 
     @Override
@@ -292,8 +305,39 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
     //user-UI-interaction listeners...
+    //reaction to toggling expandable section
+    private final View.OnClickListener OnClickListener__btn_expandable_section = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            ExpandableRelativeLayout expandable_section = null;
+            switch (v.getId()) {
+                case R.id.btn_sect__andro_dev_nfo__expand:
+                    expandable_section = m_vw_sect_content__andro_dev_nfo;
+                    break;
+                case R.id.btn_sect__ctrlr_nfo__expand:
+                    expandable_section = m_vw_sect_content__ctrlr_nfo;
+                    break;
+                default: return;
+            }
+            final ExpandableRelativeLayout final_expandable_section = expandable_section;
+            if (final_expandable_section.isExpanded()) {
+                final_expandable_section.collapse();
+                final_expandable_section.setExpanded(false);
+            } else {
+                final_expandable_section.expand();
+                final_expandable_section.setExpanded(true);
+            }
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    reconcile_expandable_section(final_expandable_section);
+                }
+            }, 50);
+        }
+    };
+
     //reaction to local config-type selection - display all local config selection UI and update shared prefs to reflect selection
-    private final CompoundButton.OnCheckedChangeListener m_rb_val_config_type_sel__local__OnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+    private final CompoundButton.OnCheckedChangeListener OnCheckedChangeListener__m_rb_val_config_type_sel__local = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
             if (checked) {
@@ -309,45 +353,63 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     };
 
     //user selects a local config file selection from spinner - synchronizes selection with shared prefs
-    private final AdapterView.OnItemSelectedListener m_spinner_val_config_sel_local__OnItemSelectedListener = new AdapterView.OnItemSelectedListener() {
+    private final AdapterView.OnItemSelectedListener OnItemSelectedListener__m_spinner_val_config_sel_local = new AdapterView.OnItemSelectedListener() {
         @Override
         public void onItemSelected(AdapterView<?> adapter, View view, int position, long id) {
             String s_sel_val = adapter.getItemAtPosition(position).toString();
-            Log.d(TAG, "m_spinner_val_config_sel_local__OnItemSelectedListener.onItemSelected: triggered item selection @ position " + position + " with value " + (s_sel_val == null ? "null" : "\"" + s_sel_val + "\""));
+            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: triggered item selection @ position " + position + " with value " + (s_sel_val == null ? "null" : "\"" + s_sel_val + "\""));
 
             String s_cached_config_sel__local_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue();
-            Log.d(TAG, "m_spinner_val_config_sel_local__OnItemSelectedListener.onItemSelected: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " current value is \"" + s_cached_config_sel__local_val + "\"");
+            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " current value is \"" + s_cached_config_sel__local_val + "\"");
 
             boolean no_config_files = (s_sel_val == null || s_sel_val.compareTo(getString(R.string.srvr_config_type__local__no_config_files_found)) == 0);
             if (no_config_files) {
-                Log.d(TAG, "m_spinner_val_config_sel_local__OnItemSelectedListener.onItemSelected: no-config-files condition!");
+                Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: no-config-files condition!");
                 if (!s_cached_config_sel__local_val.isEmpty()) {
-                    Log.d(TAG, "m_spinner_val_config_sel_local__OnItemSelectedListener.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value (currently \"" + s_cached_config_sel__local_val + "\")");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value (currently \"" + s_cached_config_sel__local_val + "\")");
                     Toast.makeText(getApplicationContext(), "Clearing setting value for local config toml file selection since there are none available", Toast.LENGTH_LONG).show();
                     SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.setValue("");
                 } else {
-                    Log.d(TAG, "m_spinner_val_config_sel_local__OnItemSelectedListener.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " since it is already cleared (value is \"" + s_cached_config_sel__local_val + "\")");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " since it is already cleared (value is \"" + s_cached_config_sel__local_val + "\")");
                 }
 
                 //edit button obviously not applicable in this case
                 m_btn_config_sel_local__edit_file.setVisibility(View.GONE);
                 m_btn_config_sel_local__edit_file.setEnabled(false);
+                //and neither is MVT srvr control (start/stop) button
+                m_btn_srvr_ctrl.setEnabled(false);
+
+                //finally display alertdialog notifying user that tegola cannot be used until a config file is imported
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.alert_dialog));
+                alertDialogBuilder.setTitle(getString(R.string.srvr_config_type__local__no_config_files_found));
+                alertDialogBuilder
+                        .setMessage(getString(R.string.srvr_config_type__local__no_config_files_found__alert_msg))
+                        .setCancelable(false)
+                        .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
             } else {
                 //first, update shared pref val as necessary - does sel value differ from cached?
                 if (s_cached_config_sel__local_val.compareTo(s_sel_val) != 0) {
                     Toast.makeText(getApplicationContext(), "Saving new setting value for local config toml file \"" + s_sel_val + "\" selection", Toast.LENGTH_LONG).show();
                     //now update shared pref
                     SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.setValue(s_sel_val);
-                    Log.d(TAG, "m_spinner_val_config_sel_local__OnItemSelectedListener.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value from \"" + s_cached_config_sel__local_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue() + "\"");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value from \"" + s_cached_config_sel__local_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue() + "\"");
                 } else {
                     //no change to shared pref val
-                    Log.d(TAG, "m_spinner_val_config_sel_local__OnItemSelectedListener.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue() + "\") since new value (\"" + s_sel_val + "\") is no different");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue() + "\") since new value (\"" + s_sel_val + "\") is no different");
                 }
 
                 //now update m_btn_config_sel_local__edit_file UI based on existence of current local config toml file selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue())
                 File file = new File(getFilesDir().getPath() + "/" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
                 m_btn_config_sel_local__edit_file.setVisibility(file.exists() ? View.VISIBLE : View.GONE);
                 m_btn_config_sel_local__edit_file.setEnabled(file.exists());
+                //and same MVT srvr control (start/stop) button
+                m_btn_srvr_ctrl.setEnabled(file.exists());
             }
         }
 
@@ -361,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     };
 
     //user clicks button to edit/open/view selected local config file selection
-    private final View.OnClickListener m_btn_config_sel_local__edit_file__OnClickListener = new View.OnClickListener() {
+    private final View.OnClickListener OnClickListener__m_btn_config_sel_local__edit_file = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             edit_local_config_file(SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
@@ -388,25 +450,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     //user clicks button to initiate import config toml files from sdcard
-    private final View.OnClickListener m_btn_config_sel_local_import__sdcard__OnClickListener = new View.OnClickListener() {
+    private final View.OnClickListener OnClickListener__m_btn_config_sel_local_import__sdcard = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             import_config_toml__from_sdcard();
         }
     };
     private void import_config_toml__from_sdcard() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("text/plain");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
         try {
-            startActivityForResult(Intent.createChooser(intent, "Select a tegola config TOML file to import"), REQUEST_CODES.REQUEST_CODE__SDCARD__IMPORT_TOML_FILES);
+            startActivityForResult(Intent.createChooser(FileUtils.createGetContentIntent(), "Select Tegola config TOML file"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     //user clicks button to initiate import config toml files from google drive
-    private final View.OnClickListener m_btn_config_sel_local_import__googledrive__OnClickListener = new View.OnClickListener() {
+    private final View.OnClickListener OnClickListener__m_btn_config_sel_local_import__googledrive = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             import_config_toml__from_google_drive();
@@ -417,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         google_api_client__validate_init();
         if (google_api_client__validate_connect()) {
             Log.i(TAG, "import_config_toml__from_google_drive: calling google_drive__select_and_download_files() for Filter Filters.contains(SearchableField.TITLE, \".toml\")...");
-            google_drive__select_and_download_files(Filters.contains(SearchableField.TITLE, ".toml"), REQUEST_CODES.REQUEST_CODE__GOOGLEDRIVE__IMPORT_TOML_FILES);
+            google_drive__select_and_download_files(Filters.contains(SearchableField.TITLE, ".toml"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE);
         } else {
             Log.i(TAG, "import_config_toml__from_google_drive: GoogleApiClient was not connected -- flow control was transferred to appropriate handler");
         }
@@ -425,7 +484,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
     //reaction to srvr remote config-type selection - display all remote config selection UI and update shared prefs to reflect selection
-    private final CompoundButton.OnCheckedChangeListener m_rb_val_config_type_sel__remote__OnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+    private final CompoundButton.OnCheckedChangeListener OnCheckedChangeListener__m_rb_val_config_type_sel__remote = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
             if (checked) {
@@ -437,24 +496,27 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     };
 
-    //reaction to changing remote config URL value - user must press enter in editor to register to app that a pending change has occurred
-    private final TextView.OnEditorActionListener m_edt_val_config_sel__remote__OnEditorActionListener = new TextView.OnEditorActionListener() {
+    //reaction to changing remote config URL value - user must press enter in editor or switch focus to another control to register to app that a pending change has occurred
+    private final TextView.OnEditorActionListener OnEditorActionListener__m_edt_val_config_sel__remote = new TextView.OnEditorActionListener() {
         @Override
-        public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-            String s_old_config_sel__remote_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue();
-            Log.d(TAG, "m_edt_val_config_sel__remote.onEditorAction: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value is \"" + s_old_config_sel__remote_val + "\"");
-            String s_old_config_sel__remote_val__proposted = textView.getText().toString();
-            Log.d(TAG, "m_edt_val_config_sel__remote.onEditorAction: m_edt_val_config_sel__remote.getText() is \"" + s_old_config_sel__remote_val__proposted+ "\" after keystroke (" + (keyEvent != null ? "\"" + keyEvent.getCharacters() + "\"" : "keyEvent is null!") + ")");
-            if (s_old_config_sel__remote_val.compareTo(s_old_config_sel__remote_val__proposted) == 0)
-                m_btn_config_sel_remote_apply_changes.setEnabled(false);
-            else
-                m_btn_config_sel_remote_apply_changes.setEnabled(true);
-            return true;
+        public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
+                validate__m_edt_val_config_sel__remote();
+                return true;
+            } else
+                return false;
+        }
+    };
+    private final TextView.OnFocusChangeListener OnFocusChangeListener__m_edt_val_config_sel__remote = new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+            if (!hasFocus)
+                validate__m_edt_val_config_sel__remote();
         }
     };
 
     //reaction to when user applies changes to remote config URL
-    private final View.OnClickListener m_btn_config_sel_remote_apply_changes__OnClickListener = new View.OnClickListener() {
+    private final View.OnClickListener OnClickListener__m_btn_config_sel_remote_apply_changes = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             String s_remote_config_toml_sel_normalized = m_edt_val_config_sel__remote.getText().toString();
@@ -477,10 +539,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 //no change to share pref val - do nothing other than log
                 Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue() + "\") since normalized new value (\"" + s_remote_config_toml_sel_normalized + "\") is no different");
             }
+            synchronize_edittext_val_config_sel_remote();
         }
     };
 
-    private final View.OnClickListener m_btn_srvr_ctrl__OnClickListener = new View.OnClickListener() {
+    private final View.OnClickListener OnClickListener__m_btn_srvr_ctrl = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Button btn_srvr_ctrl = (Button)v;
@@ -496,54 +559,24 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
     //auxiliary UI helper functions...
-    private static boolean m_sect__andro_dev_nfo_expanded = false;
-    private static boolean m_sect__ctrlr_nfo_expanded = false;
-
-    private Boolean is_expanded_flag_set(final int expandable_section_res_id) {
-        switch (expandable_section_res_id) {
-            case R.id.sect_content__andro_dev_nfo: return m_sect__andro_dev_nfo_expanded;
-            case R.id.sect_content__ctrlr_nfo: return m_sect__ctrlr_nfo_expanded;
-            default: return null;
-        }
-    }
-    private void toggle_expanded_flag(final int expandable_section_res_id) {
-        switch (expandable_section_res_id) {
+    private void reconcile_expandable_section(@NonNull final ExpandableRelativeLayout expandable_section) {
+        Button btn_toggle = null;
+        switch (expandable_section.getId()) {
             case R.id.sect_content__andro_dev_nfo: {
-                m_sect__andro_dev_nfo_expanded = !m_sect__andro_dev_nfo_expanded;
+                btn_toggle = m_btn_sect__andro_dev_nfo__expand;
                 break;
             }
             case R.id.sect_content__ctrlr_nfo: {
-                m_sect__ctrlr_nfo_expanded = !m_sect__ctrlr_nfo_expanded;
+                btn_toggle = m_btn_sect__ctrlr_nfo__expand;
                 break;
             }
-            default: return;
         }
-    }
-
-    protected void toggle_expandable_section(final int expandable_section_res_id) {
-        ExpandableRelativeLayout expandable_section = null;
-        Button btn = null;
-        switch (expandable_section_res_id) {
-            case R.id.sect_content__andro_dev_nfo: {
-                expandable_section = m_vw_sect_content__andro_dev_nfo;
-                btn = m_btn_sect__andro_dev_nfo__expand;
-                break;
-            }
-            case R.id.sect_content__ctrlr_nfo: {
-                expandable_section = m_vw_sect_content__ctrlr_nfo;
-                btn = m_btn_sect__ctrlr_nfo__expand;
-                break;
-            }
-            default: return;
-        }
-        expandable_section.toggle();
-        //toggle direction of arrow
-        Drawable drawable_arrow = ContextCompat.getDrawable(this, is_expanded_flag_set(expandable_section_res_id) ? android.R.drawable.arrow_down_float : android.R.drawable.arrow_up_float);
+        boolean currently_expanded = expandable_section.isExpanded();
+        Drawable drawable_arrow = ContextCompat.getDrawable(this, currently_expanded ? android.R.drawable.arrow_up_float : android.R.drawable.arrow_down_float);
         int h = drawable_arrow.getIntrinsicHeight();
         int w = drawable_arrow.getIntrinsicWidth();
         drawable_arrow.setBounds(0, 0, w, h);
-        btn.setCompoundDrawables(null, null, drawable_arrow, null);
-        toggle_expanded_flag(expandable_section_res_id);
+        btn_toggle.setCompoundDrawables(null, null, drawable_arrow, null);
     }
 
     private void m_scvw_main__scroll_max() {
@@ -602,119 +635,37 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void synchronize_edittext_val_config_sel_remote() {
         m_edt_val_config_sel__remote.setText(SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue());
         m_btn_config_sel_remote_apply_changes.setEnabled(false);
+        if (SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue().isEmpty()) {
+            m_btn_srvr_ctrl.setEnabled(false);
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.alert_dialog));
+            alertDialogBuilder.setTitle(getString(R.string.srvr_config_type__remote__no_url_specified));
+            alertDialogBuilder
+                    .setMessage(getString(R.string.srvr_config_type__remote__no_url_specified__alert_msg))
+                    .setCancelable(false)
+                    .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        } else
+            m_btn_srvr_ctrl.setEnabled(true);
     }
 
-
-
-    //ControllerLib-related stuff
-    private void OnControllerStarting() {
-        m_ctrlr_state = Enums.E_CONTROLLER_STATE.CONTROLLER_FOREGROUND_STARTING;
-        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
-    }
-
-    private void OnControllerStarted() {
-        m_ctrlr_state = Enums.E_CONTROLLER_STATE.CONTROLLER_FOREGROUND_STARTED;
-        m_tv_val_ctrlr_status.setText(getString(R.string.started));
-    }
-
-    private void OnControllerStopping() {
-        m_ctrlr_state = Enums.E_CONTROLLER_STATE.CONTROLLER_FOREGROUND_STOPPING;
-        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
-    }
-
-    private void OnControllerStopped() {
-        m_ctrlr_state = Enums.E_CONTROLLER_STATE.CONTROLLER_FOREGROUND_STOPPED;
-        m_tv_val_ctrlr_status.setText(getString(R.string.stopped));
-    }
-
-    private void OnMVTServerStarting() {
-        m_srvr_state = Enums.E_SERVER_STATE.MVT_SERVER__STARTING;
-        m_tv_val_srvr_status.setText(getString(R.string.starting));
-    }
-
-    private void OnMVTServerStartFailed(final String reason) {
-        //build dialog
-        OnMVTServerStopped();
-    }
-
-    private void OnMVTServerStarted(final String version, final int pid) {
-        m_srvr_state = Enums.E_SERVER_STATE.MVT_SERVER__STARTED;
-        final StringBuilder sb_srvr_status = new StringBuilder();
-        sb_srvr_status.append(getString(R.string.started));
-        if (version != null && !version.isEmpty())
-            sb_srvr_status.append(" version " + version);
-        if (pid != -1)
-            sb_srvr_status.append(" , pid " + pid + "");
-        m_tv_val_srvr_status.setText(sb_srvr_status.toString());
-        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, true);
-        m_btn_srvr_ctrl.setText(getString(R.string.stop));
-    }
-
-    private void OnMVTServerOutputLogcat(final String logcat_line) {
-        sv_append_mvt_server_console_output("<LOGCAT> " + logcat_line);
-    }
-
-    private void OnMVTServerOutputStdErr(final String stderr_line) {
-        sv_append_mvt_server_console_output("<STDERR> " + stderr_line);
-    }
-
-    private void OnMVTServerOutputStdOut(final String stdout_line) {
-        sv_append_mvt_server_console_output("<STDOUT> " + stdout_line);
-    }
-
-    private void m_scrvw_tegola_console_output__scroll_max() {
-        m_scrvw_tegola_console_output.postDelayed(new Runnable() {
-            public void run() {
-                m_scrvw_tegola_console_output.fullScroll(View.FOCUS_DOWN);
-            }
-        }, 50);
-    }
-
-    private void sv_append_mvt_server_console_output(final String s) {
-        m_tv_tegola_console_output.append(s + "\n");
-        m_scrvw_tegola_console_output__scroll_max();
-        m_scvw_main__scroll_max();
-    }
-
-    private void OnMVTServerStopping() {
-        m_srvr_state = Enums.E_SERVER_STATE.MVT_SERVER__STOPPING;
-        m_tv_val_srvr_status.setText(getString(R.string.stopping));
-    }
-
-    private void OnMVTServerStopped() {
-        m_srvr_state = Enums.E_SERVER_STATE.MVT_SERVER__STOPPED;
-        m_tv_val_srvr_status.setText(getString(R.string.stopped));
-        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
-        m_btn_srvr_ctrl.setText(getString(R.string.start));
-    }
-
-
-    private void start_controller_fgs() {
-        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
-        Intent intent_start_controller_fgs = new Intent(MainActivity.this, ControllerFGS.class);
-        intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND);
-        startService(intent_start_controller_fgs);
-    }
-
-    private void stop_controller_fgs() {
-        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
-        Intent intent_stop_controller_fgs = new Intent(MainActivity.this, ControllerFGS.class);
-        intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__STOP_FOREGROUND);
-        stopService(intent_stop_controller_fgs);
-    }
-
-    private void start_mvt_server() {
-        Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
-        boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue();
-        String s_config_toml = (remote_config ? SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue() : SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
-        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, remote_config);
-        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG, s_config_toml);
-        sendBroadcast(intent_start_mvt_server);
-    }
-
-    private void stop_mvt_server() {
-        Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
-        sendBroadcast(intent_stop_mvt_server);
+    private void validate__m_edt_val_config_sel__remote() {
+        String s_old_config_sel__remote_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue();
+        String s_config_sel__remote_val__proposted = m_edt_val_config_sel__remote.getText().toString();
+        Log.d(TAG, "validate__m_edt_val_config_sel__remote: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value is \"" + s_old_config_sel__remote_val + "\"");
+        if (s_old_config_sel__remote_val.compareTo(s_config_sel__remote_val__proposted) == 0) {
+            Log.d(TAG, "validate__m_edt_val_config_sel__remote: m_edt_val_config_sel__remote value is no different than shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value \"" + s_old_config_sel__remote_val + "\"");
+            m_btn_config_sel_remote_apply_changes.setEnabled(false);
+        } else {
+            Log.d(TAG, "validate__m_edt_val_config_sel__remote: m_edt_val_config_sel__remote proposed value \"" + s_config_sel__remote_val__proposted + "\" differs from shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value \"" + s_old_config_sel__remote_val + "\"");
+            m_btn_config_sel_remote_apply_changes.setEnabled(true);
+            InputMethodManager imm= (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(m_edt_val_config_sel__remote.getWindowToken(), 0);
+        }
     }
 
 
@@ -862,7 +813,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     interface GoogleDriveDownloadedFileContentsHandler {
         void OnFileContentsDownloaded(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file);
     }
-    private void google_drive__download_file_contents(final DriveId google_drive_id, final int mode, final GoogleDriveDownloadedFileContentsHandler googleDriveOpenedContentsHandler) {
+    private void google_drive__file_contents__download(final DriveId google_drive_id, final int mode, final GoogleDriveDownloadedFileContentsHandler googleDriveOpenedContentsHandler) {
         //download file
         final DriveFile google_drive_file = Drive.DriveApi.getFile(m_google_api_client, google_drive_id);
         PendingResult<DriveApi.DriveContentsResult> pendingResult = google_drive_file.open(m_google_api_client, mode, new DriveFile.DownloadProgressListener() {
@@ -901,33 +852,84 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         });
     }
 
-    private boolean google_drive__file_contents__write_local(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file) throws IOException {
-        String gd_file_name = google_drive_file_metadata.getOriginalFilename();
-        InputStream inputstream_gd_config_toml = google_drive_file_contents.getInputStream();
-        byte[] buf_raw_config_toml = new byte[inputstream_gd_config_toml.available()];
-        inputstream_gd_config_toml.read(buf_raw_config_toml);
-        inputstream_gd_config_toml.close();
-        FileOutputStream f_outputstream_new_tegola_config_toml = openFileOutput(gd_file_name, Context.MODE_PRIVATE);
-        f_outputstream_new_tegola_config_toml.write(buf_raw_config_toml);
-        f_outputstream_new_tegola_config_toml.close();
-        File f_new_tegola_config_toml = new File(getFilesDir().getPath() + "/" + gd_file_name);
-        return f_new_tegola_config_toml.exists();
-    }
 
+
+    //result handler for both SD-card and GoogleDrive Tegola config TOML file selection (and any other requests to be handled via startActivityForResult)...
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         switch (requestCode) {
-            case REQUEST_CODES.REQUEST_CODE__SDCARD__IMPORT_TOML_FILES: {
+            case REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE: {
                 switch (resultCode) {
                     case RESULT_OK: {
+                        final Uri file_uri = data.getData();
+                        if (file_uri != null) {
+                            Log.d(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE | resultCode: RESULT_OK -- selected local storage file uri \"" + file_uri + "\"; calling local__file__import() for this file uri...");
+                            try {
+                                final local__file__import__result result = local__file__import(file_uri);
+                                final String s_result_msg = (result.succeeded ? "Successfully imported" : "Failed to import") + " local storage file \"" + result.src_name + "\"";
+                                Log.d(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE | resultCode: RESULT_OK -- " + s_result_msg);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getApplicationContext(), s_result_msg, Toast.LENGTH_LONG).show();
+                                        if (result.succeeded)
+                                            synchronize_spinner_val_config_sel_local();
+                                    }
+                                });
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            Log.d(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE | resultCode: RESULT_OK -- but selected local storage file uri is null; aborting import");
+                        }
                         break;
                     }
                     case RESULT_CANCELED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE | resultCode: RESULT_CANCELED");
                         break;
                     }
                     default: {
                         Log.d(TAG, "onActivityResult: requestCode " + requestCode + ", resultCode " + resultCode);
                         super.onActivityResult(requestCode, resultCode, data);
+                    }
+                }
+                break;
+            }
+            case REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE: {
+                switch (resultCode) {
+                    case RESULT_OK: {
+                        m_google_drive_id = (DriveId)data.getParcelableExtra(OpenFileActivityBuilder.EXTRA_RESPONSE_DRIVE_ID);
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_OK -- flow control handler: selected Google Drive file id " + m_google_drive_id.getResourceId() + "; calling google_drive__download_file_contents() for this file...");
+                        google_drive__file_contents__download(m_google_drive_id, DriveFile.MODE_READ_ONLY, new GoogleDriveDownloadedFileContentsHandler() {
+                            @Override
+                            public void OnFileContentsDownloaded(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file) {
+                                final String
+                                    s_gd_id = google_drive_file_contents.getDriveId().encodeToString()
+                                    , s_gd_filename = google_drive_file_metadata.getOriginalFilename();
+                                Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: triggered from PendingResult from call to google_drive__download_file_contents() -- successfully downloaded google drive file \"" + s_gd_filename + "\" contents from: id " + s_gd_id);
+                                try {
+                                    Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: importing contents from google drive file \"" + s_gd_filename + " (id \"" + s_gd_id + ")\"");
+                                    final boolean succeeded = google_drive__file__import(google_drive_file_contents, google_drive_file_metadata, google_drive_file);
+                                    final String s_result_msg = (succeeded ? "Successfully imported" : "Failed to import") + " google drive file \"" + s_gd_filename + "\" (id " + s_gd_id + ")";
+                                    Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: " + s_result_msg);
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(getApplicationContext(), s_result_msg, Toast.LENGTH_LONG).show();
+                                            if (succeeded)
+                                                synchronize_spinner_val_config_sel_local();
+                                        }
+                                    });
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        break;
+                    }
+                    case RESULT_CANCELED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_CANCELED -- flow control handler: user canceled -- normal flow termination");
+                        break;
                     }
                 }
                 break;
@@ -959,49 +961,175 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 break;
             }
             */
-            case REQUEST_CODES.REQUEST_CODE__GOOGLEDRIVE__IMPORT_TOML_FILES: {
-                switch (resultCode) {
-                    case RESULT_OK: {
-                        m_google_drive_id = (DriveId)data.getParcelableExtra(OpenFileActivityBuilder.EXTRA_RESPONSE_DRIVE_ID);
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEDRIVE__IMPORT_TOML_FILES | resultCode: RESULT_OK -- flow control handler: selected Google Drive file id " + m_google_drive_id.getResourceId() + "; calling google_drive__download_file_contents() for this file...");
-                        google_drive__download_file_contents(m_google_drive_id, DriveFile.MODE_READ_ONLY, new GoogleDriveDownloadedFileContentsHandler() {
-                            @Override
-                            public void OnFileContentsDownloaded(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file) {
-                                final String
-                                    s_gd_id = google_drive_file_contents.getDriveId().encodeToString()
-                                    , s_gd_filename = google_drive_file_metadata.getOriginalFilename();
-                                Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: triggered from PendingResult from call to google_drive__download_file_contents() -- successfully downloaded google drive file \"" + s_gd_filename + "\" contents from: id " + s_gd_id);
-                                try {
-                                    final boolean succeeded = google_drive__file_contents__write_local(google_drive_file_contents, google_drive_file_metadata, google_drive_file);
-                                    final String s_result_msg = (succeeded ? "Successfully imported" : "Failed to import") + " google drive file \"" + s_gd_filename + "\" (id " + s_gd_id + ")";
-                                    Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: " + s_result_msg);
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(), s_result_msg, Toast.LENGTH_LONG).show();
-                                            if (succeeded)
-                                                synchronize_spinner_val_config_sel_local();
-                                        }
-                                    });
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                        break;
-                    }
-                    case RESULT_CANCELED: {
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEDRIVE__IMPORT_TOML_FILES | resultCode: RESULT_CANCELED -- flow control handler: user canceled -- normal flow termination");
-                        break;
-                    }
-                }
-                break;
-            }
             default: {
                 Log.d(TAG, "onActivityResult: requestCode " + requestCode + ", resultCode " + resultCode);
                 super.onActivityResult(requestCode, resultCode, data);
                 break;
             }
         }
+    }
+
+    //supporting functions for above result handler
+    private class local__file__import__result {
+        public String src_name = "";
+        public String src_path = "";
+        public boolean succeeded = false;
+    }
+    private local__file__import__result local__file__import(final Uri local_file_uri) throws IOException {
+        local__file__import__result result = new local__file__import__result();
+        result.src_path = local_file_uri.getPath();
+        Cursor cursor = this.getContentResolver().query(local_file_uri, null, null, null, null, null);
+        try {
+            // moveToFirst() returns false if the cursor has 0 rows.  Very handy for
+            // "if there's anything to look at, look at it" conditionals.
+            if (cursor != null && cursor.moveToFirst()) {
+                // Note it's called "Display Name".  This is
+                // provider-specific, and might not necessarily be the file name.
+                result.src_name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                Log.d(TAG, "local__file__import: display (file) name: " + result.src_name);
+                int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+                String size = null;
+                if (!cursor.isNull(sizeIndex)) {
+                    // Technically the column stores an int, but cursor.getString()
+                    // will do the conversion automatically.
+                    size = cursor.getString(sizeIndex);
+                } else {
+                    size = "Unknown";
+                }
+                Log.d(TAG, "local__file__import: size: " + size);
+            }
+        } finally {
+            cursor.close();
+        }
+        InputStream inputstream_config_toml = getContentResolver().openInputStream(local_file_uri);
+        byte[] buf_raw_config_toml = new byte[inputstream_config_toml.available()];
+        inputstream_config_toml.read(buf_raw_config_toml);
+        inputstream_config_toml.close();
+        FileOutputStream f_outputstream_new_tegola_config_toml = openFileOutput(result.src_name, Context.MODE_PRIVATE);
+        f_outputstream_new_tegola_config_toml.write(buf_raw_config_toml);
+        f_outputstream_new_tegola_config_toml.close();
+        File f_new_tegola_config_toml = new File(getFilesDir().getPath() + "/" + result.src_name);
+        result.succeeded = f_new_tegola_config_toml.exists();
+        return result;
+    }
+
+    private boolean google_drive__file__import(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file) throws IOException {
+        String gd_file_name = google_drive_file_metadata.getOriginalFilename();
+        InputStream inputstream_gd_config_toml = google_drive_file_contents.getInputStream();
+        byte[] buf_raw_config_toml = new byte[inputstream_gd_config_toml.available()];
+        inputstream_gd_config_toml.read(buf_raw_config_toml);
+        inputstream_gd_config_toml.close();
+        FileOutputStream f_outputstream_new_tegola_config_toml = openFileOutput(gd_file_name, Context.MODE_PRIVATE);
+        f_outputstream_new_tegola_config_toml.write(buf_raw_config_toml);
+        f_outputstream_new_tegola_config_toml.close();
+        File f_new_tegola_config_toml = new File(getFilesDir().getPath() + "/" + gd_file_name);
+        return f_new_tegola_config_toml.exists();
+    }
+
+
+
+
+    //ControllerLib-related stuff
+    private void OnControllerStarting() {
+        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
+    }
+
+    private void OnControllerStarted() {
+        m_tv_val_ctrlr_status.setText(getString(R.string.started));
+    }
+
+    private void OnControllerStopping() {
+        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
+    }
+
+    private void OnControllerStopped() {
+        m_tv_val_ctrlr_status.setText(getString(R.string.stopped));
+    }
+
+    private void OnMVTServerStarting() {
+        m_tv_val_srvr_status.setText(getString(R.string.starting));
+    }
+
+    private void OnMVTServerStartFailed(final String reason) {
+        OnMVTServerStopped();
+    }
+
+    private void OnMVTServerStarted(final String version, final int pid) {
+        final StringBuilder sb_srvr_status = new StringBuilder();
+        sb_srvr_status.append(getString(R.string.started));
+        if (version != null && !version.isEmpty())
+            sb_srvr_status.append(" version " + version);
+        if (pid != -1)
+            sb_srvr_status.append(" , pid " + pid + "");
+        m_tv_val_srvr_status.setText(sb_srvr_status.toString());
+        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, true);
+        m_btn_srvr_ctrl.setText(getString(R.string.stop));
+        //now disable edit-config button
+        m_btn_config_sel_local__edit_file.setEnabled(false);
+    }
+
+    private void OnMVTServerOutputLogcat(final String logcat_line) {
+        sv_append_mvt_server_console_output("<LOGCAT> " + logcat_line);
+    }
+
+    private void OnMVTServerOutputStdErr(final String stderr_line) {
+        sv_append_mvt_server_console_output("<STDERR> " + stderr_line);
+    }
+
+    private void OnMVTServerOutputStdOut(final String stdout_line) {
+        sv_append_mvt_server_console_output("<STDOUT> " + stdout_line);
+    }
+
+    private void m_scrvw_tegola_console_output__scroll_max() {
+        m_scrvw_tegola_console_output.postDelayed(new Runnable() {
+            public void run() {
+                m_scrvw_tegola_console_output.fullScroll(View.FOCUS_DOWN);
+            }
+        }, 50);
+    }
+
+    private void sv_append_mvt_server_console_output(final String s) {
+        m_tv_tegola_console_output.append(s + "\n");
+        m_scrvw_tegola_console_output__scroll_max();
+        m_scvw_main__scroll_max();
+    }
+
+    private void OnMVTServerStopping() {
+        m_tv_val_srvr_status.setText(getString(R.string.stopping));
+    }
+
+    private void OnMVTServerStopped() {
+        m_tv_val_srvr_status.setText(getString(R.string.stopped));
+        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
+        m_btn_srvr_ctrl.setText(getString(R.string.start));
+        m_btn_config_sel_local__edit_file.setEnabled(true);
+    }
+
+    private void start_controller_fgs() {
+        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
+        Intent intent_start_controller_fgs = new Intent(MainActivity.this, ControllerFGS.class);
+        intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND);
+        startService(intent_start_controller_fgs);
+    }
+
+    private void stop_controller_fgs() {
+        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
+        Intent intent_stop_controller_fgs = new Intent(MainActivity.this, ControllerFGS.class);
+        intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__STOP_FOREGROUND);
+        stopService(intent_stop_controller_fgs);
+    }
+
+    private void start_mvt_server() {
+        Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
+        boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue();
+        String s_config_toml = (remote_config ? SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue() : SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
+        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, remote_config);
+        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG, s_config_toml);
+        sendBroadcast(intent_start_mvt_server);
+    }
+
+    private void stop_mvt_server() {
+        Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
+        sendBroadcast(intent_stop_mvt_server);
     }
 }

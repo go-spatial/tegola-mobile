@@ -364,7 +364,7 @@ public class ControllerFGS extends Service {
                             }
                             Thread.sleep(100);
                         } catch (IOException e) {
-                            e.printStackTrace();
+//                            e.printStackTrace();
                         } catch (InterruptedException e1) {
                             //e.printStackTrace();
                             if (reader_tegola_process_stderr != null) {
@@ -406,7 +406,7 @@ public class ControllerFGS extends Service {
                             }
                             Thread.sleep(100);
                         } catch (IOException e) {
-                            e.printStackTrace();
+//                            e.printStackTrace();
                         } catch (InterruptedException e1) {
                             //e.printStackTrace();
                             if (reader_tegola_process_stdout != null) {

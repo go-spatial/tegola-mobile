@@ -8,12 +8,14 @@
     <string name="srvr_info">Server Info</string>
     <string name="srvr_config">Config:</string>
     <string name="srvr_config_type">Config Type</string>
+    <string name="srvr_config_sel">Config Selection</string>
     <string name="srvr_config_type__local">local</string>
     <string name="srvr_config_type__local__no_config_files_found">**NO LOCAL CONFIG .toml FILES FOUND**</string>
+    <string name="srvr_config_type__local__no_config_files_found__alert_msg">Tegola MVT server cannot be started without selecting a config TOML file.\n\nPlease import a config TOML file from the sdcard or your Google Drive, or alternatively change config type to \"remote\".</string>
     <string name="srvr_config_type__local__select_config">**PLEASE SELECT LOCAL CONFIG .toml FILE**</string>
     <string name="srvr_config_type__remote">remote</string>
-    <string name="srvr_config_sel">Config Selection</string>
-    <string name="srvr_config_sel__not_selected">**NOT SELECTED**</string>
+    <string name="srvr_config_type__remote__no_url_specified">**NO REMOTE CONFIG .toml URL SPECIFIED**</string>
+    <string name="srvr_config_type__remote__no_url_specified__alert_msg">Tegola MVT server cannot be started without specifying a config TOML URL.\n\nPlease specify one, or alternatively change config type to \"local\".</string>
     <string name="srvr_status">Server Status</string>
     <string name="srvr_console_ouput">Server Console Output:</string>
     <string name="starting">STARTING...</string>
@@ -29,4 +31,6 @@
     <string name="close_config_file">Close</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
+    <string name="choose_file">Select Tegola config TOML file</string>
+    <string name="OK">OK</string>
 </resources>

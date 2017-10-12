@@ -187,7 +187,7 @@ public class ConfigFileEditorActivity extends AppCompatActivity {
                                     public void run() {
                                         m_scvw_config_file_contents.fullScroll(View.FOCUS_UP);
                                     }
-                                }, 50);
+                                }, 100);
                             }
                         });
                     }

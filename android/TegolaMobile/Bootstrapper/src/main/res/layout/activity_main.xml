@@ -57,9 +57,9 @@
                 <com.github.aakira.expandablelayout.ExpandableRelativeLayout
                     android:id="@+id/sect_content__andro_dev_nfo"
                     style="@style/Section_Content"
-                    app:ael_duration="400"
+                    app:ael_duration="200"
                     app:ael_expanded="false"
-                    app:ael_interpolator="bounce"
+                    app:ael_interpolator="linear"
                     app:ael_orientation="vertical">
                     <!-- dev nfo section content item: CPU_ABI - BEGIN -->
                     <LinearLayout
@@ -138,9 +138,9 @@
                 <com.github.aakira.expandablelayout.ExpandableRelativeLayout
                     android:id="@+id/sect_content__ctrlr_nfo"
                     style="@style/Section_Content"
-                    app:ael_duration="400"
+                    app:ael_duration="200"
                     app:ael_expanded="false"
-                    app:ael_interpolator="bounce"
+                    app:ael_interpolator="linear"
                     app:ael_orientation="vertical">
                     <!-- controller nfo section content - STATUS - BEGIN -->
                     <LinearLayout
@@ -251,7 +251,8 @@
                         <RelativeLayout
                             android:id="@+id/config_sel_container__local"
                             style="@style/Section_Content_Item_Content"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="5dp">
 
                             <RelativeLayout
                                 android:layout_width="wrap_content"
@@ -371,6 +372,7 @@
                                 android:gravity="center_vertical"
                                 android:inputType="textUri"
                                 android:singleLine="true"
+                                android:imeOptions="actionDone"
                                 android:text=""/>
                         </RelativeLayout>
                     </LinearLayout>
@@ -430,6 +432,7 @@
                             xmlns:android="http://schemas.android.com/apk/res/android"
                             android:layout_width="fill_parent"
                             android:layout_height="match_parent"
+                            android:layout_marginBottom="5dp"
                             android:background="@android:color/background_dark"
                             android:orientation="vertical"
                             android:visibility="visible">

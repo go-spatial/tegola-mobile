@@ -1,12 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    /*
     signingConfigs {
         signing_config_debug {
             storeFile file('C:/Users/Steven/.android/debug.keystore')
             storePassword 'android'
         }
     }
+    */
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
     def versionPropsFile = file('version.properties')
@@ -55,7 +57,7 @@ android {
             versionCode vCode
             versionName vName
             archivesBaseName = base_archive_name
-            minSdkVersion 15
+            minSdkVersion 16
             targetSdkVersion 26
             testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         }
@@ -98,12 +100,23 @@ dependencies {
     //see https://github.com/AAkira/ExpandableLayout
     //compile 'com.github.aakira:expandable-layout:1.4.2@aar'   //old version
     compile 'com.github.aakira:expandable-layout:1.6.0@aar'
-    
+
+    //locally compiled version of forked https://github.com/iPaulPro/aFileChooser
+    compile(name: 'lib-aFileChooser-release', ext: 'aar') {
+        transitive = true;
+    }
+
     //compile 'com.google.android.gms:play-services:11.0.4'
     //only import Google Drive API vs. the entire Google Play Services bundle
     compile 'com.google.android.gms:play-services-drive:11.0.4'
-
+    
     compile project(':Controller')
 
     testCompile 'junit:junit:4.12'
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
 }
