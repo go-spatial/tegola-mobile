@@ -1,5 +1,5 @@
 # Tegola Mobile
-Tegola Mobile is a port of tegola (https://github.com/terranodo/tegola) - *shell-based* high performance vector tile server delivering Mapbox Vector Tiles leveraging PostGIS as the data provider - to non-rooted Android devices.
+Tegola Mobile is a port of tegola (https://github.com/terranodo/tegola) - a *shell-based* high performance vector tile server delivering Mapbox Vector Tiles leveraging PostGIS as the data provider - to non-rooted Android devices.
 
 ## Background
 Since tegola was designed to be a self-contained shell-based executable and *non-rooted* Android devices do not provide a direct means to execute terminal/shell commands or binaries, the tegola shell binary must be executed or launched by the context of an Android app (or service).  Additionally, tegola follows the daemon pattern, meaning it is meant to run continuously on its host until its process is stopped.  Finally, since we wish to avoid straying from tegola's design philosophy of code-once-deploy-arbitrarily, we require that tegola must be launched out-of-process on Android - see below for explanation.
@@ -45,9 +45,9 @@ Building Tegola Mobile is a two-step process.  First, the Tegola Mobile Android 
 After precompiling tegola Android-platform binaries, all four - for arm/API-16, arm64/API-21, x86/API-16, and x86_64/API-21 - are placed within the raw resources location of the Android Studio project.  Note that we have written buildscripts to take the headache out of this part of the process.  The APK can then be built from Tegola Mobile sources with the Android Studio project.
 
 #### Build-Host Configuration
- 1. Download and install latest **JDK** (http://www.oracle.com/technetwork/java/javase/downloads/index.html) for your host environment
+ 1. Download and install **JDK 1.8 (aka SE 8) or compatible** (http://www.oracle.com/technetwork/java/javase/downloads/index.html) for your host environment
  2. Add path to Java `/bin` subdirectory to your PATH environment variable
- 3. Download and install the latest version of **Golang** (https://golang.org/dl/)
+ 3. Download and install **Golang 1.9 or compatible** (https://golang.org/dl/)
  4. Set environment variable GOROOT to the root of your Golang installation directory
  5. Add `"$GOROOT/bin"` to your PATH environment variable
  6. Create Golang workspace directory if you have not already done so
@@ -56,7 +56,7 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-16, 
  9. Download and install the latest version of **Android Studio** (https://developer.android.com/studio/index.html#downloads) for your host environment
  10. Create Android Studio workspace directory if you have not already done so
  11. Set environment variable MY_ANDROID_STUDIO_WORKSPACE to the root of your Android Studio workspace directory
- 12. Download and install/update **Android SDKs**, **Build Tools**, and **NDK** *via **Android Studio SDK Manager***
+ 12. Download and install/update **Android SDKs**, **Build Tools**, and **NDK** *via **Android Studio SDK Manager**
 	  1. Launch Android Studio - note that on Linux environments, if this is the first time launching Android Studio, the launcher will run through first-time environment setup, which takes several minutes to complete while it downloads necessary supporting files
 	  2. From Android Studio launcher, select `Configure|SDK Manager`; this will launch the Android Studio SDK Manager in a new Window but will be entitled "Default Settings"
 	  3. In the right pane, select the `SDK Tools` tab
@@ -66,9 +66,10 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-16, 
 		 - `Android SDK Platform-Tools`
 		 - `Android SDK Tools`
 		 - `NDK`
+		 - `ConstraintLayout for Android`
 	  5. Click `Apply`
 	  6. If any components need to be installed or updated, Android Studio SDK Manager will notify you module-by-module; click `OK` each time and the respective module will be downloaded/installed - note that installing the NDK usually takes a very long time so don't be alarmed when it does
- 13. Set environment variable MY_ANDROID_HOME to the root directory of where **Android Studio SDK Manager** installed the components from step 12 - this is typically `/Android`
+ 13. Set environment variable MY_ANDROID_HOME to the root directory of where **Android Studio SDK Manager** installed the components from step 12 - this is typically `/Android` or `~/Android/Sdk`
  14. Set environment variable MY_ANDROID_SDK_HOME to `"$MY_ANDROID_HOME/sdk"` - note: make sure case is correct since on Windows this directory name is in lower case, while on Linux it is "Sdk"
  15. Set environment variable MY_ANDROID_NDK_HOME to `"$MY_ANDROID_HOME/ndk-bundle"`
  16. Add `"$MY_ANDROID_SDK_HOME/tools"` to your PATH environment variable
@@ -89,33 +90,37 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-16, 
  21. Set environment variable MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME to `"$MY_ANDROID_HOME/ndk-standalone-toolchain"`
  22. Build Android NDK Standalone Toolchains
 	 - For Android-platform: *arm/API 16* (minimum 32-bit arm)
-		 - Execute shell command: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/arm`
+		 - Execute shell command: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/arm`
 		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm --api 16 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/arm --force`
 	 - For Android-platform: *x86/API 16* (minimum 32-bit x86)
-		 - Execute shell command: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/x86`
+		 - Execute shell command: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/x86`
 		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86 --api 16 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/x86 --force`
 	 - For Android-platform: *arm64/API 21* (minimum 64-bit arm)
-		 - Execute shell command: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64`
+		 - Execute shell command: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64`
 		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64 --force`
 	 - For Android-platform: *x86_64/API 21* (minimum 64-bit x86)
-		 - Execute shell command: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64`
+		 - Execute shell command: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64`
 		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86_64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64 --force`
 
 
 #### Build Tegola Android-Platform Target Binaries
 Since tegola is written in Golang, we must use Golang build tools in combination with the NDK Standalone Toolchains (see above) to cross-compile the four supported Android-platform tegola binaries.  Note that these steps must be completed each time you want to target a new revision or different feature version of tegola (for Android).
 
- 1. (Only once) Fork the github **tegola-mobile** repo (https://github.com/terranodo/tegola-mobile, *but you know that already if you are reading this*) for your github account if you have not already done so
+ 1. (Only once) Fork the github **tegola-mobile** repo (https://github.com/terranodo/tegola-mobile, *the repo this readme is in*) for your github account if you have not already done so
  2. (Only once) Create directory `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/`
  3. Clone/pull *your* forked **tegola-mobile** repo to `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/` to update sources
  4. (Only once) Fork the github **tegola** repo (https://github.com/terranodo/tegola) for your github account if you have not already done so
- 5. Switch to the version github branch of **tegola** (to be housed within the APK)
- 6. (Only once) Create directory `$GOPATH/src/github.com/terranodo/tegola/`
- 7. Clone/pull *your* forked **tegola** version branch repo to `$GOPATH/src/github.com/terranodo/tegola/` to update sources
+ 5. (Only once) Create directory `$GOPATH/src/github.com/terranodo/tegola/`
+ 6. Clone/pull *your* forked **tegola** version branch repo to `$GOPATH/src/github.com/terranodo/tegola/` to update sources
+ 7. Check out the branch/version of tegola you want in the APK: cd `$GOPATH/src/github.com/terranodo/tegola/`, `git checkout <version>`
  8. Cross-compile tegola Android-platform binaries with Golang build tools
 	 - Execute the "build all" schell script:
-		 - On **Linux** build-hosts: `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/linux/build_tegola_android_all.sh`  
-		 - On **Windows** build-hosts: `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/win/build_tegola_android_all.bat`
+		 - On **Linux** build-hosts:
+		 	- `cd $MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/linux/`
+		 	- `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/linux/build_tegola_android_all.sh`
+		 - On **Windows** build-hosts:
+		 	- `cd $MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/win/`
+			- `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/tegola-bin-buildscripts/win/build_tegola_android_all.bat`
 	 - Provided go-build cross-compilation succeeds, tegola android-platform binaries will be placed within the raw resource directory of the Android Studio project
 		 - file location:  `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/`
 		 - filenames:
@@ -130,10 +135,11 @@ You are now ready to build the APK.
 
 1. Start Android Studio
 2. Open the **Tegola Mobile** Android Studio project from the Android Studio launcher by clicking `Open an Existing Android Studio project`
-3. Navigate to the Tegola Mobile Android Studio project directory, location at `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TegolaMobile` and click `OK`
+3. Navigate to the Tegola Mobile Android Studio project directory, located at `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TegolaMobile` and click `OK`
 4. (optional) If you want to leverage Tegola Mobile's embedded runtime GoogleDrive import functionality you MUST create both an app API key and an OAuth client ID for the Tegola Mobile app - note that this is required since every APK is signed - be it debug or release - by Android Studio each time it is built by **your** keystore
 5. From Android Studio, select `Build|Build APK` or `Build|Generate Signed APK` - note that to build a signed APK you will need to generate a keystore and signing certificate if you have not already done so
 
+* Note: if you need to build an updated version, `cd $MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/` `git pull`
 
 ## Running Tegola Mobile APK
 1. First you need to install **Tegola Mobile** on your target device - note that this can be an emulator or a physical Android device
