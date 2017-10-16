@@ -1,10 +1,15 @@
 <resources>
     <string name="app_name">Tegola Mobile</string>
+
+    <string name="tegola_bin_ver">0.4.0-beta</string>
+
     <string name="android_device_info">Android/Device Info</string>
     <string name="cpu_abi">CPU_ABI</string>
     <string name="api_level">API Level</string>
+
     <string name="ctrlr_info">Controller Info</string>
     <string name="ctrlr_status">Controller Status</string>
+
     <string name="srvr_info">Server Info</string>
     <string name="srvr_config">Config:</string>
     <string name="srvr_config_type">Config Type</string>
@@ -18,12 +23,12 @@
     <string name="srvr_config_type__remote__no_url_specified__alert_msg">Tegola MVT server cannot be started without specifying a config TOML URL.\n\nPlease specify one, or alternatively change config type to \"local\".</string>
     <string name="srvr_status">Server Status</string>
     <string name="srvr_console_ouput">Server Console Output:</string>
+
     <string name="starting">STARTING...</string>
     <string name="started">STARTED/RUNNING</string>
     <string name="stopping">STOPPING...</string>
     <string name="stopped">STOPPED</string>
     <string name="apply_changes">Apply Changes</string>
-    <string name="tegola_bin_ver">0.4.0</string>
     <string name="title_activity_config_file_viewer">Tegola Config TOML File Viewer</string>
     <string name="edit_config_file">Edit</string>
     <string name="commit_config_file_changes">Commit Changes</string>

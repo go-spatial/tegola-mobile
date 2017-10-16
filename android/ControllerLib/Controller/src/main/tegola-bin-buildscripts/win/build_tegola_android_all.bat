@@ -1,4 +1,4 @@
-echo off
+@echo off
 echo "Running tegola android-platform build for: android/arm"
 call build_tegola_android_arm.bat
 echo "Running tegola android-platform build for: android/arm64"

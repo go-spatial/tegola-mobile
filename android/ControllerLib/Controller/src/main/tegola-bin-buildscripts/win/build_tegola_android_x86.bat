@@ -1,4 +1,4 @@
-echo off
+@echo off
 setlocal
 call clean_tegola_android_x86.bat
 set arch=x86

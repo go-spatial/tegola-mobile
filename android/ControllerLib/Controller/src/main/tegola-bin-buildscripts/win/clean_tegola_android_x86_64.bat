@@ -1,4 +1,4 @@
-echo off
+@echo off
 setlocal
 set arch=x86_64
 set apilevel=21

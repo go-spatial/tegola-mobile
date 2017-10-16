@@ -90,16 +90,24 @@ After precompiling tegola Android-platform binaries, all four - for arm/API-16, 
  21. Set environment variable MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME to `"$MY_ANDROID_HOME/ndk-standalone-toolchain"`
  22. Build Android NDK Standalone Toolchains
 	 - For Android-platform: *arm/API 16* (minimum 32-bit arm)
-		 - Execute shell command: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/arm`
+		 - Execute shell command: 
+		 	- On **Linux** build-hosts: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/arm`
+		 	- On **Windows** build-hosts: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/arm`
 		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm --api 16 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/arm --force`
 	 - For Android-platform: *x86/API 16* (minimum 32-bit x86)
-		 - Execute shell command: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/x86`
+		 - Execute shell command: 
+		 	- On **Linux** build-hosts: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/x86`
+		 	- On **Windows** build-hosts: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/x86`
 		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86 --api 16 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-16/x86 --force`
 	 - For Android-platform: *arm64/API 21* (minimum 64-bit arm)
-		 - Execute shell command: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64`
+		 - Execute shell command: 
+		 	- On **Linux** build-hosts: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64`
+		 	- On **Windows** build-hosts: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64`
 		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch arm64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/arm64 --force`
 	 - For Android-platform: *x86_64/API 21* (minimum 64-bit x86)
-		 - Execute shell command: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64`
+		 - Execute shell command: 
+		 	- On **Linux** build-hosts: `mkdir -p $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64`
+		 	- On **Windows** build-hosts: `mkdir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64`
 		 - Execute shell command:  `python $MY_ANDROID_NDK_HOME/build/tools/make_standalone_toolchain.py --arch x86_64 --api 21 --deprecated-headers --install-dir $MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME/api-21/x86_64 --force`
 
 
