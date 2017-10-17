@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 ./clean_tegola_android_x86_64.sh
 arch=x86_64
 echo "Current arch is: $arch"
@@ -25,10 +26,28 @@ OUTPUT_BIN=tegola_bin__android_$arch
 OUTPUT_PATH=$OUTPUT_DIR/$OUTPUT_BIN
 echo "OUTPUT_PATH is: $OUTPUT_PATH"
 cd $GOPATH/src/github.com/terranodo/tegola/cmd/tegola/
-go build -p=1 -pkgdir=$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_$arch -tags="" -ldflags="-extldflags=-pie" -o $OUTPUT_PATH -x -a -v . 2>&1 | tee $OUTPUT_DIR/build_$OUTPUT_BIN.out
+go_build_cmd="go build -p=1 -pkgdir=$MY_GOLANG_WORKSPACE/pkg/gomobile/pkg_android_$arch -tags=\"\" -ldflags=\"-extldflags=-pie\" -o $OUTPUT_PATH -x -a -v ."
+echo "go_build_cmd is: $go_build_cmd"
+build_output=$OUTPUT_DIR/build_$OUTPUT_BIN.out
+rm $build_output
+echo "running go build command: $go_build_cmd"
+> $build_output 2>&1 $go_build_cmd
+echo "go build: complete - see build output file $build_output for details"
+DEST=$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/$OUTPUT_BIN
 if [ -e $OUTPUT_PATH ]
 then
-    OLD_PATH=$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/$OUTPUT_BIN
-    rm $OLD_PATH
-    mv $OUTPUT_PATH $OLD_PATH
+	echo "successfully built tegola android-platform binary $OUTPUT_PATH"
+    echo "final destination is: $DEST"
+    rm $DEST
+    echo "moving $OUTPUT_PATH to $DEST..."
+    mv $OUTPUT_PATH $DEST
+    if [ -e $DEST ]
+    then
+    	echo "succeeded!"
+    else
+    	echo "failed!"
+    fi
+else
+	echo "go build: failed to build $OUTPUT_PATH"
 fi
+echo "all done!"
