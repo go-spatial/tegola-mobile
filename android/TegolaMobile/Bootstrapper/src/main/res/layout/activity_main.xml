@@ -194,6 +194,22 @@
                     android:id="@+id/sect_content__srvr_nfo"
                     style="@style/Section_Content"
                     android:layout_height="match_parent">
+                    <!-- srvr nfo section content - version - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__version"
+                        style="@style/Section_Content_Item">
+                        <TextView
+                            android:id="@+id/tvl_lbl_bin_ver"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/srvr_ver"/>
+
+                        <TextView
+                            android:id="@+id/tv_val_bin_ver"
+                            style="@style/Section_Content_Item_Content"
+                            android:text="@string/tegola_bin_ver"
+                            android:visibility="visible"/>
+                    </LinearLayout>
+                    <!-- srvr nfo section content - version - END -->
                     <!-- srvr nfo section content - CONFIG type - BEGIN -->
                     <LinearLayout
                         android:id="@+id/sect_content__item__config_type"
@@ -202,8 +218,7 @@
                         <TextView
                             android:id="@+id/tvl_lbl_config_type"
                             style="@style/Section_Content_Item_Label"
-                            android:text="@string/srvr_config_type"
-                            android:visibility="visible"/>
+                            android:text="@string/srvr_config_type"/>
 
                         <RadioGroup
                             android:id="@+id/rg_val_config_type_sel"

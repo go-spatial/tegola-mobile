@@ -55,6 +55,7 @@ import com.google.android.gms.drive.query.SearchableField;
 import com.ipaulpro.afilechooser.utils.FileUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -458,7 +459,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     };
     private void import_config_toml__from_sdcard() {
         try {
-            startActivityForResult(Intent.createChooser(FileUtils.createGetContentIntent(), "Select Tegola config TOML file"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE);
+            Intent intent_get_file_content = new Intent(Intent.ACTION_GET_CONTENT);
+            intent_get_file_content.setType("text/plain" /*first preferred mime-type*/);
+            intent_get_file_content.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{FileUtils.MIME_TYPE_TEXT /*second preferred mime-type*/, "application/octet-stream" /*third preferred and catch-all mime-type*/});
+            intent_get_file_content.addCategory(Intent.CATEGORY_OPENABLE);
+            startActivityForResult(Intent.createChooser(intent_get_file_content, "Select Tegola config TOML file"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -978,38 +983,62 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private local__file__import__result local__file__import(final Uri local_file_uri) throws IOException {
         local__file__import__result result = new local__file__import__result();
         result.src_path = local_file_uri.getPath();
-        Cursor cursor = this.getContentResolver().query(local_file_uri, null, null, null, null, null);
-        try {
-            // moveToFirst() returns false if the cursor has 0 rows.  Very handy for
-            // "if there's anything to look at, look at it" conditionals.
-            if (cursor != null && cursor.moveToFirst()) {
-                // Note it's called "Display Name".  This is
-                // provider-specific, and might not necessarily be the file name.
-                result.src_name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                Log.d(TAG, "local__file__import: display (file) name: " + result.src_name);
-                int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
-                String size = null;
-                if (!cursor.isNull(sizeIndex)) {
-                    // Technically the column stores an int, but cursor.getString()
-                    // will do the conversion automatically.
-                    size = cursor.getString(sizeIndex);
+        InputStream inputstream_config_toml = null;
+        boolean uselocalstorageprovider = getResources().getBoolean(R.bool.use_provider);
+        if (uselocalstorageprovider) {
+            Log.d(TAG, "local__file__import: using storage access framework since API level (" + Build.VERSION.SDK_INT + ") of device >= 19");
+            Cursor cursor = this.getContentResolver().query(local_file_uri, null, null, null, null, null);
+            try {
+                if (cursor == null) {
+                    Log.d(TAG, "local__file__import: getContentResolver().query() returned null cursor for uri " + local_file_uri.toString());
                 } else {
-                    size = "Unknown";
+                    // moveToFirst() returns false if the cursor has 0 rows.  Very handy for
+                    // "if there's anything to look at, look at it" conditionals.
+                    if (cursor.moveToFirst()) {
+                        // Note it's called "Display Name".  This is
+                        // provider-specific, and might not necessarily be the file name.
+                        result.src_name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                        Log.d(TAG, "local__file__import: cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME) returns display (file) name: " + result.src_name);
+                    } else {
+                        Log.d(TAG, "local__file__import: cursor.moveToFirst() failed for uri " + local_file_uri.toString());
+                    }
                 }
-                Log.d(TAG, "local__file__import: size: " + size);
+            } finally {
+                if (cursor != null)
+                    cursor.close();
             }
-        } finally {
-            cursor.close();
+            if (result.src_name.isEmpty()) {
+                Log.d(TAG, "local__file__import: result.src_name is empty; parsing result.src_name manually from uri path " + result.src_path);
+                int i = result.src_path.lastIndexOf("/");
+                if (i == -1)
+                    i = 0;
+                else
+                    i += 1;
+                result.src_name = result.src_path.substring(i);
+            }
+            Log.d(TAG, "local__file__import: using storage access framework content resolver to open inputstream from " + result.src_path + "...");
+            inputstream_config_toml = getContentResolver().openInputStream(local_file_uri);
+        } else {
+            Log.d(TAG, "local__file__import: not using storage access framework since API level (" + Build.VERSION.SDK_INT + ") of device < 19");
+            File f_local = new File(result.src_path);
+            result.src_name = f_local.getName();
+            Log.d(TAG, "local__file__import: opening inputstream from " + result.src_path + "...");
+            inputstream_config_toml = new FileInputStream(f_local);
         }
-        InputStream inputstream_config_toml = getContentResolver().openInputStream(local_file_uri);
-        byte[] buf_raw_config_toml = new byte[inputstream_config_toml.available()];
+        if (inputstream_config_toml == null )
+            throw new IOException("Failed to open inputstream to " + result.src_path);
+        final int file_size_in_bytes = inputstream_config_toml.available();
+        byte[] buf_raw_config_toml = new byte[file_size_in_bytes];
+        Log.d(TAG, "local__file__import: input file size is " + file_size_in_bytes + " bytes; reading...");
         inputstream_config_toml.read(buf_raw_config_toml);
         inputstream_config_toml.close();
+        Log.d(TAG, "local__file__import: writing " + file_size_in_bytes + " bytes to new file (result.src_name \"" + result.src_name + "\") in app files directory...");
         FileOutputStream f_outputstream_new_tegola_config_toml = openFileOutput(result.src_name, Context.MODE_PRIVATE);
         f_outputstream_new_tegola_config_toml.write(buf_raw_config_toml);
         f_outputstream_new_tegola_config_toml.close();
         File f_new_tegola_config_toml = new File(getFilesDir().getPath() + "/" + result.src_name);
         result.succeeded = f_new_tegola_config_toml.exists();
+        Log.d(TAG, "local__file__import: all done - " + (result.succeeded ? "successfully copied" : "failed to copy") + " " + result.src_name + " to app files directory");
         return result;
     }
 
@@ -1057,8 +1086,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void OnMVTServerStarted(final String version, final int pid) {
         final StringBuilder sb_srvr_status = new StringBuilder();
         sb_srvr_status.append(getString(R.string.started));
-        if (version != null && !version.isEmpty())
-            sb_srvr_status.append(" version " + version);
+//        if (version != null && !version.isEmpty())
+//            sb_srvr_status.append(" version " + version);
         if (pid != -1)
             sb_srvr_status.append(" , pid " + pid + "");
         m_tv_val_srvr_status.setText(sb_srvr_status.toString());
@@ -1109,6 +1138,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         m_tv_val_ctrlr_status.setText(getString(R.string.starting));
         Intent intent_start_controller_fgs = new Intent(MainActivity.this, ControllerFGS.class);
         intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND);
+        intent_start_controller_fgs.putExtra(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS, MainActivity.class.getName());
         startService(intent_start_controller_fgs);
     }
 

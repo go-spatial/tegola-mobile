@@ -1,15 +1,23 @@
 <resources>
-    <string name="app_name">TegolaMobile MVT Server Controller</string>
+    <string name="fgs_asn_title_tegola_mvt_server_prefix">Tegola MVT Server</string>
+    <string name="tegola_bin_ver">0.4.0-beta</string>
 
-    <string name="pkg">go_spatial.com.github.tegola.android.controllermodule</string>
+    <string name="ctrlr_info">Controller Info</string>
+    <string name="ctrlr_status">Controller Status</string>
 
-    <!-- provided for localization of Android System Notification Bar notifications if desired -->
-    <string name="start_server">Start MVT Server</string>
-    <string name="stop_server">Stop MVT Server</string>
+    <string name="srvr_info">Server Info</string>
+    <string name="srvr_ver">Version</string>
+    <string name="srvr_config">Config:</string>
+    <string name="srvr_config_type">Config Type</string>
+    <string name="srvr_config_type__local">local</string>
+    <string name="srvr_config_type__remote">remote</string>
+    <string name="srvr_config_sel">Config Selection</string>
+    <string name="srvr_status">Server Status</string>
 
-    <string name="tegola_version">0.4.0</string>
-    <string name="tegola_bin__arm__min_api">15</string>
-    <string name="tegola_bin__x86__min_api">15</string>
-    <string name="tegola_bin__arm64__min_api">21</string>
-    <string name="tegola_bin__x86_64__min_api">21</string>
+    <string name="start">Start</string>
+    <string name="starting">STARTING...</string>
+    <string name="started">STARTED/RUNNING</string>
+    <string name="stop">Stop</string>
+    <string name="stopping">STOPPING...</string>
+    <string name="stopped">STOPPED</string>
 </resources>

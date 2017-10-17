@@ -6,10 +6,9 @@ import android.os.Build;
 public class Constants {
     public interface Strings {
         String PKG = "go_spatial.com.github.tegola.android.controller";
-        String TEGOLA_BIN__NORMALIZED_FNAME = "tegola.bin";
-        String TEGOLA_CONFIG_TOML__NORMALIZED_FNAME = "config.toml";
         interface INTENT {
             interface ACTION {
+                String EXTRA__KEY__HARNESS = "HARNESS";
                 String EXTRA__KEY__CONFIG = "CONFIG";
                 String EXTRA__KEY__MSG = "MSG";
                 String EXTRA__KEY__VERSION = "VERSION";
@@ -20,6 +19,10 @@ public class Constants {
                 interface FGS_CONTROL_REQUEST {
                     String FGS__START_FOREGROUND = PKG + "START_FOREGROUND";
                     String FGS__STOP_FOREGROUND = PKG + "STOP_FOREGROUND";
+
+                    interface EXTRA__KEY {
+                        String FGS__START_FOREGROUND__HARNESS = FGS__START_FOREGROUND + "." + EXTRA__KEY__HARNESS;
+                    }
                 }
                 interface MVT_SERVER_CONTROL_REQUEST {
                     String MVT_SERVER__START = PKG + ".MVT_SERVER__START";
@@ -265,15 +268,6 @@ public class Constants {
                     case tegola_bin__x86: return R.raw.tegola_bin__android_x86;
                     case tegola_bin__arm64: return R.raw.tegola_bin__android_arm64;
                     case tegola_bin__x86_64: return R.raw.tegola_bin__android_x86_64;
-                    default: return null;
-                }
-            }
-            public final String version_string() {
-                switch (this) {
-                    case tegola_bin__arm:
-                    case tegola_bin__x86:
-                    case tegola_bin__arm64:
-                    case tegola_bin__x86_64: return "0.4.0";
                     default: return null;
                 }
             }

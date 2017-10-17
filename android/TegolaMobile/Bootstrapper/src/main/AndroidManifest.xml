@@ -17,7 +17,8 @@
             android:value="@integer/google_play_services_version"/>
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="stateHidden">
+            android:windowSoftInputMode="stateHidden"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -31,20 +32,20 @@
         <activity
             android:name="com.ipaulpro.afilechooser.FileChooserActivity"
             android:icon="@drawable/ic_chooser"
-            android:enabled="@bool/use_filechooser_activity"
+            android:enabled="@bool/use_activity"
             android:exported="true"
             android:label="@string/choose_file">
             <intent-filter>
-                <action android:name="android.intent.action.GET_CONTENT" />
+                <action android:name="android.intent.action.GET_CONTENT"/>
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.OPENABLE" />
-                <data android:mimeType="text/plain"/>
+                <data android:mimeType="text/*"/>
             </intent-filter>
         </activity>
         <provider
             android:name="go_spatial.com.github.tegola.mobile.android.bootstrapper.TMLocalStorageProvider"
             android:authorities="go_spatial.com.github.tegola.mobile.android.bootstrapper.localstorage.documents"
-            android:enabled="@bool/use_localstorageprovider"
+            android:enabled="@bool/use_provider"
             android:exported="true"
             android:grantUriPermissions="true"
             android:permission="android.permission.MANAGE_DOCUMENTS" >

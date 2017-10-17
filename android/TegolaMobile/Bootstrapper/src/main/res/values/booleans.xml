@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- these will be boolean resource values when api level of devices < 19 -->
 <resources>
-    <bool name="use_filechooser_activity">true</bool>
-    <bool name="use_localstorageprovider">true</bool>
+    <bool name="use_activity">true</bool>
+    <bool name="use_provider">false</bool>
 </resources>

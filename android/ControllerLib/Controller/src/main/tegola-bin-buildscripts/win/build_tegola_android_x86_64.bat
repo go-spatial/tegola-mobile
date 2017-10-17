@@ -26,10 +26,12 @@ set OUTPUT_BIN=tegola_bin__android_%arch%
 set OUTPUT_PATH=%OUTPUT_DIR%\%OUTPUT_BIN%
 echo "OUTPUT_PATH is: %OUTPUT_PATH%"
 cd %GOPATH%\src\github.com\terranodo\tegola\cmd\tegola\
-set go_buiild_cmd=go build -p=1 -pkgdir=%MY_GOLANG_WORKSPACE%\pkg\gomobile\pkg_android_%arch% -tags="" -ldflags="-extldflags=-pie" -o %OUTPUT_PATH% -x -a -v .
+set go_build_cmd=go build -p=1 -pkgdir=%MY_GOLANG_WORKSPACE%\pkg\gomobile\pkg_android_%arch% -tags="" -ldflags="-extldflags=-pie" -o %OUTPUT_PATH% -x -a -v .
+echo "go_build_cmd is: %go_build_cmd%"
 set build_output=%OUTPUT_DIR%\build_%OUTPUT_BIN%.out
-echo "running go build command: %go_buiild_cmd%"
-> "%build_output%" 2>&1 (call %go_buiild_cmd%)
+rm %build_output%
+echo "running go build command: %go_build_cmd%"
+> "%build_output%" 2>&1 (call %go_build_cmd%)
 echo "go build: complete - see build output file %build_output% for details"
 set DEST=%MY_ANDROID_STUDIO_WORKSPACE%\src\github.com\terranodo\tegola-mobile\android\ControllerLib\Controller\src\main\res\raw\%OUTPUT_BIN%
 if exist %OUTPUT_PATH% (

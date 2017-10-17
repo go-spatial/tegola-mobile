@@ -1,6 +1,7 @@
 package go_spatial.com.github.tegola.mobile.android.controller;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -40,7 +41,7 @@ public class ControllerFGS extends Service {
     private Handler m_handler_br_client_control_request = null;
 
 
-    //statically load libraries here
+    //statically load native libraries here
     static {
         System.loadLibrary("tcsnativeauxsupp"); //for signal trapping - note that this will convert native signals (only three we are interested in) into java exceptions
     }
@@ -52,6 +53,8 @@ public class ControllerFGS extends Service {
     }
 
 
+    private Class<?> m_class_harness = null;
+    private String m_s_fgs_asn_title;
 
     @Override
     public int onStartCommand(Intent intent, /*@IntDef(value = {Service.START_FLAG_REDELIVERY, Service.START_FLAG_RETRY}, flag = true)*/ int flags, int startId) {
@@ -59,40 +62,34 @@ public class ControllerFGS extends Service {
         if (e_fgs_ctrl_request != null) {
             switch (e_fgs_ctrl_request) {
                 case FGS__START_FOREGROUND: {
-                    Log.i(TAG, "Received FGS__START_FOREGROUND request");
+                    String s_class_harness = intent.getStringExtra(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS);
+                    Log.i(TAG, "onStartCommand: Received FGS__START_FOREGROUND request from harness " + s_class_harness);
 
                     Intent intent_notify_service_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING);
                     sendBroadcast(intent_notify_service_starting);
 
-                    Intent notificationIntent = new Intent(this, ASNBContentActivity.class);
-                    notificationIntent.setAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
-                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+                    try {
+                        m_class_harness = Class.forName(s_class_harness);
+                        Log.d(TAG, "onStartCommand: mapped class for harness " + s_class_harness);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    Log.d(TAG, "onStartCommand: setting up ASN for FGS...");
 
-                    Intent startServerIntent = new Intent(this, ControllerFGS.class);
-                    startServerIntent.setAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
-                    PendingIntent pstartServerIntent = PendingIntent.getService(this, 0, startServerIntent, 0);
+                    m_s_fgs_asn_title = new StringBuilder()
+                            .append(getString(R.string.fgs_asn_title_tegola_mvt_server_prefix))
+                            .append(" v")
+                            .append(getString(R.string.tegola_bin_ver))
+                            .append(" Status")
+                            .toString();
 
-                    Intent stopServerIntent = new Intent(this, ControllerFGS.class);
-                    stopServerIntent.setAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
-                    PendingIntent pstopServerIntent = PendingIntent.getService(this, 0, stopServerIntent, 0);
+                    Log.d(TAG, "onStartCommand: starting FGS...");
+                    startForeground(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, prepare_fgs_asn(getString(R.string.stopped)));
 
-                    Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-
-                    Notification notification = new NotificationCompat.Builder(this)
-                            .setContentTitle("Tegola MVT Server")
-                            .setTicker("Tegola MVT Server")
-                            .setContentText("My MVTs")
-                            .setSmallIcon(R.drawable.ic_stat_satellite_black)
-                            .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                            .setContentIntent(pendingIntent)
-                            .setOngoing(true)
-                            .addAction(android.R.drawable.ic_media_play, getString(R.string.start_server), pstartServerIntent)
-                            .addAction(android.R.drawable.ic_media_pause, getString(R.string.stop_server), pstopServerIntent).build();
-                    startForeground(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, notification);
-
+                    Log.d(TAG, "onStartCommand: ASN dispatched and FGS started - init'ing...");
                     init();
 
+                    Log.d(TAG, "onStartCommand: start sequence complete - notifying harness...");
                     Intent intent_notify_service_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED);
                     sendBroadcast(intent_notify_service_started);
                     break;
@@ -109,6 +106,27 @@ public class ControllerFGS extends Service {
             }
         }
         return START_REDELIVER_INTENT;
+    }
+
+    private Notification prepare_fgs_asn(final String s_status) {
+        Intent intent_bring_harness_to_foreground = new Intent(getApplicationContext(), m_class_harness);
+        intent_bring_harness_to_foreground.setAction(Intent.ACTION_MAIN);
+        intent_bring_harness_to_foreground.addCategory(Intent.CATEGORY_LAUNCHER);
+        PendingIntent pending_intent_bring_harness_to_foreground = PendingIntent.getActivity(getApplicationContext(), 0, intent_bring_harness_to_foreground, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return new NotificationCompat.Builder(this)
+            .setContentTitle(m_s_fgs_asn_title)
+            .setContentText(s_status)
+            .setSmallIcon(R.drawable.ic_stat_satellite_black)
+            .setLargeIcon(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher), 128, 128, false))
+            .setContentIntent(pending_intent_bring_harness_to_foreground)
+            .setOngoing(true)
+            .build();
+    }
+
+    private void update_fgs_asn(final String s_status) {
+        NotificationManager asn_mgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        asn_mgr.notify(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, prepare_fgs_asn(s_status));
     }
 
     private void init() {
@@ -152,7 +170,6 @@ public class ControllerFGS extends Service {
         File
                 f_filesDir = getFilesDir()
                 , f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + e_tegola_bin.name())
-                , f_tegola_config_toml = new File(f_filesDir.getPath() + "/" + Constants.Strings.TEGOLA_CONFIG_TOML__NORMALIZED_FNAME)
                 ;
         if (!f_tegola_bin_executable.exists()) {
             //transfer matching tegola binary from raw resources based on device arch
@@ -216,16 +233,19 @@ public class ControllerFGS extends Service {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
             intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            update_fgs_asn(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         } catch (Exceptions.UnsupportedCPUABIException e) {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
             intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            update_fgs_asn(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         } catch (Exceptions.InvalidTegolaArgumentException e) {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
             intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            update_fgs_asn(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         }
     }
@@ -255,6 +275,7 @@ public class ControllerFGS extends Service {
         Log.i(TAG, "start_tegola: starting new tegola server process...");
         //notify br_receivers (if any) server starting
         Intent intent_notify_server_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING);
+        update_fgs_asn(getString(R.string.starting));
         sendBroadcast(intent_notify_server_starting);
 
         //build and exec tegola cmd line in new process
@@ -272,6 +293,7 @@ public class ControllerFGS extends Service {
             m_process_tegola = null;
             m_tegola_process_is_running = false;
             Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
+            update_fgs_asn(getString(R.string.stopped));
             sendBroadcast(intent_notify_server_stopped);
             return false;
         }
@@ -284,9 +306,10 @@ public class ControllerFGS extends Service {
 
         //start tegola process logcat cat monitor and notify br receivers MVT_SERVER__STARTED
         Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED);
-        intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION, e_tegola_bin.version_string());
+        intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION, getString(R.string.srvr_ver));
         if (pid_process_tegola != -1)
             intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, pid_process_tegola);
+        update_fgs_asn(getString(R.string.started) + (pid_process_tegola != -1 ? ", pid " + pid_process_tegola: ""));
         sendBroadcast(intent_notify_server_started);
 
         //now start tegola logcat monitor specifc to tegola process (before stderr and stdout monitors since there is always the possibility tegola could segfault or trigger some other native signal)
@@ -447,6 +470,7 @@ public class ControllerFGS extends Service {
                     m_process_tegola = null;
                     m_tegola_process_is_running = false;
                     Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
+                    update_fgs_asn(getString(R.string.stopped));
                     sendBroadcast(intent_notify_server_stopped);
                 }
             }
@@ -460,6 +484,7 @@ public class ControllerFGS extends Service {
         if (m_process_tegola != null) {
             Log.i(TAG, "stop_tegola: killing current running instance of tegola mvt server...");
             Intent intent_notify_server_stopping = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING);
+            update_fgs_asn(getString(R.string.stopping));
             sendBroadcast(intent_notify_server_stopping);
             m_process_tegola.destroy();
             if (m_thread_tegola_process_monitor != null) {
@@ -473,6 +498,7 @@ public class ControllerFGS extends Service {
             m_process_tegola = null;
             m_tegola_process_is_running = false;
             Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
+            update_fgs_asn(getString(R.string.stopped));
             sendBroadcast(intent_notify_server_stopped);
             return true;
         }
