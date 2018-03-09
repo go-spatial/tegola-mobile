@@ -12,7 +12,7 @@ android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
     def versionPropsFile = file('version.properties')
-    def vName = "_unknown_";
+    def vName = "_unknown_"
     if (versionPropsFile.canRead()) {
         def Properties versionProps = new Properties()
 
@@ -51,7 +51,7 @@ android {
         versionProps['VERSION_BUILD'] = vBuild.toString()
         versionProps.store(versionPropsFile.newWriter(), null)
 
-        def base_archive_name = "tegolamobile"
+        def base_archive_name = "tegolamobile-gpkg"
         defaultConfig {
             applicationId "go_spatial.com.github.tegola.mobile.android.bootstrapper"
             versionCode vCode
@@ -63,11 +63,8 @@ android {
         }
 
         applicationVariants.all { variant ->
-            variant.outputs.each { output ->
-                def finalName = base_archive_name + "-" + vName + "-" + variant.buildType.name + ".apk";
-                if (variant.buildType.name == "release") {  //only want to do this for releases
-                    output.outputFileName = new File(output.outputFile.parent, finalName)
-                }
+            variant.outputs.all {
+                outputFileName = base_archive_name + "-" + vName + "-" + variant.buildType.name + ".apk"
             }
         }
     } else {
@@ -88,32 +85,37 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support:support-v4:26.1.0'
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:appcompat-v7:26.1.0'
     //compile 'com.android.support.constraint:constraint-layout:1.0.2'  //don't need this
 
     //see https://github.com/AAkira/ExpandableLayout
-    //compile 'com.github.aakira:expandable-layout:1.4.2@aar'   //old version
-    compile 'com.github.aakira:expandable-layout:1.6.0@aar'
+    implementation 'com.github.aakira:expandable-layout:1.6.0@aar'
 
     //locally compiled version of forked https://github.com/iPaulPro/aFileChooser
-    compile(name: 'lib-aFileChooser-release', ext: 'aar') {
+    implementation(name: 'lib-aFileChooser-release', ext: 'aar') {
         transitive = true;
     }
 
-    //compile 'com.google.android.gms:play-services:11.0.4'
     //only import Google Drive API vs. the entire Google Play Services bundle
-    compile 'com.google.android.gms:play-services-drive:11.0.4'
-    
-    compile project(':Controller')
+    implementation 'com.google.android.gms:play-services-drive:11.0.4'
 
-    testCompile 'junit:junit:4.12'
+    implementation project(':Controller')
+
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+
+    testImplementation 'junit:junit:4.12'
 }
+
+
+
 
 repositories {
     flatDir {

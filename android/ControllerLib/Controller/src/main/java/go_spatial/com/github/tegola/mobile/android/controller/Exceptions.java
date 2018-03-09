@@ -7,6 +7,11 @@ public class Exceptions {
             super(message);
         }
     }
+    public static class TegolaBinaryNotExecutableException extends Exception {
+        public TegolaBinaryNotExecutableException(final String message) {
+            super(message);
+        }
+    }
     public static class InvalidTegolaArgumentException extends Exception {
         public InvalidTegolaArgumentException(final String message) {
             super(message);

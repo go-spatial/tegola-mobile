@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -22,8 +23,8 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -54,7 +55,6 @@ public class ControllerFGS extends Service {
 
 
     private Class<?> m_class_harness = null;
-    private String m_s_fgs_asn_title;
 
     @Override
     public int onStartCommand(Intent intent, /*@IntDef(value = {Service.START_FLAG_REDELIVERY, Service.START_FLAG_RETRY}, flag = true)*/ int flags, int startId) {
@@ -76,15 +76,8 @@ public class ControllerFGS extends Service {
                     }
                     Log.d(TAG, "onStartCommand: setting up ASN for FGS...");
 
-                    m_s_fgs_asn_title = new StringBuilder()
-                            .append(getString(R.string.fgs_asn_title_tegola_mvt_server_prefix))
-                            .append(" v")
-                            .append(getString(R.string.tegola_bin_ver))
-                            .append(" Status")
-                            .toString();
-
                     Log.d(TAG, "onStartCommand: starting FGS...");
-                    startForeground(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, prepare_fgs_asn(getString(R.string.stopped)));
+                    startForeground(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, fgs_asn__prepare(getString(R.string.fgs_asn_title), getString(R.string.stopped)));
 
                     Log.d(TAG, "onStartCommand: ASN dispatched and FGS started - init'ing...");
                     init();
@@ -108,14 +101,14 @@ public class ControllerFGS extends Service {
         return START_REDELIVER_INTENT;
     }
 
-    private Notification prepare_fgs_asn(final String s_status) {
+    private Notification fgs_asn__prepare(final String s_title, final String s_status) {
         Intent intent_bring_harness_to_foreground = new Intent(getApplicationContext(), m_class_harness);
         intent_bring_harness_to_foreground.setAction(Intent.ACTION_MAIN);
         intent_bring_harness_to_foreground.addCategory(Intent.CATEGORY_LAUNCHER);
         PendingIntent pending_intent_bring_harness_to_foreground = PendingIntent.getActivity(getApplicationContext(), 0, intent_bring_harness_to_foreground, PendingIntent.FLAG_UPDATE_CURRENT);
 
         return new NotificationCompat.Builder(this)
-            .setContentTitle(m_s_fgs_asn_title)
+            .setContentTitle(s_title)
             .setContentText(s_status)
             .setSmallIcon(R.drawable.ic_stat_satellite_black)
             .setLargeIcon(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher), 128, 128, false))
@@ -124,12 +117,69 @@ public class ControllerFGS extends Service {
             .build();
     }
 
-    private void update_fgs_asn(final String s_status) {
+    private void fgs_asn__update(final String s_title, final String s_status) {
         NotificationManager asn_mgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        asn_mgr.notify(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, prepare_fgs_asn(s_status));
+        asn_mgr.notify(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, fgs_asn__prepare(s_title, s_status));
+    }
+    private void fgs_asn__update(final String s_status) {
+        NotificationManager asn_mgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        asn_mgr.notify(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, fgs_asn__prepare(getString(R.string.fgs_asn_title), s_status));
     }
 
     private void init() {
+        //check for existence in app private files directory of executable tegola binary for this device ABI
+        File f_filesDir = getFilesDir();
+        try {
+            final Constants.Enums.CPU_ABI e_device_abi = Constants.Enums.CPU_ABI.fromDevice();
+            if (e_device_abi == null)
+                throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
+            final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(e_device_abi);
+            if (e_tegola_bin == null)
+                throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
+            Log.d(TAG, "init: tegola bin is " + e_tegola_bin.name() + " for CPU_ABI " + e_device_abi.toString());
+            File f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + e_tegola_bin.name());
+            if (!f_tegola_bin_executable.exists()) {
+                Log.d(TAG, "init: transferring " + e_tegola_bin.name() + " raw res to private files dir...");
+                Utils.Files.copy_raw_res_to_app_file(getApplicationContext(), e_tegola_bin.raw_res_id(), e_tegola_bin.name(), Utils.Files.TM_APP_FILE_TYPE.PRIVATE);
+                if (f_tegola_bin_executable.exists() && !f_tegola_bin_executable.setExecutable(true))
+                    throw new Exceptions.TegolaBinaryNotExecutableException(e_tegola_bin.name());
+            }
+            Log.d(TAG, "init: " + e_tegola_bin.name() + " " + (f_tegola_bin_executable.exists() ? "exists" : "transfer to files dir failed!"));
+        } catch (Exceptions.UnsupportedCPUABIException e) {
+            e.printStackTrace();
+        } catch (Exceptions.TegolaBinaryNotExecutableException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        //grab tegola bin version string from version.properties output from latest bin build
+        InputStream f_inputstream_version_props = null;
+        try {
+            f_inputstream_version_props = getApplicationContext().getAssets().open("version.properties");
+            String s_version = Utils.getProperty(f_inputstream_version_props, "TEGOLA_BIN_VER");
+            if (s_version != null)
+                Constants.Enums.TEGOLA_BIN.set_version_string(s_version);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (f_inputstream_version_props != null) {
+                try {
+                    f_inputstream_version_props.close();
+                } catch (IOException e) {}
+            }
+        }
+
+        //create geopackage bundle dir
+        try {
+            File f_gpkg_root_dir = new File(getPackageManager().getPackageInfo(getPackageName(), 0).applicationInfo.dataDir + File.separator + Constants.Strings.GPKG_BUNDLE_SUBDIR);
+            f_gpkg_root_dir.mkdir();
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
         //set BR to listen for client mvt-server-control-request
         m_filter_br_client_control_request = new IntentFilter();
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
@@ -142,8 +192,8 @@ public class ControllerFGS extends Service {
                     case MVT_SERVER__START: {
                         Log.i(TAG, "Received MVT_SERVER__START request");
                         handle_mvt_server_control_request__start(
-                            intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG)
-                            , intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, false)
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG)
+                                , intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, false)
                         );
                         break;
                     }
@@ -163,45 +213,6 @@ public class ControllerFGS extends Service {
             m_looper_handler_br_client_control_request = getApplicationContext().getMainLooper();  //then this is the looper for the main ui thread - hence onReceive() of broadcast receiver runs in main ui's thread
         m_handler_br_client_control_request = new Handler(m_looper_handler_br_client_control_request);
         getApplicationContext().registerReceiver(m_br_client_control_request, m_filter_br_client_control_request, null, m_handler_br_client_control_request);
-
-
-        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
-        //check for existence in app data files directory of tegola binary and config.toml
-        File
-                f_filesDir = getFilesDir()
-                , f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + e_tegola_bin.name())
-                ;
-        if (!f_tegola_bin_executable.exists()) {
-            //transfer matching tegola binary from raw resources based on device arch
-            Log.d(TAG, "init: creating executable tegola.bin from raw for " + Build.CPU_ABI + " ABI...");
-            boolean btegolaexecutablecreated = false;
-            try {
-                btegolaexecutablecreated = make_tegola_executable();
-            } catch (Exceptions.UnsupportedCPUABIException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Log.d(TAG, "init: make_tegola_executable() returned --> " + btegolaexecutablecreated);
-        }
-        Log.d(TAG, "init: " + f_tegola_bin_executable.getPath() + " exists --> " + f_tegola_bin_executable.exists());
-    }
-
-    private boolean make_tegola_executable() throws Exceptions.UnsupportedCPUABIException, IOException {
-        final Constants.Enums.CPU_ABI e_device_abi = Constants.Enums.CPU_ABI.fromDevice();
-        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(e_device_abi);
-        if (e_device_abi == null || e_tegola_bin == null)
-            throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
-        Log.d(TAG, "make_tegola_executable: bin is " + e_tegola_bin.name() + " for CPU_ABI " + e_device_abi.toString());
-        InputStream inputstream_raw_tegola_bin = getResources().openRawResource(e_tegola_bin.raw_res_id());
-        byte[] buf_raw_tegola = new byte[inputstream_raw_tegola_bin.available()];
-        inputstream_raw_tegola_bin.read(buf_raw_tegola);
-        inputstream_raw_tegola_bin.close();
-        FileOutputStream f_outputstream_tegola_bin = openFileOutput(e_tegola_bin.name(), Context.MODE_PRIVATE);
-        f_outputstream_tegola_bin.write(buf_raw_tegola);
-        f_outputstream_tegola_bin.close();
-        File f_tegola_bin_executable = new File(getFilesDir().getPath() + "/" + e_tegola_bin.name());
-        return f_tegola_bin_executable.setExecutable(true);
     }
 
     private Process m_process_tegola = null;
@@ -233,19 +244,19 @@ public class ControllerFGS extends Service {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
             intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
-            update_fgs_asn(getString(R.string.stopped));
+            fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         } catch (Exceptions.UnsupportedCPUABIException e) {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
             intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
-            update_fgs_asn(getString(R.string.stopped));
+            fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         } catch (Exceptions.InvalidTegolaArgumentException e) {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
             intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
-            update_fgs_asn(getString(R.string.stopped));
+            fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         }
     }
@@ -275,7 +286,7 @@ public class ControllerFGS extends Service {
         Log.i(TAG, "start_tegola: starting new tegola server process...");
         //notify br_receivers (if any) server starting
         Intent intent_notify_server_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING);
-        update_fgs_asn(getString(R.string.starting));
+        fgs_asn__update(getString(R.string.starting));
         sendBroadcast(intent_notify_server_starting);
 
         //build and exec tegola cmd line in new process
@@ -293,7 +304,7 @@ public class ControllerFGS extends Service {
             m_process_tegola = null;
             m_tegola_process_is_running = false;
             Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
-            update_fgs_asn(getString(R.string.stopped));
+            fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_server_stopped);
             return false;
         }
@@ -309,7 +320,7 @@ public class ControllerFGS extends Service {
         intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION, getString(R.string.srvr_ver));
         if (pid_process_tegola != -1)
             intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, pid_process_tegola);
-        update_fgs_asn(getString(R.string.started) + (pid_process_tegola != -1 ? ", pid " + pid_process_tegola: ""));
+        fgs_asn__update(getString(R.string.started) + (pid_process_tegola != -1 ? ", pid " + pid_process_tegola: ""));
         sendBroadcast(intent_notify_server_started);
 
         //now start tegola logcat monitor specifc to tegola process (before stderr and stdout monitors since there is always the possibility tegola could segfault or trigger some other native signal)
@@ -470,7 +481,7 @@ public class ControllerFGS extends Service {
                     m_process_tegola = null;
                     m_tegola_process_is_running = false;
                     Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
-                    update_fgs_asn(getString(R.string.stopped));
+                    fgs_asn__update(getString(R.string.stopped));
                     sendBroadcast(intent_notify_server_stopped);
                 }
             }
@@ -484,7 +495,7 @@ public class ControllerFGS extends Service {
         if (m_process_tegola != null) {
             Log.i(TAG, "stop_tegola: killing current running instance of tegola mvt server...");
             Intent intent_notify_server_stopping = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING);
-            update_fgs_asn(getString(R.string.stopping));
+            fgs_asn__update(getString(R.string.stopping));
             sendBroadcast(intent_notify_server_stopping);
             m_process_tegola.destroy();
             if (m_thread_tegola_process_monitor != null) {
@@ -498,7 +509,7 @@ public class ControllerFGS extends Service {
             m_process_tegola = null;
             m_tegola_process_is_running = false;
             Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
-            update_fgs_asn(getString(R.string.stopped));
+            fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_server_stopped);
             return true;
         }

@@ -3,6 +3,7 @@
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
@@ -15,44 +16,54 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>
+
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="stateHidden"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
+
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
             android:name=".ConfigFileEditorActivity"
-            android:label="@string/title_activity_config_file_viewer"
+            android:label="@string/activity_title__config_file_viewer"
             android:windowSoftInputMode="stateHidden">
         </activity>
         <activity
             android:name="com.ipaulpro.afilechooser.FileChooserActivity"
-            android:icon="@drawable/ic_chooser"
             android:enabled="@bool/use_activity"
             android:exported="true"
+            android:icon="@drawable/ic_chooser"
             android:label="@string/choose_file">
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT"/>
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.OPENABLE" />
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.OPENABLE"/>
+
                 <data android:mimeType="text/*"/>
             </intent-filter>
         </activity>
+
         <provider
-            android:name="go_spatial.com.github.tegola.mobile.android.bootstrapper.TMLocalStorageProvider"
+            android:name=".TMLocalStorageProvider"
             android:authorities="go_spatial.com.github.tegola.mobile.android.bootstrapper.localstorage.documents"
             android:enabled="@bool/use_provider"
             android:exported="true"
             android:grantUriPermissions="true"
-            android:permission="android.permission.MANAGE_DOCUMENTS" >
+            android:permission="android.permission.MANAGE_DOCUMENTS">
             <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>
             </intent-filter>
         </provider>
+
+        <activity android:name=".ManageFilesActivity">
+        </activity>
+        <activity android:name=".InstallGpkgActivity">
+        </activity>
     </application>
 
 </manifest>

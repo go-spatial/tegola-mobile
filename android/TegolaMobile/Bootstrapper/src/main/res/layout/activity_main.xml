@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:id="@+id/layout_bootstrapper"
-              xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:visibility="visible"
-              tools:context=".MainActivity">
+<LinearLayout
+    android:id="@+id/layout_bootstrapper"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:visibility="visible"
+    tools:context=".MainActivity">
 
     <ScrollView
         android:id="@+id/sv_main"
@@ -198,15 +199,16 @@
                     <LinearLayout
                         android:id="@+id/sect_content__item__version"
                         style="@style/Section_Content_Item">
+
                         <TextView
-                            android:id="@+id/tvl_lbl_bin_ver"
+                            android:id="@+id/tv_lbl_bin_ver"
                             style="@style/Section_Content_Item_Label"
                             android:text="@string/srvr_ver"/>
 
                         <TextView
                             android:id="@+id/tv_val_bin_ver"
                             style="@style/Section_Content_Item_Content"
-                            android:text="@string/tegola_bin_ver"
+                            android:text="**placeholder__tegold_bin_ver**"
                             android:visibility="visible"/>
                     </LinearLayout>
                     <!-- srvr nfo section content - version - END -->
@@ -216,7 +218,7 @@
                         style="@style/Section_Content_Item">
 
                         <TextView
-                            android:id="@+id/tvl_lbl_config_type"
+                            android:id="@+id/tv_lbl_config_type"
                             style="@style/Section_Content_Item_Label"
                             android:text="@string/srvr_config_type"/>
 
@@ -232,13 +234,25 @@
                                 android:id="@+id/rb_val_config_type_sel__local"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginEnd="20dp"
-                                android:layout_marginRight="20dp"
+                                android:layout_marginEnd="10dp"
+                                android:layout_marginRight="10dp"
                                 android:button="@null"
                                 android:drawableLeft="@android:drawable/btn_radio"
                                 android:drawableStart="@android:drawable/btn_radio"
+                                android:inputType="textCapCharacters"
                                 android:text="@string/srvr_config_type__local"
                                 android:textSize="14sp"/>
+
+                            <TextView
+                                android:id="@+id/tv_lbl_config_type_sel__local__manage_files"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="20dp"
+                                android:layout_marginRight="20dp"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:editable="false"
+                                android:text="@string/srvr_config_type__local__manage_files"/>
 
                             <RadioButton
                                 android:id="@+id/rb_val_config_type_sel__remote"
@@ -247,8 +261,10 @@
                                 android:button="@null"
                                 android:drawableLeft="@android:drawable/btn_radio"
                                 android:drawableStart="@android:drawable/btn_radio"
+                                android:inputType="textCapCharacters"
                                 android:text="@string/srvr_config_type__remote"
                                 android:textSize="14sp"/>
+
                         </RadioGroup>
                     </LinearLayout>
                     <!-- srvr nfo section content - CONFIG type - END -->
@@ -266,8 +282,8 @@
                         <RelativeLayout
                             android:id="@+id/config_sel_container__local"
                             style="@style/Section_Content_Item_Content"
-                            android:orientation="horizontal"
-                            android:layout_marginBottom="5dp">
+                            android:layout_marginBottom="5dp"
+                            android:orientation="horizontal">
 
                             <RelativeLayout
                                 android:layout_width="wrap_content"
@@ -277,11 +293,11 @@
                                     android:id="@+id/tv_lbl_config_sel_local_import"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_alignParentTop="true"
-                                    android:layout_alignParentRight="true"
                                     android:layout_alignParentEnd="true"
-                                    android:paddingRight="12dp"
+                                    android:layout_alignParentRight="true"
+                                    android:layout_alignParentTop="true"
                                     android:layout_marginBottom="3dp"
+                                    android:paddingRight="12dp"
                                     android:text="Import"
                                     android:textSize="12sp"/>
 
@@ -359,7 +375,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_alignParentRight="true"
-                                android:text="@string/apply_changes"/>
+                                android:text="@string/apply"/>
 
                             <TextView
                                 android:id="@+id/tv_lbl_config_sel__https_prefix"

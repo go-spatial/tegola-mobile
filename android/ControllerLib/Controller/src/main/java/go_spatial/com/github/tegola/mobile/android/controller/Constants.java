@@ -2,10 +2,13 @@ package go_spatial.com.github.tegola.mobile.android.controller;
 
 
 import android.os.Build;
+import android.support.annotation.NonNull;
 
 public class Constants {
     public interface Strings {
         String PKG = "go_spatial.com.github.tegola.android.controller";
+        String GPKG_BUNDLE_SUBDIR = "gpkg-bundle";
+
         interface INTENT {
             interface ACTION {
                 String EXTRA__KEY__HARNESS = "HARNESS";
@@ -57,9 +60,11 @@ public class Constants {
                 }
             }
         }
+
         interface TEGOLA_ARG {
             String CONFIG = "config";
         }
+
         interface CPU_ABI {//see https://developer.android.com/ndk/guides/abis.html
             String CPU_ABI__armeabi = "armeabi";
             String CPU_ABI__armeabi_v7a = "armeabi-v7a";
@@ -69,6 +74,7 @@ public class Constants {
             String CPU_ABI__mips = "mips";
             String CPU_ABI__mips64 = "mips64";
         }
+
         interface SIG_NAME {
             String SIGABRT = "SIGABRT";
             String SIGFPE = "SIGFPE";
@@ -77,6 +83,7 @@ public class Constants {
             String SIGSEGV = "SIGSEGV";
             String SIGTERM = "SIGTERM";
         }
+
         interface SIG_DESC {
             String SIGABRT = "'abort', abnormal termination";
             String SIGFPE = "floating point exception";
@@ -100,6 +107,7 @@ public class Constants {
                     default: return null;
                 }
             }
+
             @Override
             public String toString() {
                 switch (this) {
@@ -109,10 +117,12 @@ public class Constants {
                 }
             }
         }
+
         enum E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST {
             MVT_SERVER__START
             , MVT_SERVER__STOP
             ;
+
             public static final E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST fromString(final String s) {
                 switch (s) {
                     case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START: return MVT_SERVER__START;
@@ -120,6 +130,7 @@ public class Constants {
                     default: return null;
                 }
             }
+
             @Override
             public String toString() {
                 switch (this) {
@@ -129,6 +140,7 @@ public class Constants {
                 }
             }
         }
+
         enum E_INTENT_ACTION__CTRLR_NOTIFICATION {
             CONTROLLER_FOREGROUND_STARTING
             , CONTROLLER_FOREGROUND_STARTED
@@ -143,6 +155,7 @@ public class Constants {
             , MVT_SERVER__STOPPING
             , MVT_SERVER__STOPPED
             ;
+
             public static final E_INTENT_ACTION__CTRLR_NOTIFICATION fromString(final String s) {
                 switch (s) {
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING: return CONTROLLER_FOREGROUND_STARTING;
@@ -160,6 +173,7 @@ public class Constants {
                     default: return null;
                 }
             }
+
             @Override
             public String toString() {
                 switch (this) {
@@ -179,15 +193,18 @@ public class Constants {
                 }
             }
         }
+
         enum TEGOLA_ARG {
             CONFIG
             ;
+
             public static final TEGOLA_ARG fromString(final String s) {
                 switch (s) {
                     case Strings.TEGOLA_ARG.CONFIG: return CONFIG;
                     default: return null;
                 }
             }
+
             @Override
             public String toString() {
                 switch (this) {
@@ -196,10 +213,12 @@ public class Constants {
                 }
             }
         }
+
         enum TEGOLA_CONFIG_TYPE {
             LOCAL
             , REMOTE;
         }
+
         enum CPU_ABI {  //provides string mapping to Build.CPU_ABI; see https://developer.android.com/ndk/guides/abis.html
             armeabi
             , armeabi_v7a
@@ -209,6 +228,7 @@ public class Constants {
             , mips
             , mips64
             ;
+
             public static final CPU_ABI fromString(final String s) {
                 switch (s) {
                     case Strings.CPU_ABI.CPU_ABI__armeabi: return armeabi;
@@ -221,9 +241,11 @@ public class Constants {
                     default: return null;
                 }
             }
+
             public static final CPU_ABI fromDevice() {
                 return fromString(Build.CPU_ABI);
             }
+
             @Override
             public String toString() {
                 switch (this) {
@@ -238,12 +260,14 @@ public class Constants {
                 }
             }
         }
+
         enum TEGOLA_BIN {
             tegola_bin__arm
             , tegola_bin__x86
             , tegola_bin__arm64
             , tegola_bin__x86_64
             ;
+
             public final CPU_ABI[] supported_ABIs() {
                 switch (this) {
                     case tegola_bin__arm: return new CPU_ABI[]{CPU_ABI.armeabi, CPU_ABI.armeabi_v7a};
@@ -253,6 +277,7 @@ public class Constants {
                     default: return null;
                 }
             }
+
             public final Integer min_api() {
                 switch (this) {
                     case tegola_bin__arm:
@@ -262,6 +287,7 @@ public class Constants {
                     default: return null;
                 }
             }
+
             public final Integer raw_res_id() {
                 switch (this) {
                     case tegola_bin__arm: return R.raw.tegola_bin__android_arm;
@@ -271,6 +297,7 @@ public class Constants {
                     default: return null;
                 }
             }
+
             public static final TEGOLA_BIN get_for(final CPU_ABI for_cpu_abi) {
                 switch (for_cpu_abi) {
                     case armeabi:
@@ -283,7 +310,16 @@ public class Constants {
                     default: return null;
                 }
             }
+
+            private static String m_s_ver = "UNKNOWN";
+            public static void set_version_string(@NonNull final String s_ver) {
+                m_s_ver = s_ver;
+            }
+            public static String get_version_string() {
+                return m_s_ver;
+            }
         }
+
         enum SIGNAL {
             SIGABRT     //note: we should not handle this signal but we include it here for the sake of completion - see https://en.wikipedia.org/wiki/C_signal_handling
             , SIGFPE
@@ -292,6 +328,7 @@ public class Constants {
             , SIGSEGV
             , SIGTERM   //note: we should not handle this signal but we include it here for the sake of completion - see https://en.wikipedia.org/wiki/C_signal_handling
             ;
+
             public static final SIGNAL fromString(final String s) {
                 switch (s) {
                     case Strings.SIG_NAME.SIGABRT: return SIGABRT;
@@ -303,6 +340,7 @@ public class Constants {
                     default: return null;
                 }
             }
+
             public final String description() {
                 switch (this) {
                     case SIGABRT: return Strings.SIG_DESC.SIGABRT;

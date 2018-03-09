@@ -180,7 +180,7 @@ public class ConfigFileEditorActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 StringBuilder sb_title = new StringBuilder();
-                                sb_title.append(getString(R.string.title_activity_config_file_viewer) + " - " + filename);
+                                sb_title.append(getString(R.string.activity_title__config_file_viewer) + " - " + filename);
                                 setTitle(sb_title.toString());
                                 m_scvw_config_file_contents.postDelayed(new Runnable() {
                                     @Override

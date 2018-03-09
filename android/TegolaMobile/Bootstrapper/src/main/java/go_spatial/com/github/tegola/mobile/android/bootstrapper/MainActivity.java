@@ -19,6 +19,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ContextThemeWrapper;
+import android.text.Spannable;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -84,8 +87,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private ExpandableRelativeLayout m_vw_sect_content__ctrlr_nfo = null;
     private TextView m_tv_val_ctrlr_status = null;
 
+    //srvr info - version - UI objects
+    private TextView m_tv_val_bin_ver = null;
+
     //srvr info - config sel local - UI objects
     private RadioButton m_rb_val_config_type_sel__local = null;
+    private TextView m_tv_lbl_config_type_sel__local__manage_files = null;
     private View m_vw_config_sel_container__local = null;
     private CustomSpinner m_spinner_val_config_sel_local = null;
     private final ArrayList<String> m_spinner_val_config_sel_local__items = new ArrayList<String>();
@@ -129,7 +136,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         m_btn_sect__ctrlr_nfo__expand = (Button)findViewById(R.id.btn_sect__ctrlr_nfo__expand);
         m_vw_sect_content__ctrlr_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__ctrlr_nfo);
         m_tv_val_ctrlr_status = (TextView)findViewById(R.id.tv_val_tegola_ctrlr_status);
+        m_tv_val_bin_ver = (TextView)findViewById(R.id.tv_val_bin_ver);
         m_rb_val_config_type_sel__local = (RadioButton)findViewById(R.id.rb_val_config_type_sel__local);
+        m_tv_lbl_config_type_sel__local__manage_files = (TextView)findViewById(R.id.tv_lbl_config_type_sel__local__manage_files);
         m_rb_val_config_type_sel__remote = (RadioButton)findViewById(R.id.rb_val_config_type_sel__remote);
         m_vw_config_sel_container__local = findViewById(R.id.config_sel_container__local);
         m_spinner_val_config_sel_local = (CustomSpinner)findViewById(R.id.spinner_val_config_sel__local);
@@ -154,6 +163,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         m_btn_sect__andro_dev_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
         m_btn_sect__ctrlr_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
         m_rb_val_config_type_sel__local.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_config_type_sel__local);
+        m_tv_lbl_config_type_sel__local__manage_files.setMovementMethod(LinkMovementMethod.getInstance());
+        Spannable span__clickable_text__m_tv_lbl_config_type_sel__local__manage_files = (Spannable)m_tv_lbl_config_type_sel__local__manage_files.getText();
+        span__clickable_text__m_tv_lbl_config_type_sel__local__manage_files.setSpan(ClickableSpan____m_tv_lbl_config_type_sel__local__manage_files, 0, span__clickable_text__m_tv_lbl_config_type_sel__local__manage_files.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         m_spinner_val_config_sel_local.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_config_sel_local);
         m_btn_config_sel_local__edit_file.setOnClickListener(OnClickListener__m_btn_config_sel_local__edit_file);
         m_btn_config_sel_local_import__sdcard.setOnClickListener(OnClickListener__m_btn_config_sel_local_import__sdcard);
@@ -163,8 +175,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         m_edt_val_config_sel__remote.setOnFocusChangeListener(OnFocusChangeListener__m_edt_val_config_sel__remote);
         m_btn_config_sel_remote_apply_changes.setOnClickListener(OnClickListener__m_btn_config_sel_remote_apply_changes);
         m_btn_srvr_ctrl.setOnClickListener(OnClickListener__m_btn_srvr_ctrl);
-
-
 
         //instantiate PersistentConfigSettingsManager singleton
         SharedPrefsManager.newInstance(this);
@@ -350,6 +360,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.setValue(false);
                 synchronize_spinner_val_config_sel_local();
             }
+        }
+    };
+
+    private final ClickableSpan ClickableSpan____m_tv_lbl_config_type_sel__local__manage_files = new ClickableSpan() {
+        @Override
+        public void onClick(View widget) {
+            startActivity(new Intent(MainActivity.this, ManageFilesActivity.class));
         }
     };
 
@@ -593,7 +610,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     private void synchronize_spinner_val_config_sel_local() {
-        //1. enumarate local config.toml files and display results in spinner (drop-down)
+        //1. enumerate local config.toml files and display results in spinner (drop-down)
         File f_filesDir = getFilesDir();
         File[] config_toml_files = f_filesDir.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
@@ -1065,6 +1082,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private void OnControllerStarted() {
         m_tv_val_ctrlr_status.setText(getString(R.string.started));
+        m_tv_val_bin_ver.setText(Constants.Enums.TEGOLA_BIN.get_version_string());
     }
 
     private void OnControllerStopping() {
