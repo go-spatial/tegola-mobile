@@ -18,6 +18,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
+import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
 public class ManageFilesActivity extends AppCompatActivity {
     private ImageButton m_btn_manage__geopackage_bundles__close = null;
@@ -77,6 +78,11 @@ public class ManageFilesActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         new Handler().postDelayed(new RefeshList_Runnable(), 50);
     }
@@ -92,7 +98,7 @@ public class ManageFilesActivity extends AppCompatActivity {
                         m_lv_gpkg_bundles__installed__items.clear();
 
                         //add installed geopackage bundles (directories) to m_lv_gpk_bundles__installed__dataadapter
-                        File f_gpkg_root_dir = new File(getPackageManager().getPackageInfo(getPackageName(), 0).applicationInfo.dataDir + File.separator + Constants.Strings.GPKG_BUNDLE_SUBDIR);
+                        File f_gpkg_root_dir = new File(Utils.Files.F_GPKG_DIR.getInstance(ManageFilesActivity.this).getPath());
                         File[] f_gpkg_root_dir_files = f_gpkg_root_dir.listFiles();
                         for (File f_gpkg_root_dir_file : f_gpkg_root_dir_files) {
                             if (f_gpkg_root_dir_file.isDirectory()) {

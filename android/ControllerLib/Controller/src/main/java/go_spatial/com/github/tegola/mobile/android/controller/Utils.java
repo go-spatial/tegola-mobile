@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.util.Properties;
 
 import okhttp3.Call;
+import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -25,6 +26,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
+import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.ForwardingSource;
 import okio.Okio;
@@ -175,6 +177,11 @@ public class Utils {
                 super(message);
             }
         }
+        public static class AsyncGetFileSizeException extends Exception {
+            public AsyncGetFileSizeException(String message) {
+                super(message);
+            }
+        }
 
         public static class AsyncGetFile extends AsyncTask <HttpUrl_To_Local_File, Void, Exception> {
             private final static String TAG = Utils.HTTP.AsyncGetFile.class.getName();
@@ -203,7 +210,7 @@ public class Utils {
             }
 
             private static class ChunkedResponseBody extends ResponseBody {
-                private final static String TAG = Utils.HTTP.AsyncGetFile.ChunkedResponseBody.class.getName();
+                private final static String TAG = Utils.HTTP.AsyncGetFile.ChunkedResponseBody.class.getSimpleName();
                 private final ResponseBody m_responseBody;
                 private final Handler m_handler;
                 private BufferedSource m_bufferedSource;
@@ -222,35 +229,188 @@ public class Utils {
                     return m_responseBody.contentLength();
                 }
 
+                //cannot use BufferedSource for large files so why don't we disable this method altogether?
                 @Override public BufferedSource source() {
-                    Log.d(TAG, "m_bufferedSource " + (m_bufferedSource == null ? "==" : "!=") + " null");
                     if (m_bufferedSource == null) {
-                        Log.d(TAG, "using Okio to buffer source(m_responseBody.source())..");
+                        Log.d(TAG, "Okio buffering ResponseBody source (contentLength " + contentLength() + ")");
                         m_bufferedSource = Okio.buffer(source(m_responseBody.source()));
                     } else {
-                        Log.d(TAG, "NOT using Okio to buffer source(m_responseBody.source())..");
+//                        Log.d(TAG, "NOT using Okio to buffer source(m_responseBody.source())..");
                     }
                     return m_bufferedSource;
                 }
 
                 private Source source(Source source) {
-                    return new ForwardingSource(source) {
+                    final Source source_ret = new ForwardingSource(source) {
                         @Override public long read(Buffer sink, long byteCount) throws IOException {
-                            Log.d(TAG, "ForwardingSource::read() called...");
                             long bytesRead = super.read(sink, byteCount);
+                            //Log.d(TAG, "ForwardingSource::read() - read " + bytesRead + " bytes into sink; assert sink.size()==" + bytesRead + " --> " + (sink.size() == bytesRead) + "; calling m_handler.onChunkRead()...");
                             // read() returns the number of bytes read, or -1 if this source is exhausted.
                             m_handler.onChunkRead(sink, bytesRead, m_responseBody.contentLength(), bytesRead == -1);
                             return bytesRead;
                         }
                     };
+                    Log.d(TAG, "source: returning new ForwardingSource w/ our own read() override");
+                    return source_ret;
                 }
             }
-
 
 
             @Override
             protected void onPreExecute() {
                 m_Handler.onPreExecute();
+            }
+
+            private long request_file_size(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url) throws IOException, AsyncGetFileSizeException {
+                long l_file_size = 0;
+                final Request http_request_file_size = new Request.Builder()
+                        .url(http_url)
+                        .get()
+                        .addHeader("Range", "bytes=0-")
+                        .build();
+                Log.d(TAG, "request_file_size: new Request created: " + http_request_file_size.toString());
+                Headers request_headers = http_request_file_size.headers();
+                if (request_headers != null && request_headers.size() > 0) {
+                    Log.d(TAG, "\tHeaders:");
+                    for (int i = 0; i < request_headers.size(); i++) {
+                        String s_hdr_name = request_headers.name(i);
+                        String s_hdr_val = request_headers.get(s_hdr_name);
+                        Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
+                    }
+                }
+                final Call httpClient_call__request_file_size = httpClient.newCall(http_request_file_size);
+                Log.d(TAG, "request_file_size: new OkHttpClient Call (for " + http_request_file_size.toString() + ") created: " + http_request_file_size.toString() + "; executing...");
+                Response response = null;
+                try {
+                    response = httpClient_call__request_file_size.execute();
+                    Log.d(TAG, "request_file_size: executed OkHttpClient Call (" + httpClient_call__request_file_size.toString() + "); handling response...");
+                    if (!response.isSuccessful())
+                        throw new IOException("Unexpected Response (to " + http_request_file_size.toString() + "): " + response.toString());
+                    else {
+                        Log.d(TAG, "Response (to " + http_request_file_size.toString() + "): " + response.toString());
+                        Headers response_headers = response.headers();
+                        if (response_headers != null && response_headers.size() > 0) {
+                            //DEBUG - remove for release (unnecessary iteration for release builds)
+                            Log.d(TAG, "\tHeaders:");
+                            for (int i = 0; i < response_headers.size(); i++) {
+                                String s_hdr_name = response_headers.name(i);
+                                String s_hdr_val = response_headers.get(s_hdr_name);
+                                Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
+                            }
+                            String s_content_length = response_headers.get("Content-Length");
+                            if (s_content_length == null) {
+                                throw new AsyncGetFileSizeException(http_url.url().toString() + " - no Content-Length header");
+                            }
+                            try {
+                                s_content_length = s_content_length.trim();
+                                Long l_content_length = Long.parseLong(s_content_length);
+                                if (l_content_length == null)
+                                    throw new AsyncGetFileSizeException(http_url.url().toString() + " - invalid \"Content-Length value\": \"" + s_content_length + "\"");
+                                l_file_size = l_content_length.longValue();
+                            } catch (NumberFormatException e) {
+                                throw new AsyncGetFileSizeException(http_url.url().toString() + " - invalid \"Content-Length value\": \"" + s_content_length + "\"");
+                            }
+                        }
+                    }
+                } finally {
+                    if (response != null)
+                        response.close();
+                }
+                return l_file_size;
+            }
+
+            private void request_file_download(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url, final long l_byte_offset, final long l_byte_length) throws IOException {
+                final Request http_request_file_download = new Request.Builder()
+                        .url(http_url)
+                        .get()
+                        .addHeader("Range", "bytes=" + l_byte_offset + "-" + (l_byte_offset + l_byte_length - 1))
+                        .build();
+                Log.d(TAG, "request_file_download: new Request created: " + http_request_file_download.toString());
+                Headers request_headers = http_request_file_download.headers();
+                if (request_headers != null && request_headers.size() > 0) {
+                    Log.d(TAG, "\tHeaders:");
+                    for (int i = 0; i < request_headers.size(); i++) {
+                        String s_hdr_name = request_headers.name(i);
+                        String s_hdr_val = request_headers.get(s_hdr_name);
+                        Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
+                    }
+                }
+                final Call httpClient_call__request_file_download = httpClient.newCall(http_request_file_download);
+                Log.d(TAG, "request_file_download: new OkHttpClient Call (for " + http_request_file_download.toString() + ") created: " + http_request_file_download.toString() + "; executing...");
+                Response response = null;
+                try {
+                    response = httpClient_call__request_file_download.execute();
+                    Log.d(TAG, "request_file_download: executed OkHttpClient Call (" + httpClient_call__request_file_download.toString() + "); handling response...");
+                    if (!response.isSuccessful())
+                        throw new IOException("Unexpected Response (to " + http_request_file_download.toString() + "): " + response.toString());
+                    else {
+                        Log.d(TAG, "request_file_download: Response (to " + http_request_file_download.toString() + "): " + response.toString());
+                        Headers response_headers = response.headers();
+                        if (response_headers != null && response_headers.size() > 0) {
+                            //DEBUG - remove for release (unnecessary iteration for release builds)
+                            Log.d(TAG, "\tHeaders:");
+                            for (int i = 0; i < response_headers.size(); i++) {
+                                String s_hdr_name = response_headers.name(i);
+                                String s_hdr_val = response_headers.get(s_hdr_name);
+                                Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
+                            }
+                        }
+                        Log.d(TAG, "request_file_download: Response (to " + http_request_file_download.toString() + ") body has " + response.body().byteStream().available() + " bytes available");
+                    }
+                } finally {
+                    if (response != null)
+                        response.close();
+                }
+            }
+
+            private void request_file_download(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url) throws IOException {
+                final Request http_request_file_download = new Request.Builder()
+                        .url(http_url)
+                        .get()
+                        .build();
+                Log.d(TAG, "request_file_download: new Request created: " + http_request_file_download.toString());
+                Headers request_headers = http_request_file_download.headers();
+                if (request_headers != null && request_headers.size() > 0) {
+                    Log.d(TAG, "\tHeaders:");
+                    for (int i = 0; i < request_headers.size(); i++) {
+                        String s_hdr_name = request_headers.name(i);
+                        String s_hdr_val = request_headers.get(s_hdr_name);
+                        Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
+                    }
+                }
+                final Call httpClient_call__request_file_download = httpClient.newCall(http_request_file_download);
+                Log.d(TAG, "request_file_download: new OkHttpClient Call (for " + http_request_file_download.toString() + ") created: " + http_request_file_download.toString() + "; executing...");
+                Response response = null;
+                try {
+                    response = httpClient_call__request_file_download.execute();
+                    Log.d(TAG, "request_file_download: executed OkHttpClient Call (" + httpClient_call__request_file_download.toString() + "); handling response...");
+                    if (!response.isSuccessful())
+                        throw new IOException("Unexpected Response (to " + http_request_file_download.toString() + "): " + response.toString());
+                    else {
+                        Log.d(TAG, "request_file_download: Response (to " + http_request_file_download.toString() + "): " + response.toString());
+                        Headers response_headers = response.headers();
+                        if (response_headers != null && response_headers.size() > 0) {
+                            //DEBUG - remove for release (unnecessary iteration for release builds)
+                            Log.d(TAG, "\tHeaders:");
+                            for (int i = 0; i < response_headers.size(); i++) {
+                                String s_hdr_name = response_headers.name(i);
+                                String s_hdr_val = response_headers.get(s_hdr_name);
+                                Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
+                            }
+                        }
+
+                        if (response.body().contentLength() > 0) {
+                            Log.d(TAG, "request_file_download: downloading ChunkedResponseBody (" + response.body().contentLength() + " bytes)...");
+                            byte[] bytes = new byte[1024];
+                            int n_bytes_read = 0;
+                            while ((n_bytes_read += response.body().source().read(bytes)) < response.body().contentLength()) {}
+                            Log.d(TAG, "request_file_download: done downloading ChunkedResponseBody (" + response.body().contentLength() + " bytes)!");
+                        }
+                    }
+                } finally {
+                    if (response != null)
+                        response.close();
+                }
             }
 
             @Override
@@ -271,7 +431,15 @@ public class Utils {
                         throw new AsyncGetFileInvalidParameterException("HttpUrl_To_Local_File.file is null");
                     }
                     final OkHttpClient httpClient = new OkHttpClient.Builder()
-                            .addNetworkInterceptor(new Interceptor() {
+//                            .addNetworkInterceptor(new Interceptor() {
+//                                @Override public Response intercept(Chain chain) throws IOException {
+//                                    Response originalResponse = chain.proceed(chain.request());
+//                                    return originalResponse.newBuilder()
+//                                            .body(new ChunkedResponseBody(originalResponse.body(), httpUrl_to_local_file[0], m_Handler))
+//                                            .build();
+//                                }
+//                            })
+                            .addInterceptor(new Interceptor() {
                                 @Override public Response intercept(Chain chain) throws IOException {
                                     Response originalResponse = chain.proceed(chain.request());
                                     return originalResponse.newBuilder()
@@ -280,20 +448,9 @@ public class Utils {
                                 }
                             })
                             .build();
-                    Log.d(TAG, "doInBackground: new OkHttpClient created");
-                    final Request http_request_download_file = new Request.Builder()
-                            .url(httpUrl_to_local_file[0].get_url())
-                            .build();
-                    Log.d(TAG, "doInBackground: new Request created");
-                    final Call httpClient_call__request_download_file = httpClient.newCall(http_request_download_file);
-                    Log.d(TAG, "doInBackground: new OkHttpClient Call created");
-                    final Response response = httpClient_call__request_download_file.execute();
-                    Log.d(TAG, "doInBackground: executed OkHttpClient Call; handling response...");
-                    if (!response.isSuccessful())
-                        throw new IOException("Unexpected http response " + response);
-                    else {
-                        Log.d(TAG, response.toString());
-                    }
+                    //Log.d(TAG, "doInBackground: new OkHttpClient created");
+                    HttpUrl http_url = httpUrl_to_local_file[0].get_url();
+                    request_file_download(httpClient, http_url);
                 } catch (IOException e) {
                     e.printStackTrace();
                     cancel(false);
