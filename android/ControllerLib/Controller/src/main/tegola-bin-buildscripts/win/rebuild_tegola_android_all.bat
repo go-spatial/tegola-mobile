@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-REM Usage: build_tegola_android_all [tegola version string (if excluded, build_tegola.bat implicitly retrieves version string as git describe value)]
+REM Usage: rebuild_tegola_android_all [tegola version string (if excluded, build_tegola.bat implicitly retrieves version string as git describe value)]
 
 set TEGOLA_VER_STRING=%1
 set REQUIRED_ARGS=-b_version_props_copy_path %MY_ANDROID_STUDIO_WORKSPACE%\src\github.com\terranodo\tegola-mobile\android\ControllerLib\Controller\src\main\assets -b_normalized_fn_bin_output_path %MY_ANDROID_STUDIO_WORKSPACE%\src\github.com\terranodo\tegola-mobile\android\ControllerLib\Controller\src\main\res\raw

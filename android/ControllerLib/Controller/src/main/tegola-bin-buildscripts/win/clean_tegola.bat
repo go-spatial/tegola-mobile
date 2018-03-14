@@ -65,13 +65,13 @@ set ERR__INVALID_GOOS=-4
         :case--t_platform--android-arm
           set GOOS=android
           set arch_friendly=arm
-          set ndk_apilevel=15
+          set ndk_apilevel=16
           goto :switch-case-end--t_platform
 
         :case--t_platform--android-x86
           set GOOS=android
           set arch_friendly=x86
-          set ndk_apilevel=15
+          set ndk_apilevel=16
           goto :switch-case-end--t_platform
 
         :case--t_platform--android-arm64
@@ -115,6 +115,8 @@ set ERR__INVALID_GOOS=-4
   goto :loop--do-while--parse-argument-name-value-pairs
 :loop--do-while-end---parse-argument-name-value-pairs
 
+set BASE_TEGOLA_SUBDIR=github.com\go-spatial\tegola
+
 :switch-case--GOOS
   goto :case--GOOS--%GOOS% 2>nul 
   if errorlevel 1 (
@@ -124,12 +126,12 @@ set ERR__INVALID_GOOS=-4
   )
 
   :case--GOOS--android
-    set OUTPUT_DIR=%GOPATH%\pkg\github.com\terranodo\tegola\android\api-%ndk_apilevel%\%arch_friendly%
+    set OUTPUT_DIR=%GOPATH%\pkg\%BASE_TEGOLA_SUBDIR%\android\api-%ndk_apilevel%\%arch_friendly%
     set OUTPUT_BIN_NORMALIZED_FN=tegola_bin__android_%arch_friendly%
     goto :switch-case-end--GOOS
 
   :case--GOOS--windows
-    set OUTPUT_DIR=%GOPATH%\pkg\github.com\terranodo\tegola\windows\%arch_friendly%
+    set OUTPUT_DIR=%GOPATH%\pkg\%BASE_TEGOLA_SUBDIR%\windows\%arch_friendly%
     set OUTPUT_BIN_NORMALIZED_FN=tegola_bin__windows_%arch_friendly%
     goto :switch-case-end--GOOS
 :switch-case-end--GOOS
@@ -154,8 +156,5 @@ if defined OUTPUT_BIN_NORMALIZED_FN__DIR (
 
 echo clean_tegola.bat: Cleaning %OUTPUT_DIR%...
 rm -rf %OUTPUT_DIR% > nul 2>&1
-if exist "%OUTPUT_PATH%" (
-	echo clean_tegola.bat: Could not clean %OUTPUT_DIR%
-)
 
 echo clean_tegola.bat: all done!

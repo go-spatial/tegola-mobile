@@ -23,7 +23,8 @@ REM     -b_normalized_fn_bin_output_path    destination path for copy of binary 
 set ERR__NO_ARGS=-1
 set ERR__INVALID_ARG=-2
 set ERR__INVALID_TARGET_PLATFORM=-3
-set ERR__INVALID_GOOS=-4
+set ERR__INVALID_CGO_ENABLED_OVERRIDE=-4
+set ERR__INVALID_GOOS=-5
 
 :loop--do-while--parse-argument-name-value-pairs
   set argument_name=%1
@@ -73,7 +74,7 @@ set ERR__INVALID_GOOS=-4
           set GOARM=7
           set arch_friendly=arm
           set ndk_arch=arm-linux-androideabi
-          set ndk_apilevel=15
+          set ndk_apilevel=16
           goto :switch-case-end--t_platform
 
         :case--t_platform--android-x86
@@ -81,7 +82,7 @@ set ERR__INVALID_GOOS=-4
           set GOARCH=386
           set arch_friendly=x86
           set ndk_arch=i686-linux-android
-          set ndk_apilevel=15
+          set ndk_apilevel=16
           goto :switch-case-end--t_platform
 
         :case--t_platform--android-arm64
@@ -145,6 +146,7 @@ echo build_tegola.bat: target GOARCH: %GOARCH%
 set BASE_TEGOLA_SUBDIR=github.com\go-spatial\tegola
 set TEGOLA_SRC_DIR=%GOPATH%\src\%BASE_TEGOLA_SUBDIR%
 echo build_tegola.bat: source dir: %TEGOLA_SRC_DIR%
+
 if not defined TEGOLA_VER_STRING (
 	REM build version string in format: "TAG-SHORT_COMMIT_HASH-BRANCH_NAME", e.g. "v0.6.1-436b82e-master"
 	cd %TEGOLA_SRC_DIR%
@@ -201,7 +203,7 @@ echo build_tegola.bat: target cmd.Version: %TEGOLA_VER_STRING%
 	echo build_tegola.bat: go build - ldflags: %GO_BLD_CMD_ARG_VAL__LDFLAGS%
 
 	REM set go build cmd "o" arg val - this specifies output path of go build explicitly
-	set OUTPUT_DIR=%GOPATH%\pkg\%BASE_TEGOLA_SUBDIR%\android\api-%ndk_apilevel%\%arch_friendly%
+	set OUTPUT_DIR=%MY_GOLANG_WORKSPACE%\pkg\%BASE_TEGOLA_SUBDIR%\android\api-%ndk_apilevel%\%arch_friendly%
 	set OUTPUT_BIN=tegola--%TEGOLA_VER_STRING%--android-%arch_friendly%.bin
 	set OUTPUT_BIN_NORMALIZED_FN=tegola_bin__android_%arch_friendly%
 	set OUTPUT_PATH=%OUTPUT_DIR%\%OUTPUT_BIN%
@@ -223,7 +225,7 @@ echo build_tegola.bat: target cmd.Version: %TEGOLA_VER_STRING%
 	echo build_tegola.bat: go build - ldflags: %GO_BLD_CMD_ARG_VAL__LDFLAGS%
 
     REM set go build cmd "o" arg val - this specifies output path of go build explicitly
-    set OUTPUT_DIR=%GOPATH%\pkg\%BASE_TEGOLA_SUBDIR%\windows\%arch_friendly%
+    set OUTPUT_DIR=%MY_GOLANG_WORKSPACE%\pkg\%BASE_TEGOLA_SUBDIR%\windows\%arch_friendly%
     set OUTPUT_BIN=tegola--%TEGOLA_VER_STRING%--windows-%arch_friendly%.bin
     set OUTPUT_BIN_NORMALIZED_FN=tegola_bin__windows_%arch_friendly%
     set OUTPUT_PATH=%OUTPUT_DIR%\%OUTPUT_BIN%
