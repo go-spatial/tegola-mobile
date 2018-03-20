@@ -131,7 +131,8 @@
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentRight="true"
                     android:layout_marginRight="15dp"
-                    android:text="@string/get_list"/>
+                    android:text="@string/get_list"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/tv_lbl__install_gpkg_bundle__name"
@@ -200,7 +201,7 @@
 
         <!-- install gpkg bundle - progress - name: BEGIN -->
         <LinearLayout
-            android:id="@+id/sect_content__item__gpkg_bundle__progress"
+            android:id="@+id/sect_content__item__install_gpkg_bundle__progress"
             style="@style/Section_Content_Item"
             android:paddingTop="20dp">
 

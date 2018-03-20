@@ -6,6 +6,9 @@
 
     <string name="srvr_info">Server Info</string>
     <string name="srvr_ver">Version</string>
+    <string name="srvr_provider_type">Provider Type</string>
+    <string name="srvr_provider_type__postgis">PostGIS</string>
+    <string name="srvr_provider_type__gpkg">GeoPackage</string>
     <string name="srvr_config_type">Config Type</string>
     <string name="srvr_config_type__local">LOCAL</string>
     <string name="srvr_config_type__remote">REMOTE</string>

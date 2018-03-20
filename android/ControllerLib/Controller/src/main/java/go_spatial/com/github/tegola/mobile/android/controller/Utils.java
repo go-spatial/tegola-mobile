@@ -14,7 +14,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import okhttp3.Call;
 import okhttp3.Headers;
@@ -26,7 +29,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
-import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.ForwardingSource;
 import okio.Okio;
@@ -183,54 +185,57 @@ public class Utils {
             }
         }
 
-        public static class AsyncGetFile extends AsyncTask <HttpUrl_To_Local_File, Void, Exception> {
-            private final static String TAG = Utils.HTTP.AsyncGetFile.class.getName();
+        public static abstract class AsyncGetFileTaskStageHandler {
+            private final static String TAG = AsyncGetFileTaskStageHandler.class.getName();
+            private HttpUrl_To_Local_File m_httpUrl_to_local_file = null;
 
-            public static abstract class Handler {
-                private final static String TAG = Utils.HTTP.AsyncGetFile.Handler.class.getName();
-                private HttpUrl_To_Local_File m_httpUrl_to_local_file = null;
-
-                private void set_httpUrl_to_local_file(@NonNull final HttpUrl_To_Local_File httpUrl_to_local_file) {
-                    m_httpUrl_to_local_file = httpUrl_to_local_file;
-                }
-                public final HttpUrl_To_Local_File get_httpUrl_to_local_file() {
-                    return m_httpUrl_to_local_file;
-                }
-
-                public abstract void onPreExecute();
-                public abstract void onChunkRead(Buffer sink, long bytesRead, long contentLength, boolean done);
-                public abstract void onFileAlreadyExists();
-                public abstract void onCancelled(Exception exception);
-                public abstract void onPostExecute(Exception exception);
+            private void set_httpUrl_to_local_file(@NonNull final HttpUrl_To_Local_File httpUrl_to_local_file) {
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
             }
-            private final Handler m_Handler;
+            public final HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpUrl_to_local_file;
+            }
 
-            public AsyncGetFile(@NonNull final Handler handler) {
-                m_Handler = handler;
+            public abstract void onPreExecute();
+            public abstract void onChunkRead(Buffer sink, long bytesRead, long contentLength, boolean done);
+            public abstract void onFileAlreadyExists();
+            public abstract void onCancelled(Exception exception);
+            public abstract void onPostExecute(Exception exception);
+        }
+
+        public static class AsyncGetFileTask extends AsyncTask <HttpUrl_To_Local_File, Void, Exception> {
+            private final static String TAG = AsyncGetFileTask.class.getName();
+
+            private final AsyncGetFileTaskStageHandler m_asyncgetfiletask_stage_handler;
+
+            public AsyncGetFileTask(@NonNull final AsyncGetFileTaskStageHandler asyncgetfiletask_stage_handler) {
+                m_asyncgetfiletask_stage_handler = asyncgetfiletask_stage_handler;
             }
 
             private static class ChunkedResponseBody extends ResponseBody {
-                private final static String TAG = Utils.HTTP.AsyncGetFile.ChunkedResponseBody.class.getSimpleName();
+                private final static String TAG = AsyncGetFileTask.ChunkedResponseBody.class.getSimpleName();
                 private final ResponseBody m_responseBody;
-                private final Handler m_handler;
+                private final AsyncGetFileTaskStageHandler m_asyncgetfiletask_stage_handler;
                 private BufferedSource m_bufferedSource;
 
-                ChunkedResponseBody(@NonNull final ResponseBody responseBody, @NonNull final HttpUrl_To_Local_File httpUrl_to_local_file, @NonNull final Handler handler) {
+                ChunkedResponseBody(@NonNull final ResponseBody responseBody, @NonNull final HttpUrl_To_Local_File httpUrl_to_local_file, @NonNull final AsyncGetFileTaskStageHandler asyncgetfiletask_stage_handler) {
                     m_responseBody = responseBody;
-                    handler.set_httpUrl_to_local_file(httpUrl_to_local_file);
-                    m_handler = handler;
+                    asyncgetfiletask_stage_handler.set_httpUrl_to_local_file(httpUrl_to_local_file);
+                    m_asyncgetfiletask_stage_handler = asyncgetfiletask_stage_handler;
                 }
 
-                @Override public MediaType contentType() {
+                @Override
+                public MediaType contentType() {
                     return m_responseBody.contentType();
                 }
 
-                @Override public long contentLength() {
+                @Override
+                public long contentLength() {
                     return m_responseBody.contentLength();
                 }
 
-                //cannot use BufferedSource for large files so why don't we disable this method altogether?
-                @Override public BufferedSource source() {
+                @Override
+                public BufferedSource source() {
                     if (m_bufferedSource == null) {
                         Log.d(TAG, "Okio buffering ResponseBody source (contentLength " + contentLength() + ")");
                         m_bufferedSource = Okio.buffer(source(m_responseBody.source()));
@@ -242,11 +247,12 @@ public class Utils {
 
                 private Source source(Source source) {
                     final Source source_ret = new ForwardingSource(source) {
-                        @Override public long read(Buffer sink, long byteCount) throws IOException {
+                        @Override
+                        public long read(Buffer sink, long byteCount) throws IOException {
                             long bytesRead = super.read(sink, byteCount);
-                            //Log.d(TAG, "ForwardingSource::read() - read " + bytesRead + " bytes into sink; assert sink.size()==" + bytesRead + " --> " + (sink.size() == bytesRead) + "; calling m_handler.onChunkRead()...");
+                            //Log.d(TAG, "ForwardingSource::read() - read " + bytesRead + " bytes into sink; assert sink.size()==" + bytesRead + " --> " + (sink.size() == bytesRead) + "; calling m_asyncgetfiletask_stage_handler.onChunkRead()...");
                             // read() returns the number of bytes read, or -1 if this source is exhausted.
-                            m_handler.onChunkRead(sink, bytesRead, m_responseBody.contentLength(), bytesRead == -1);
+                            m_asyncgetfiletask_stage_handler.onChunkRead(sink, bytesRead, m_responseBody.contentLength(), bytesRead == -1);
                             return bytesRead;
                         }
                     };
@@ -258,7 +264,7 @@ public class Utils {
 
             @Override
             protected void onPreExecute() {
-                m_Handler.onPreExecute();
+                m_asyncgetfiletask_stage_handler.onPreExecute();
             }
 
             private long request_file_size(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url) throws IOException, AsyncGetFileSizeException {
@@ -362,7 +368,6 @@ public class Utils {
                         response.close();
                 }
             }
-
             private void request_file_download(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url) throws IOException {
                 final Request http_request_file_download = new Request.Builder()
                         .url(http_url)
@@ -431,19 +436,21 @@ public class Utils {
                         throw new AsyncGetFileInvalidParameterException("HttpUrl_To_Local_File.file is null");
                     }
                     final OkHttpClient httpClient = new OkHttpClient.Builder()
+                            //network interceptor not currently needed - only application interceptor
 //                            .addNetworkInterceptor(new Interceptor() {
 //                                @Override public Response intercept(Chain chain) throws IOException {
 //                                    Response originalResponse = chain.proceed(chain.request());
 //                                    return originalResponse.newBuilder()
-//                                            .body(new ChunkedResponseBody(originalResponse.body(), httpUrl_to_local_file[0], m_Handler))
+//                                            .body(new ChunkedResponseBody(originalResponse.body(), m_httpurl_to_local_file[0], m_asyncgetfiletask_stage_handler))
 //                                            .build();
 //                                }
 //                            })
                             .addInterceptor(new Interceptor() {
-                                @Override public Response intercept(Chain chain) throws IOException {
+                                @Override
+                                public Response intercept(Chain chain) throws IOException {
                                     Response originalResponse = chain.proceed(chain.request());
                                     return originalResponse.newBuilder()
-                                            .body(new ChunkedResponseBody(originalResponse.body(), httpUrl_to_local_file[0], m_Handler))
+                                            .body(new ChunkedResponseBody(originalResponse.body(), httpUrl_to_local_file[0], m_asyncgetfiletask_stage_handler))
                                             .build();
                                 }
                             })
@@ -465,12 +472,92 @@ public class Utils {
 
             @Override
             protected void onCancelled(Exception exception) {
-                m_Handler.onCancelled(exception);
+                m_asyncgetfiletask_stage_handler.onCancelled(exception);
             }
 
             @Override
             protected void onPostExecute(Exception exception) {
-                m_Handler.onPostExecute(exception);
+                m_asyncgetfiletask_stage_handler.onPostExecute(exception);
+            }
+        }
+
+        public static class AsyncGetFileTaskExecuteQueueItem {
+            private final AsyncGetFileTaskExecuteQueueItemExecutor m_executor;
+            final public AsyncGetFileTaskExecuteQueueItemExecutor get_executor() {
+                return m_executor;
+            }
+            private final HttpUrl_To_Local_File m_httpurl_to_local_file;
+            final public HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpurl_to_local_file;
+            }
+
+            public AsyncGetFileTaskExecuteQueueItem(@NonNull final AsyncGetFileTaskExecuteQueueItemExecutor executor, @NonNull final HttpUrl_To_Local_File httpurl_to_local_file) {
+                m_executor = executor;
+                m_httpurl_to_local_file = httpurl_to_local_file;
+            }
+        }
+        public static class AsyncGetFileTaskExecuteQueueException extends Exception {
+            public AsyncGetFileTaskExecuteQueueException(String message) {
+                super(message);
+            }
+        }
+        public static abstract class AsyncGetFileTaskExecuteQueueListener {
+            public abstract void onItemExecutor_PostExecute(final AsyncGetFileTaskExecuteQueueItemExecutor executor);
+            public abstract void onCancelled();
+            public abstract void onPostExecute();
+        }
+        public static class AsyncGetFileTaskExecuteQueue extends LinkedBlockingQueue<AsyncGetFileTaskExecuteQueueItem> {
+            private final AsyncGetFileTaskExecuteQueueListener m_listener;
+            private int m_n_pending = 0;
+
+            public AsyncGetFileTaskExecuteQueue() {
+                m_listener = null;
+                m_n_pending = 0;
+            }
+            public AsyncGetFileTaskExecuteQueue(final AsyncGetFileTaskExecuteQueueListener listener) {
+                m_listener = listener;
+                m_n_pending = 0;
+            }
+
+            @Override
+            public boolean add(AsyncGetFileTaskExecuteQueueItem asyncGetFileTaskExecuteQueueItem) {
+                final boolean b_added = super.add(asyncGetFileTaskExecuteQueueItem);
+                if (b_added)
+                    ++m_n_pending;
+                return b_added;
+            }
+
+            public void execute() throws AsyncGetFileTaskExecuteQueueException {
+                if (isEmpty())
+                    throw new AsyncGetFileTaskExecuteQueueException("queue is empty");
+
+                Iterator<AsyncGetFileTaskExecuteQueueItem> iterator_exec_queue_items = iterator();
+                while (iterator_exec_queue_items.hasNext()) {
+                    AsyncGetFileTaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
+                    exec_queue_item.get_executor().execute(exec_queue_item.get_httpUrl_to_local_file());
+                }
+            }
+        }
+
+        public static class AsyncGetFileTaskExecuteQueueItemExecutor extends AsyncGetFileTask {
+            private final AsyncGetFileTaskExecuteQueue m_queue;
+
+            public AsyncGetFileTaskExecuteQueueItemExecutor(@NonNull AsyncGetFileTaskStageHandler stage_handler, @NonNull AsyncGetFileTaskExecuteQueue queue) {
+                super(stage_handler);
+                m_queue = queue;
+            }
+
+            @Override
+            protected void onPostExecute(Exception exception) {
+                super.onPostExecute(exception);
+                --m_queue.m_n_pending;
+                if (m_queue.m_listener != null)
+                    m_queue.m_listener.onItemExecutor_PostExecute(this);
+                if (m_queue.m_n_pending == 0) {
+                    if (m_queue.m_listener != null)
+                        m_queue.m_listener.onPostExecute();
+                    m_queue.clear();
+                }
             }
         }
     }

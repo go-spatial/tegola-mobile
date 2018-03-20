@@ -685,7 +685,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         } else {
             Log.d(TAG, "validate__m_edt_val_config_sel__remote: m_edt_val_config_sel__remote proposed value \"" + s_config_sel__remote_val__proposted + "\" differs from shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value \"" + s_old_config_sel__remote_val + "\"");
             m_btn_config_sel_remote_apply_changes.setEnabled(true);
-            InputMethodManager imm= (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(m_edt_val_config_sel__remote.getWindowToken(), 0);
         }
     }

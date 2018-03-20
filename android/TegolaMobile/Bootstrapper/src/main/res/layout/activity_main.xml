@@ -212,6 +212,64 @@
                             android:visibility="visible"/>
                     </LinearLayout>
                     <!-- srvr nfo section content - version - END -->
+                    <!-- srvr nfo section content - PROVIDER type - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__provider_type"
+                        style="@style/Section_Content_Item">
+
+                        <TextView
+                            android:id="@+id/tv_lbl_provider_type"
+                            style="@style/Section_Content_Item_Label"
+                            android:text="@string/srvr_provider_type"
+                        />
+
+                        <RadioGroup
+                            android:id="@+id/rg_val_provider_type_sel"
+                            style="@style/Section_Content_Item_Content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="start"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/rb_val_provider_type_sel__postgis"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="10dp"
+                                android:layout_marginRight="10dp"
+                                android:button="@null"
+                                android:drawableLeft="@android:drawable/btn_radio"
+                                android:drawableStart="@android:drawable/btn_radio"
+                                android:inputType="textCapCharacters"
+                                android:text="@string/srvr_provider_type__postgis"
+                                android:textSize="14sp"/>
+
+                            <RadioButton
+                                android:id="@+id/rb_val_provider_type_sel__gpkg"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:button="@null"
+                                android:drawableLeft="@android:drawable/btn_radio"
+                                android:drawableStart="@android:drawable/btn_radio"
+                                android:inputType="textCapCharacters"
+                                android:text="@string/srvr_provider_type__gpkg"
+                                android:textSize="14sp"/>
+
+                            <TextView
+                                android:id="@+id/tv_lbl_config_type_sel__local__manage_files"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="20dp"
+                                android:layout_marginLeft="20dp"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:editable="false"
+                                android:text="@string/srvr_config_type__local__manage_files"/>
+
+                        </RadioGroup>
+
+                    </LinearLayout>
+                    <!-- srvr nfo section content - PROVIDER type - END -->
                     <!-- srvr nfo section content - CONFIG type - BEGIN -->
                     <LinearLayout
                         android:id="@+id/sect_content__item__config_type"
@@ -243,17 +301,6 @@
                                 android:text="@string/srvr_config_type__local"
                                 android:textSize="14sp"/>
 
-                            <TextView
-                                android:id="@+id/tv_lbl_config_type_sel__local__manage_files"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="20dp"
-                                android:layout_marginRight="20dp"
-                                android:layout_weight="1"
-                                android:clickable="true"
-                                android:editable="false"
-                                android:text="@string/srvr_config_type__local__manage_files"/>
-
                             <RadioButton
                                 android:id="@+id/rb_val_config_type_sel__remote"
                                 android:layout_width="wrap_content"
@@ -266,6 +313,7 @@
                                 android:textSize="14sp"/>
 
                         </RadioGroup>
+
                     </LinearLayout>
                     <!-- srvr nfo section content - CONFIG type - END -->
                     <!-- srvr nfo section content - CONFIG selection - BEGIN -->
