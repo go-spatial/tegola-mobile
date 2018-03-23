@@ -7,6 +7,7 @@
     <string name="revert_changes">Revert Changes</string>
     <string name="close">Close</string>
     <string name="OK">OK</string>
+    <string name="cancel">Cancel</string>
     <string name="install">Install</string>
     <string name="uninstall">Uninstall</string>
     <string name="get_list">Get List</string>
@@ -16,15 +17,17 @@
     <string name="cpu_abi">CPU_ABI</string>
     <string name="api_level">API Level</string>
 
-    <string name="srvr_config_type__local__manage_files">Manage Files (Config and Geopackages)</string>
+    <string name="srvr_provider_type__gpkg__manage_gpkg_bundles">Manage</string>
     <string name="srvr_config_type__local__manage_files__config">Config Files</string>
 
     <string name="srvr_config_type__local__manage_geopackage_bundles">Geopackage Bundles</string>
-    <string name="srvr_config_type__local__no_geopackage_bundles_installed">**NO GEOPACKAGE BUNDLES INSTALLED**</string>
-    <string name="activity_title__install_gpkg_bundle">Install Geopackage Bundle</string>
-    <string name="lbl__install_gpkg_bundle__repo_container_url">Geopackage Bundle Repo Container URL</string>
-    <string name="fixed__install_gpkg_bundle__repo_container_url__tail">/geopackage-bundle/android/</string>
-    <string name="lbl__install_gpkg_bundle__name">Geopackage Bundle Name</string>
+    <string name="srvr_provider_type__gpkg__no_geopackage_bundles_installed">**NO GEOPACKAGE BUNDLES INSTALLED**</string>
+    <string name="srvr_provider_type__gpkg__no_geopackage_bundles_installed__alert_msg">Tegola MVT server cannot be started without installing and selecting a geopackage-bundle.\n\nPlease install a geopackage-bundle now.</string>
+    <string name="activity_title__install_remote_gpkg_bundle">Install Remote Geopackage Bundle</string>
+    <string name="lbl__remote_gpkg_bundle__root_url">Remote - Root URL</string>
+    <string name="fixed__remote_gpkg_bundle__root_url__tail">/geopackage-bundle/android</string>
+    <string name="lbl__remote_gpkg_bundle__name">Remote - Name</string>
+    <string name="lbl__local_gpkg_bundle__name">Local (Destination) - Name</string>
     <string name="lbl__install_gpkg_bundle__progress_toml_file">toml file</string>
     <string name="lbl__install_gpkg_bundle__progress_gpkg_file">gpkg file</string>
 

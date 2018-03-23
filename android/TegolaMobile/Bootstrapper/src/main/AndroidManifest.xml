@@ -60,9 +60,9 @@
             </intent-filter>
         </provider>
 
-        <activity android:name=".ManageFilesActivity">
+        <activity android:name=".ManageGpkgBundlesActivity">
         </activity>
-        <activity android:name=".InstallGpkgActivity">
+        <activity android:name=".InstallGpkgBundleActivity">
         </activity>
     </application>
 

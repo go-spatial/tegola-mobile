@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".InstallGpkgActivity">
+    tools:context=".InstallGpkgBundleActivity">
 
     <LinearLayout
         android:id="@+id/sect__intall_gpkg__heading"
@@ -16,7 +16,7 @@
             style="@style/Section_Heading_Content">
 
             <ImageButton
-                android:id="@+id/btn_install__geopackage_bundle__close"
+                android:id="@+id/btn_install_remote_geopackage_bundle__cancel"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
                 android:layout_width="35dp"
@@ -28,12 +28,12 @@
             <TextView
                 android:id="@+id/tv_sect_heading_lbl__install_gpkg"
                 style="@style/Section_Heading_Content_Label"
-                android:layout_alignBottom="@+id/btn_install__geopackage_bundle__close"
-                android:layout_alignTop="@+id/btn_install__geopackage_bundle__close"
+                android:layout_alignBottom="@+id/btn_install_remote_geopackage_bundle__cancel"
+                android:layout_alignTop="@+id/btn_install_remote_geopackage_bundle__cancel"
                 android:layout_centerVertical="false"
-                android:layout_toLeftOf="@+id/btn_install__geopackage_bundle__close"
-                android:layout_toStartOf="@+id/btn_install__geopackage_bundle__close"
-                android:text="@string/activity_title__install_gpkg_bundle"
+                android:layout_toLeftOf="@+id/btn_install_remote_geopackage_bundle__cancel"
+                android:layout_toStartOf="@+id/btn_install_remote_geopackage_bundle__cancel"
+                android:text="@string/activity_title__install_remote_gpkg_bundle"
             />
         </RelativeLayout>
 
@@ -57,16 +57,16 @@
                 android:id="@+id/tv_lbl__install_gpkg_bundle__repo_container_url"
                 style="@style/Section_Content_Item_Label"
                 android:paddingTop="15dp"
-                android:text="@string/lbl__install_gpkg_bundle__repo_container_url"
+                android:text="@string/lbl__remote_gpkg_bundle__root_url"
                 android:visibility="visible"/>
 
             <RelativeLayout
-                android:id="@+id/gpkg_bundle__repo_container_url__container"
+                android:id="@+id/remote_gpkg_bundle__root_url__container"
                 style="@style/Section_Content_Item_Content"
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/tv_lbl_repo_container_url__http_proto_prefix"
+                    android:id="@+id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentLeft="true"
@@ -78,30 +78,30 @@
                 />
 
                 <TextView
-                    android:id="@+id/tv_lbl_gpkg_bundle__repo_container_url__root___canon_tail"
+                    android:id="@+id/tv_lbl_remote_gpkg_bundle__root_url___canon_tail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/tv_lbl_repo_container_url__http_proto_prefix"
+                    android:layout_alignBottom="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentRight="true"
-                    android:layout_alignTop="@id/tv_lbl_repo_container_url__http_proto_prefix"
+                    android:layout_alignTop="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
                     android:layout_centerVertical="false"
                     android:paddingBottom="10dp"
                     android:paddingTop="10dp"
-                    android:text="@string/fixed__install_gpkg_bundle__repo_container_url__tail"
+                    android:text="@string/fixed__remote_gpkg_bundle__root_url__tail"
                     />
 
                 <EditText
-                    android:id="@+id/edt_gpkg_bundle__repo_container_url__root"
+                    android:id="@+id/edt_remote_gpkg_bundle__root_url__base"
                     style="@style/Widget.AppCompat.EditText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/tv_lbl_repo_container_url__http_proto_prefix"
-                    android:layout_alignTop="@id/tv_lbl_repo_container_url__http_proto_prefix"
-                    android:layout_toEndOf="@id/tv_lbl_repo_container_url__http_proto_prefix"
-                    android:layout_toLeftOf="@id/tv_lbl_gpkg_bundle__repo_container_url__root___canon_tail"
-                    android:layout_toRightOf="@id/tv_lbl_repo_container_url__http_proto_prefix"
-                    android:layout_toStartOf="@id/tv_lbl_gpkg_bundle__repo_container_url__root___canon_tail"
+                    android:layout_alignBottom="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
+                    android:layout_alignTop="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
+                    android:layout_toEndOf="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
+                    android:layout_toLeftOf="@id/tv_lbl_remote_gpkg_bundle__root_url___canon_tail"
+                    android:layout_toRightOf="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
+                    android:layout_toStartOf="@id/tv_lbl_remote_gpkg_bundle__root_url___canon_tail"
                     android:imeOptions="actionDone"
                     android:inputType="textUri"
                     android:singleLine="true"
@@ -115,17 +115,18 @@
 
         <!-- install gpkg bundle - selection - name: BEGIN -->
         <LinearLayout
-            android:id="@+id/sect_content__item__gpkg_bundle_sel__name"
+            android:id="@+id/sect_content__item__gpkg_bundle__spec"
             style="@style/Section_Content_Item"
             android:paddingTop="20dp">
 
             <RelativeLayout
+                android:id="@+id/remote_gpkg_bundle__name__heading__container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/btn_gpkg_bundle__name__get_list"
+                    android:id="@+id/btn_remote_gpkg_bundle__name__get_list"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
@@ -135,26 +136,78 @@
                     android:visibility="gone" />
 
                 <TextView
-                    android:id="@+id/tv_lbl__install_gpkg_bundle__name"
+                    android:id="@+id/tv_lbl__remote_gpkg_bundle__name"
                     style="@style/Section_Content_Item_Label"
-                    android:layout_alignBottom="@id/btn_gpkg_bundle__name__get_list"
-                    android:layout_alignTop="@id/btn_gpkg_bundle__name__get_list"
-                    android:layout_toLeftOf="@id/btn_gpkg_bundle__name__get_list"
-                    android:layout_toStartOf="@id/btn_gpkg_bundle__name__get_list"
+                    android:layout_alignBottom="@id/btn_remote_gpkg_bundle__name__get_list"
+                    android:layout_alignTop="@id/btn_remote_gpkg_bundle__name__get_list"
+                    android:layout_toLeftOf="@id/btn_remote_gpkg_bundle__name__get_list"
+                    android:layout_toStartOf="@id/btn_remote_gpkg_bundle__name__get_list"
                     android:gravity="center_vertical"
-                    android:text="@string/lbl__install_gpkg_bundle__name"
+                    android:text="@string/lbl__remote_gpkg_bundle__name"
                     android:visibility="visible"
                 />
 
             </RelativeLayout>
 
             <RelativeLayout
-                android:id="@+id/gpkg_bundle__name__container"
+                android:id="@+id/remote_gpkg_bundle__name__container"
                 style="@style/Section_Content_Item_Content"
                 android:orientation="horizontal">
 
                 <EditText
-                    android:id="@+id/edt_gpkg_bundle__name"
+                    android:id="@+id/edt_remote_gpkg_bundle__name"
+                    style="@style/Widget.AppCompat.EditText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentStart="true"
+                    android:imeOptions="actionDone"
+                    android:inputType="textUri"
+                    android:singleLine="true"
+                    android:text=""
+                    android:textSize="14sp"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/local_gpkg_bundle__name__heading__container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="20dp"
+                android:orientation="horizontal">
+
+                <!--
+                <Button
+                    android:id="@+id/btn_local_gpkg_bundle__name__get_list"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginRight="15dp"
+                    android:text="@string/get_list"
+                    android:visibility="gone"
+                />
+                -->
+
+                <TextView
+                    android:id="@+id/tv_lbl__local_gpkg_bundle__name"
+                    style="@style/Section_Content_Item_Label"
+                    android:gravity="center_vertical"
+                    android:text="@string/lbl__local_gpkg_bundle__name"
+                    android:visibility="visible"
+                />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/local_gpkg_bundle__name__container"
+                style="@style/Section_Content_Item_Content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/edt_local_gpkg_bundle__name"
                     style="@style/Widget.AppCompat.EditText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -184,7 +237,7 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/btn_gpkg_bundle__install"
+                    android:id="@+id/btn_install_remote_gpkg_bundle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
@@ -201,7 +254,7 @@
 
         <!-- install gpkg bundle - progress - name: BEGIN -->
         <LinearLayout
-            android:id="@+id/sect_content__item__install_gpkg_bundle__progress"
+            android:id="@+id/sect_content__item__install_remote_gpkg_bundle__progress"
             style="@style/Section_Content_Item"
             android:paddingTop="20dp">
 

@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -42,17 +43,11 @@ import com.github.aakira.expandablelayout.ExpandableRelativeLayout;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveId;
-import com.google.android.gms.drive.DriveResource;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.OpenFileActivityBuilder;
-import com.google.android.gms.drive.query.Filter;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.SearchableField;
 import com.ipaulpro.afilechooser.utils.FileUtils;
@@ -64,14 +59,14 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.REQUEST_CODES;
 import go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.ControllerFGS;
+import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
 
     private ScrollView m_scvw_main = null;
@@ -90,6 +85,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     //srvr info - version - UI objects
     private TextView m_tv_val_bin_ver = null;
 
+    //srvr info - provider sel postgis - UI objects
+    private RadioButton m_rb_val_provider_type_sel__postgis = null;
+    private View m_sect__postgis_provider_spec = null;
+
     //srvr info - config sel local - UI objects
     private RadioButton m_rb_val_config_type_sel__local = null;
     private TextView m_tv_lbl_config_type_sel__local__manage_files = null;
@@ -107,6 +106,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private EditText m_edt_val_config_sel__remote;
     private Button m_btn_config_sel_remote_apply_changes = null;
 
+    //srvr info - provider sel gpkg - UI objects
+    private RadioButton m_rb_val_provider_type_sel__gpkg = null;
+    private View m_sect__gpkg_provider_spec = null;
+    private CustomSpinner m_spinner_val_gpkg_bundle_sel = null;
+    private final ArrayList<String> m_spinner_val_gpkg_bundle_sel__items = new ArrayList<String>();
+    private ArrayAdapter<String> m_spinner_val_gpkg_bundle_sel__dataadapter = null;
+
     //srvr info - status - UI objects
     private TextView m_tv_val_srvr_status = null;
     private Button m_btn_srvr_ctrl = null;
@@ -119,8 +125,58 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private BroadcastReceiver m_br_ctrlr_notifications = null;
     private IntentFilter m_br_ctrlr_notifications_filter = null;
 
-    private GoogleApiClient m_google_api_client = null;
     private DriveId m_google_drive_id;
+
+    private final class MyGoogleApiClientCallbacks implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        private final String TAG = MyGoogleApiClientCallbacks.class.getName();
+
+        //GoogleApiClient override
+        @Override
+        public void onConnected(@Nullable Bundle bundle) {
+            Drawable drawable_cloud_download = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_cloud_download_black_24dp);
+            int h = drawable_cloud_download.getIntrinsicHeight();
+            int w = drawable_cloud_download.getIntrinsicWidth();
+            drawable_cloud_download.setBounds(0, 0, w, h);
+            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_download);
+            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_green_light));
+            Log.i(TAG, "onConnected: GoogleApiClient flow handler: connection success");
+            Toast.makeText(getApplicationContext(), "GoogleApiClient successfully connected", Toast.LENGTH_LONG).show();
+        }
+
+        //GoogleApiClient override
+        @Override
+        public void onConnectionSuspended(int i) {
+            Drawable drawable_cloud_disconnected = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_cloud_off_black_24dp);
+            int h = drawable_cloud_disconnected.getIntrinsicHeight();
+            int w = drawable_cloud_disconnected.getIntrinsicWidth();
+            drawable_cloud_disconnected.setBounds(0, 0, w, h);
+            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_disconnected);
+            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
+            Log.i(TAG, "onConnectionSuspended: GoogleApiClient flow handler: connection suspended");
+            Toast.makeText(getApplicationContext(), "GoogleApiClient connection suspended", Toast.LENGTH_LONG).show();
+        }
+
+        //GoogleApiClient override
+        @Override
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
+            if (!connectionResult.hasResolution()) {
+                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: abnormal termination :(");
+                Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed with no reported resolution!", Toast.LENGTH_LONG).show();
+                GoogleApiAvailability.getInstance().getErrorDialog(MainActivity.this, connectionResult.getErrorCode(), 0).show();
+                return;
+            }
+            Log.i(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: starting GoogleApiClient connection resolution for this result...");
+            //Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed -- starting resolution flow...", Toast.LENGTH_LONG).show();
+            try {
+                connectionResult.startResolutionForResult(MainActivity.this, REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE);
+            } catch (IntentSender.SendIntentException e) {
+                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: IntentSender failed to send intent; abnormal termination :(", e);
+                Toast.makeText(getApplicationContext(), "GoogleApiClient connection-failure resolution flow abnormally terminated!", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    private MyGoogleApiClientCallbacks m_google_api_callbacks = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,31 +185,46 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         //map UI objects to UI resources
         m_scvw_main = (ScrollView)findViewById(R.id.sv_main);
+
         m_btn_sect__andro_dev_nfo__expand = (Button)findViewById(R.id.btn_sect__andro_dev_nfo__expand);
         m_vw_sect_content__andro_dev_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__andro_dev_nfo);
         m_tv_val_CPU_ABI = (TextView)findViewById(R.id.tv_val_CPU_ABI);
         m_tv_val_API_level = (TextView)findViewById(R.id.tv_val_API_level);
+
         m_btn_sect__ctrlr_nfo__expand = (Button)findViewById(R.id.btn_sect__ctrlr_nfo__expand);
         m_vw_sect_content__ctrlr_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__ctrlr_nfo);
         m_tv_val_ctrlr_status = (TextView)findViewById(R.id.tv_val_tegola_ctrlr_status);
+
         m_tv_val_bin_ver = (TextView)findViewById(R.id.tv_val_bin_ver);
+
+        m_rb_val_provider_type_sel__postgis = (RadioButton)findViewById(R.id.rb_val_provider_type_sel__postgis);
+        m_rb_val_provider_type_sel__gpkg = (RadioButton)findViewById(R.id.rb_val_provider_type_sel__gpkg);
+
+        m_sect__postgis_provider_spec = (View)findViewById(R.id.sect__postgis_provider_spec);
         m_rb_val_config_type_sel__local = (RadioButton)findViewById(R.id.rb_val_config_type_sel__local);
-        m_tv_lbl_config_type_sel__local__manage_files = (TextView)findViewById(R.id.tv_lbl_config_type_sel__local__manage_files);
+        m_tv_lbl_config_type_sel__local__manage_files = (TextView)findViewById(R.id.tv_lbl_gpkg_provider_type_sel__manage_bundles);
         m_rb_val_config_type_sel__remote = (RadioButton)findViewById(R.id.rb_val_config_type_sel__remote);
-        m_vw_config_sel_container__local = findViewById(R.id.config_sel_container__local);
-        m_spinner_val_config_sel_local = (CustomSpinner)findViewById(R.id.spinner_val_config_sel__local);
-        m_btn_config_sel_local__edit_file = (ImageButton)findViewById(R.id.btn_config_sel_local__edit_file);
-        m_btn_config_sel_local_import__sdcard = (ImageButton)findViewById(R.id.btn_config_sel_local_import__sdcard);
-        m_btn_config_sel_local_import__googledrive = (ImageButton)findViewById(R.id.btn_config_sel_local_import__googledrive);
-        m_vw_config_sel_container__remote = findViewById(R.id.config_sel_container__remote);
-        m_edt_val_config_sel__remote = (EditText)findViewById(R.id.edt_val_config_sel__remote);
-        m_btn_config_sel_remote_apply_changes = (Button)findViewById(R.id.btn_config_sel_remote_apply_changes);
+        m_vw_config_sel_container__local = findViewById(R.id.postgis_provider_config_sel__local__container);
+        m_spinner_val_config_sel_local = (CustomSpinner)findViewById(R.id.spinner_val_postgis_provider_config_sel__local);
+        m_btn_config_sel_local__edit_file = (ImageButton)findViewById(R.id.btn_postgis_provider_config_sel_local__edit_file);
+        m_btn_config_sel_local_import__sdcard = (ImageButton)findViewById(R.id.btn_postgis_provider_config_sel_local_import__sdcard);
+        m_btn_config_sel_local_import__googledrive = (ImageButton)findViewById(R.id.btn_postgis_provider_config_sel_local_import__googledrive);
+        m_vw_config_sel_container__remote = findViewById(R.id.postgis_provider_config_sel__remote__container);
+        m_edt_val_config_sel__remote = (EditText)findViewById(R.id.edt_val_postgis_provider_config_sel__remote);
+        m_btn_config_sel_remote_apply_changes = (Button)findViewById(R.id.btn_postgis_provider_config_sel_remote_apply_changes);
+
+        m_sect__gpkg_provider_spec = (View)findViewById(R.id.sect__gpkg_provider_spec);
+        m_spinner_val_gpkg_bundle_sel = (CustomSpinner)findViewById(R.id.spinner_val_gpkg_provider_bundle_sel);
+
         m_tv_val_srvr_status = (TextView)findViewById(R.id.tv_val_srvr_status);
         m_btn_srvr_ctrl = (Button)findViewById(R.id.btn_srvr_ctrl);
         m_scrvw_tegola_console_output = (ScrollView)findViewById(R.id.scrvw_tegola_console_output);
         m_tv_tegola_console_output = (TextView)findViewById(R.id.tv_tegola_console_output);
 
         //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
+        m_spinner_val_gpkg_bundle_sel__dataadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, m_spinner_val_gpkg_bundle_sel__items);
+        m_spinner_val_gpkg_bundle_sel__dataadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        m_spinner_val_gpkg_bundle_sel.setAdapter(m_spinner_val_gpkg_bundle_sel__dataadapter);
         m_spinner_val_config_sel_local__dataadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, m_spinner_val_config_sel_local__items);
         m_spinner_val_config_sel_local__dataadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         m_spinner_val_config_sel_local.setAdapter(m_spinner_val_config_sel_local__dataadapter);
@@ -162,6 +233,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         //associate listeners for user-UI-interaction
         m_btn_sect__andro_dev_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
         m_btn_sect__ctrlr_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
+        m_rb_val_provider_type_sel__postgis.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_provider_type_sel__postgis);
+        m_rb_val_provider_type_sel__gpkg.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_provider_type_sel__gpkg);
         m_rb_val_config_type_sel__local.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_config_type_sel__local);
         m_tv_lbl_config_type_sel__local__manage_files.setMovementMethod(LinkMovementMethod.getInstance());
         Spannable span__clickable_text__m_tv_lbl_config_type_sel__local__manage_files = (Spannable)m_tv_lbl_config_type_sel__local__manage_files.getText();
@@ -174,10 +247,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         m_edt_val_config_sel__remote.setOnEditorActionListener(OnEditorActionListener__m_edt_val_config_sel__remote);
         m_edt_val_config_sel__remote.setOnFocusChangeListener(OnFocusChangeListener__m_edt_val_config_sel__remote);
         m_btn_config_sel_remote_apply_changes.setOnClickListener(OnClickListener__m_btn_config_sel_remote_apply_changes);
+        m_spinner_val_gpkg_bundle_sel.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel);
         m_btn_srvr_ctrl.setOnClickListener(OnClickListener__m_btn_srvr_ctrl);
 
         //instantiate PersistentConfigSettingsManager singleton
         SharedPrefsManager.newInstance(this);
+
+        m_google_api_callbacks = new MyGoogleApiClientCallbacks();
 
         //set up BR to listen to notifications from ControllerLib
         m_br_ctrlr_notifications_filter = new IntentFilter();
@@ -279,9 +355,44 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+                start_controller_fgs();
+
                 //reconcile expandable sections UI with initial "expanded" state
                 m_vw_sect_content__andro_dev_nfo.callOnClick();
                 m_vw_sect_content__ctrlr_nfo.callOnClick();
+
+//                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER_TYPE_SEL__GEOPACKAGE val
+//                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.getValue() == true) {
+//                    m_rb_val_provider_type_sel__gpkg.setChecked(true);
+//                } else {
+//                    m_rb_val_provider_type_sel__postgis.setChecked(true);
+//                }
+//
+//                //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TYPE_SEL__REMOTE val
+//                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue() == true) {
+//                    m_rb_val_config_type_sel__remote.setChecked(true);
+//                } else {
+//                    m_rb_val_config_type_sel__local.setChecked(true);
+//                }
+
+                //adjust main scroll view (since expandable sections may or may not have been expanded/collapsed based on initial settings)
+                m_scvw_main__scroll_max();
+            }
+        }, 50);
+    }
+
+    @Override
+    protected void onResume() {
+        //now queue up initial automated UI actions
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER_TYPE_SEL__GEOPACKAGE val
+                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.getValue() == true) {
+                    m_rb_val_provider_type_sel__gpkg.setChecked(true);
+                } else {
+                    m_rb_val_provider_type_sel__postgis.setChecked(true);
+                }
 
                 //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TYPE_SEL__REMOTE val
                 if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue() == true) {
@@ -292,25 +403,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
                 //adjust main scroll view (since expandable sections may or may not have been expanded/collapsed based on initial settings)
                 m_scvw_main__scroll_max();
-
-                //finally, start the controller foreground service
-                start_controller_fgs();
             }
         }, 50);
-    }
 
-    @Override
-    protected void onResume() {
         super.onResume();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (m_google_api_client != null) {
-            // disconnect Google Android Drive API connection.
-            m_google_api_client.disconnect();
-        }
+        GoogleDriveFileDownloadManager.getInstance().disconnect_api_client();
         super.onPause();
     }
 
@@ -347,6 +449,82 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     };
 
+    //reaction to postGIS provider-type selection - display all postGIS config selection UI and update shared prefs to reflect selection
+    private final CompoundButton.OnCheckedChangeListener OnCheckedChangeListener__m_rb_val_provider_type_sel__postgis = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+            if (checked) {
+                m_sect__gpkg_provider_spec.setVisibility(View.GONE);
+                m_sect__postgis_provider_spec.setVisibility(View.VISIBLE);
+                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.setValue(false);
+            }
+        }
+    };
+
+    //reaction to gpkg provider-type selection - display all gpkg bundle selection UI and update shared prefs to reflect selection
+    private final CompoundButton.OnCheckedChangeListener OnCheckedChangeListener__m_rb_val_provider_type_sel__gpkg = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+            if (checked) {
+                m_sect__postgis_provider_spec.setVisibility(View.GONE);
+                m_sect__gpkg_provider_spec.setVisibility(View.VISIBLE);
+                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.setValue(true);
+                synchronize_spinner_val_gpkg_bundle_sel();
+            }
+        }
+    };
+
+    private void synchronize_spinner_val_gpkg_bundle_sel() {
+        //1. enumerate geopackage-bundles and display results in spinner (drop-down)
+        File f_gpkg_bundles_root_dir = null;
+        try {
+            f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return;
+        }
+        File[] f_gpkg_bundles_root_dir_files = f_gpkg_bundles_root_dir.listFiles();
+
+        //2.1 remove current entries from m_spinner_val_gpkg_bundle_sel dataAdapter
+        Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_sel: clearing spinner items");
+        m_spinner_val_gpkg_bundle_sel__items.clear();
+
+        if (f_gpkg_bundles_root_dir_files.length > 0) {//found local config.toml files
+            //2.2 add found geopackage bundle names into m_spinner_val_gpkg_bundle_sel dataAdapter
+            for (int i = 0; i < f_gpkg_bundles_root_dir_files.length; i++) {
+                File f_gpkg_bundle_candidate = f_gpkg_bundles_root_dir_files[i];
+                final String name = f_gpkg_bundle_candidate.getName();
+                if (f_gpkg_bundle_candidate.isDirectory()) {
+                    Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_sel: found geopackage-bundle \"" + name + "\" - adding it to spinner items");
+                    m_spinner_val_gpkg_bundle_sel__items.add(name);
+                } else {
+                    Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_sel: found errant file \"" + name + "\" in root geopackage-bundle directory - note that there should be no errant files here");
+                }
+            }
+        } else {//no geopacklage bundles found
+            //2.2 add "not found" item @ position 0
+            String s_no_geopackage_bundles_installed = getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundles_installed);
+            Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_sel: no geopackage bundles installed! adding \"" + s_no_geopackage_bundles_installed + "\" to spinner items");
+            m_spinner_val_gpkg_bundle_sel__items.add(s_no_geopackage_bundles_installed);
+        }
+
+        //3. reconcile ConfigSettings.STRING_CONFIG_SETTING.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL setting with m_spinner_val_gpkg_bundle_sel__items selection and update selection as necessary
+        int i_sel_pos = m_spinner_val_gpkg_bundle_sel__dataadapter.getPosition(SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue());
+        if (i_sel_pos != -1) {
+            Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_sel: synchronizing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue() + "\" spinner item selection to existing item position " + i_sel_pos);
+        } else {
+            //note that we must reset i_sel_pos to 0 here since it will be assigned -1 if we are here
+            i_sel_pos = 0;
+            Log.d(TAG,
+                    "synchronize_spinner_val_gpkg_bundle_sel: cannot synchronize shared prefs setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue()
+                            + "\" to spinner item selection since spinner does not currently have a selectable item with that value; setting spinner selected item position to " + i_sel_pos + " for value \"" + m_spinner_val_gpkg_bundle_sel__items.get(i_sel_pos) + "\"");
+        }
+
+        //4. commit changes to spinner to allow for listener to react
+        m_spinner_val_gpkg_bundle_sel.setSelection(i_sel_pos);
+        m_spinner_val_gpkg_bundle_sel__dataadapter.notifyDataSetChanged();
+    }
+
     //reaction to local config-type selection - display all local config selection UI and update shared prefs to reflect selection
     private final CompoundButton.OnCheckedChangeListener OnCheckedChangeListener__m_rb_val_config_type_sel__local = new CompoundButton.OnCheckedChangeListener() {
         @Override
@@ -366,7 +544,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private final ClickableSpan ClickableSpan____m_tv_lbl_config_type_sel__local__manage_files = new ClickableSpan() {
         @Override
         public void onClick(View widget) {
-            startActivity(new Intent(MainActivity.this, ManageFilesActivity.class));
+            startActivityForResult(new Intent(MainActivity.this, ManageGpkgBundlesActivity.class), REQUEST_CODES.REQUEST_CODE__MANAGE_GPKG_BUNDLES);
         }
     };
 
@@ -405,7 +583,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         .setCancelable(false)
                         .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
+                                dialog.dismiss();
                             }
                         });
                 AlertDialog alertDialog = alertDialogBuilder.create();
@@ -434,7 +612,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         @Override
         public void onNothingSelected(AdapterView<?> adapter) {
             Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_LONG).show();
-            //disable/hid m_btn_config_sel_local__edit_file
+            //disable/hide m_btn_config_sel_local__edit_file
             m_btn_config_sel_local__edit_file.setVisibility(View.GONE);
             m_btn_config_sel_local__edit_file.setEnabled(false);
         }
@@ -495,10 +673,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     };
 
     private void import_config_toml__from_google_drive() {
-        google_api_client__validate_init();
-        if (google_api_client__validate_connect()) {
-            Log.i(TAG, "import_config_toml__from_google_drive: calling google_drive__select_and_download_files() for Filter Filters.contains(SearchableField.TITLE, \".toml\")...");
-            google_drive__select_and_download_files(Filters.contains(SearchableField.TITLE, ".toml"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE);
+        GoogleDriveFileDownloadManager.getInstance().validate_init_api_client(this, m_google_api_callbacks, m_google_api_callbacks);
+        if (GoogleDriveFileDownloadManager.getInstance().validate_connect_api_client(this)) {
+            Log.i(TAG, "import_config_toml__from_google_drive: calling select_and_download_files() for Filter Filters.contains(SearchableField.TITLE, \".toml\")...");
+            GoogleDriveFileDownloadManager.getInstance().select_and_download_files(this, Filters.contains(SearchableField.TITLE, ".toml"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE);
         } else {
             Log.i(TAG, "import_config_toml__from_google_drive: GoogleApiClient was not connected -- flow control was transferred to appropriate handler");
         }
@@ -575,6 +753,77 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             } else {
                 stop_mvt_server();
             }
+        }
+    };
+
+    //user selects a geopackage-bundle from spinner - synchronizes selection with shared prefs
+    private final AdapterView.OnItemSelectedListener OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> adapter, View view, int position, long id) {
+            String s_sel_val = adapter.getItemAtPosition(position).toString();
+            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: triggered item selection @ position " + position + " with value " + (s_sel_val == null ? "null" : "\"" + s_sel_val + "\""));
+
+            String s_cached_gpkg_bundle_val = SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue();
+            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " current value is \"" + s_cached_gpkg_bundle_val + "\"");
+
+            boolean no_gpkg_bundles = (s_sel_val == null || s_sel_val.compareTo(getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundles_installed)) == 0);
+            if (no_gpkg_bundles) {
+                Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: no-gpkg-bundles condition!");
+                if (!s_cached_gpkg_bundle_val.isEmpty()) {
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " value (currently \"" + s_cached_gpkg_bundle_val + "\")");
+                    Toast.makeText(getApplicationContext(), "Clearing setting value for geopackage-bundle selection since there are none installed", Toast.LENGTH_LONG).show();
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.setValue("");
+                } else {
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " since it is already cleared (value is \"" + s_cached_gpkg_bundle_val + "\")");
+                }
+
+                m_btn_srvr_ctrl.setEnabled(false);
+
+                //finally display alertdialog notifying user that tegola cannot be used until a gpkg-bundle is installed
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.alert_dialog));
+                alertDialogBuilder.setTitle(getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundles_installed));
+                alertDialogBuilder
+                        .setMessage(getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundles_installed__alert_msg))
+                        .setCancelable(false)
+                        .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                startActivityForResult(new Intent(MainActivity.this, InstallGpkgBundleActivity.class), REQUEST_CODES.REQUEST_CODE__INSTALL_GPKG_BUNDLE);
+                                dialog.dismiss();
+                            }
+                        });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            } else {
+                //first, update shared pref val as necessary - does sel value differ from cached?
+                if (s_cached_gpkg_bundle_val.compareTo(s_sel_val) != 0) {
+                    Toast.makeText(getApplicationContext(), "Saving new setting value for geopackage-bundle \"" + s_sel_val + "\" selection", Toast.LENGTH_LONG).show();
+                    //now update shared pref
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.setValue(s_sel_val);
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " value from \"" + s_cached_gpkg_bundle_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue() + "\"");
+                } else {
+                    //no change to shared pref val
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue() + "\") since new value (\"" + s_sel_val + "\") is no different");
+                }
+
+                //now update UI based on existence of current local geopackage-bundle selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue())
+                File f_gpkg_bundles_root_dir = null;
+                try {
+                    f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+                    File f_gpkg_bundle = new File(f_gpkg_bundles_root_dir, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue());
+                    //and same MVT srvr control (start/stop) button
+                    m_btn_srvr_ctrl.setEnabled(f_gpkg_bundle.exists());
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapter) {
+            Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_LONG).show();
+            //disable/hide m_btn_config_sel_local__edit_file
+            m_btn_config_sel_local__edit_file.setVisibility(View.GONE);
+            m_btn_config_sel_local__edit_file.setEnabled(false);
         }
     };
 
@@ -666,7 +915,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     .setCancelable(false)
                     .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
+                            dialog.dismiss();
                         }
                     });
             AlertDialog alertDialog = alertDialogBuilder.create();
@@ -689,191 +938,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             imm.hideSoftInputFromWindow(m_edt_val_config_sel__remote.getWindowToken(), 0);
         }
     }
-
-
-
-    //Google API Client stuff...
-    private boolean google_api_client__validate_init() {
-        if (m_google_api_client == null) {
-            Log.i(TAG, "google_api_client__validate_init: GoogleApiClient flow handler: building new GoogleApiClient instance...");
-            Toast.makeText(getApplicationContext(), "Initializing GoogleApiClient", Toast.LENGTH_LONG).show();
-            m_google_api_client = new GoogleApiClient.Builder(MainActivity.this)
-                    .addApi(Drive.API)
-                    .addScope(Drive.SCOPE_FILE)
-                    .addConnectionCallbacks(MainActivity.this)
-                    .addOnConnectionFailedListener(MainActivity.this)
-                    .build();
-            return false;
-        }
-        Log.i(TAG, "google_api_client__validate_init: GoogleApiClient flow handler: valid GoogleApiClient is instantiated");
-        return true;
-    }
-
-    private boolean google_api_client__validate_connect() {
-        if (!m_google_api_client.isConnected()) {
-            Log.i(TAG, "google_api_client__validate_connect: GoogleApiClient flow handler: GoogleApiClient is not connected -- starting connection...");
-            Toast.makeText(getApplicationContext(), "Connecting GoogleApiClient...", Toast.LENGTH_LONG).show();
-            m_google_api_client.connect();
-            return false;
-        }
-        Log.i(TAG, "google_api_client__validate_connect: GoogleApiClient flow handler: GoogleApiClient connection is valid");
-        return true;
-    }
-
-    //GoogleApiClient override
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Drawable drawable_cloud_download = ContextCompat.getDrawable(this, R.drawable.ic_cloud_download_black_24dp);
-        int h = drawable_cloud_download.getIntrinsicHeight();
-        int w = drawable_cloud_download.getIntrinsicWidth();
-        drawable_cloud_download.setBounds(0, 0, w, h);
-        m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_download);
-        m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_light));
-        Log.i(TAG, "onConnected: GoogleApiClient flow handler: connection success");
-        Toast.makeText(getApplicationContext(), "GoogleApiClient successfully connected", Toast.LENGTH_LONG).show();
-    }
-
-    //GoogleApiClient override
-    @Override
-    public void onConnectionSuspended(int i) {
-        Drawable drawable_cloud_disconnected = ContextCompat.getDrawable(this, R.drawable.ic_cloud_off_black_24dp);
-        int h = drawable_cloud_disconnected.getIntrinsicHeight();
-        int w = drawable_cloud_disconnected.getIntrinsicWidth();
-        drawable_cloud_disconnected.setBounds(0, 0, w, h);
-        m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_disconnected);
-        m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
-        Log.i(TAG, "onConnectionSuspended: GoogleApiClient flow handler: connection suspended");
-        Toast.makeText(getApplicationContext(), "GoogleApiClient connection suspended", Toast.LENGTH_LONG).show();
-    }
-
-    //GoogleApiClient override
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
-        if (!connectionResult.hasResolution()) {
-            Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: abnormal termination :(");
-            Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed with no reported resolution!", Toast.LENGTH_LONG).show();
-            GoogleApiAvailability.getInstance().getErrorDialog(this, connectionResult.getErrorCode(), 0).show();
-            return;
-        }
-        Log.i(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: starting GoogleApiClient connection resolution for this result...");
-        //Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed -- starting resolution flow...", Toast.LENGTH_LONG).show();
-        try {
-            connectionResult.startResolutionForResult(this, REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE);
-        } catch (IntentSender.SendIntentException e) {
-            Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: IntentSender failed to send intent; abnormal termination :(", e);
-            Toast.makeText(getApplicationContext(), "GoogleApiClient connection-failure resolution flow abnormally terminated!", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    protected void google_drive__select_and_download_files(final int request_id) {
-        Log.i(TAG, "google_drive__select_and_download_files: attempting to select/download files from connected google drive...");
-        Drive.DriveApi.newDriveContents(m_google_api_client).setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
-            @Override
-            public void onResult(@NonNull DriveApi.DriveContentsResult driveContentsResult) {
-                if (driveContentsResult.getStatus().isSuccess()) {
-                    IntentSender google_drive_file_open_intentSender = Drive.DriveApi
-                            .newOpenFileActivityBuilder()
-                            .build(m_google_api_client);
-                    try {
-                        startIntentSenderForResult(google_drive_file_open_intentSender, request_id, null, 0, 0, 0);
-                    } catch (IntentSender.SendIntentException e) {
-                        Log.e(TAG, "google_drive__select_files: Failed to select/download Google Drive file contents -- IntentSender failure!", e);
-                        Toast.makeText(getApplicationContext(), "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(), "Failed to select/download Google Drive file contents", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-    }
-    protected void google_drive__select_and_download_files(@NonNull final Filter file_selection_filter, final int request_id) {
-        Log.i(TAG, "google_drive__select_and_download_files: attempting to select/download files from connected google drive...");
-        Drive.DriveApi.newDriveContents(m_google_api_client).setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
-            @Override
-            public void onResult(@NonNull DriveApi.DriveContentsResult driveContentsResult) {
-                if (driveContentsResult.getStatus().isSuccess()) {
-                    IntentSender google_drive_file_open_intentSender = Drive.DriveApi
-                            .newOpenFileActivityBuilder()
-                            .setSelectionFilter(file_selection_filter)
-                            .build(m_google_api_client);
-                    try {
-                        startIntentSenderForResult(google_drive_file_open_intentSender, request_id, null, 0, 0, 0);
-                    } catch (IntentSender.SendIntentException e) {
-                        Log.e(TAG, "google_drive__select_files: Failed to select/download Google Drive file contents -- IntentSender failure!", e);
-                        Toast.makeText(getApplicationContext(), "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(), "Failed to select/download Google Drive file contents", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-    }
-    protected void google_drive__select_and_download_files(final String[] mime_types, final int request_id) {
-        Log.i(TAG, "google_drive__select_files: attempting to select/download files from connected google drive...");
-        Drive.DriveApi.newDriveContents(m_google_api_client).setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
-            @Override
-            public void onResult(@NonNull DriveApi.DriveContentsResult driveContentsResult) {
-                if (driveContentsResult.getStatus().isSuccess()) {
-                    IntentSender google_drive_file_open_intentSender = Drive.DriveApi
-                        .newOpenFileActivityBuilder()
-                        .setMimeType(mime_types)
-                        .build(m_google_api_client);
-                    try {
-                        startIntentSenderForResult(google_drive_file_open_intentSender, request_id, null, 0, 0, 0);
-                    } catch (IntentSender.SendIntentException e) {
-                        Log.e(TAG, "google_drive__select_files: Failed to select/download Google Drive file contents -- IntentSender failure!", e);
-                        Toast.makeText(getApplicationContext(), "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(), "Failed to select/download Google Drive file contents", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-    }
-
-    interface GoogleDriveDownloadedFileContentsHandler {
-        void OnFileContentsDownloaded(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file);
-    }
-    private void google_drive__file_contents__download(final DriveId google_drive_id, final int mode, final GoogleDriveDownloadedFileContentsHandler googleDriveOpenedContentsHandler) {
-        //download file
-        final DriveFile google_drive_file = Drive.DriveApi.getFile(m_google_api_client, google_drive_id);
-        PendingResult<DriveApi.DriveContentsResult> pendingResult = google_drive_file.open(m_google_api_client, mode, new DriveFile.DownloadProgressListener() {
-            @Override
-            public void onProgress(long bytesDownloaded, long bytesExpected) {
-                //TODO: manip UI to display progress
-            }
-        });
-        pendingResult.setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
-            @Override
-            public void onResult(final DriveApi.DriveContentsResult driveContentsResult) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DriveResource.MetadataResult metadataresult = google_drive_file.getMetadata(m_google_api_client).await(1000, TimeUnit.MILLISECONDS);
-                        Metadata google_drive_file_metadata = metadataresult.getMetadata();
-                        String gd_filename = null;
-                        try { gd_filename = google_drive_file_metadata.getOriginalFilename(); } catch (Exception e) {}
-                        if (!driveContentsResult.getStatus().isSuccess()) {
-                            final String s_err = "Failed to download contents of Google Drive file" + (gd_filename != null ? " \"" + gd_filename + "\"" : "");
-                            Log.e(TAG, "google_drive__download_file_contents--PendingResult.ResultCallback.onResult: " + s_err);
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getApplicationContext(), s_err, Toast.LENGTH_LONG).show();
-                                }
-                            });
-                            return;
-                        }
-                        final DriveContents google_drive_contents = driveContentsResult.getDriveContents();
-                        googleDriveOpenedContentsHandler.OnFileContentsDownloaded(google_drive_contents, google_drive_file_metadata, google_drive_file);
-                        google_drive_contents.discard(m_google_api_client); //closes google drive file
-                    }
-                }).start();
-            }
-        });
-    }
-
 
 
     //result handler for both SD-card and GoogleDrive Tegola config TOML file selection (and any other requests to be handled via startActivityForResult)...
@@ -921,8 +985,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 switch (resultCode) {
                     case RESULT_OK: {
                         m_google_drive_id = (DriveId)data.getParcelableExtra(OpenFileActivityBuilder.EXTRA_RESPONSE_DRIVE_ID);
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_OK -- flow control handler: selected Google Drive file id " + m_google_drive_id.getResourceId() + "; calling google_drive__download_file_contents() for this file...");
-                        google_drive__file_contents__download(m_google_drive_id, DriveFile.MODE_READ_ONLY, new GoogleDriveDownloadedFileContentsHandler() {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_OK -- flow control handler: selected Google Drive file id " + m_google_drive_id.getResourceId() + "; calling GoogleDriveFileDownloadManager.download_file_contents() for this file...");
+                        GoogleDriveFileDownloadManager.getInstance().download_file_contents(this, m_google_drive_id, DriveFile.MODE_READ_ONLY, new GoogleDriveFileDownloadManager.FileContentsHandler() {
+                            @Override
+                            public void onProgress(long bytesDownloaded, long bytesExpected) {
+                            }
+
                             @Override
                             public void OnFileContentsDownloaded(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file) {
                                 final String
@@ -931,7 +999,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                                 Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: triggered from PendingResult from call to google_drive__download_file_contents() -- successfully downloaded google drive file \"" + s_gd_filename + "\" contents from: id " + s_gd_id);
                                 try {
                                     Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: importing contents from google drive file \"" + s_gd_filename + " (id \"" + s_gd_id + ")\"");
-                                    final boolean succeeded = google_drive__file__import(google_drive_file_contents, google_drive_file_metadata, google_drive_file);
+                                    final boolean succeeded = GoogleDriveFileDownloadManager.getInstance().import_file(MainActivity.this, google_drive_file_contents, google_drive_file_metadata, google_drive_file);
                                     final String s_result_msg = (succeeded ? "Successfully imported" : "Failed to import") + " google drive file \"" + s_gd_filename + "\" (id " + s_gd_id + ")";
                                     Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: " + s_result_msg);
                                     runOnUiThread(new Runnable() {
@@ -960,7 +1028,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 switch (resultCode) {
                     case RESULT_OK: {
                         Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_OK -- flow control handler: validating GoogleApiClient connection...");
-                        google_api_client__validate_connect();
+                        GoogleDriveFileDownloadManager.getInstance().validate_connect_api_client(this);
                         break;
                     }
                     case RESULT_CANCELED: {
@@ -983,8 +1051,30 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 break;
             }
             */
+            case REQUEST_CODES.REQUEST_CODE__MANAGE_GPKG_BUNDLES: {
+                synchronize_spinner_val_gpkg_bundle_sel();
+                break;
+            }
+            case REQUEST_CODES.REQUEST_CODE__INSTALL_GPKG_BUNDLE: {
+                switch (resultCode) {
+                    case InstallGpkgBundleActivity.ACTIVITY_RESULT__INSTALLATION_SUCCESSFUL: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: ACTIVITY_RESULT__INSTALLATION_SUCCESSFUL");
+                        synchronize_spinner_val_gpkg_bundle_sel();
+                        break;
+                    }
+                    case InstallGpkgBundleActivity.ACTIVITY_RESULT__INSTALLATION_CANCELLED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: ACTIVITY_RESULT__INSTALLATION_CANCELLED");
+                        break;
+                    }
+                    case InstallGpkgBundleActivity.ACTIVITY_RESULT__INSTALLATION_FAILED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: ACTIVITY_RESULT__INSTALLATION_FAILED");
+                        break;
+                    }
+                }
+                break;
+            }
             default: {
-                Log.d(TAG, "onActivityResult: requestCode " + requestCode + ", resultCode " + resultCode);
+                Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
                 super.onActivityResult(requestCode, resultCode, data);
                 break;
             }
@@ -1059,19 +1149,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return result;
     }
 
-    private boolean google_drive__file__import(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file) throws IOException {
-        String gd_file_name = google_drive_file_metadata.getOriginalFilename();
-        InputStream inputstream_gd_config_toml = google_drive_file_contents.getInputStream();
-        byte[] buf_raw_config_toml = new byte[inputstream_gd_config_toml.available()];
-        inputstream_gd_config_toml.read(buf_raw_config_toml);
-        inputstream_gd_config_toml.close();
-        FileOutputStream f_outputstream_new_tegola_config_toml = openFileOutput(gd_file_name, Context.MODE_PRIVATE);
-        f_outputstream_new_tegola_config_toml.write(buf_raw_config_toml);
-        f_outputstream_new_tegola_config_toml.close();
-        File f_new_tegola_config_toml = new File(getFilesDir().getPath() + "/" + gd_file_name);
-        return f_new_tegola_config_toml.exists();
-    }
-
 
 
 
@@ -1104,8 +1181,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void OnMVTServerStarted(final String version, final int pid) {
         final StringBuilder sb_srvr_status = new StringBuilder();
         sb_srvr_status.append(getString(R.string.started));
-//        if (version != null && !version.isEmpty())
-//            sb_srvr_status.append(" version " + version);
         if (pid != -1)
             sb_srvr_status.append(" , pid " + pid + "");
         m_tv_val_srvr_status.setText(sb_srvr_status.toString());

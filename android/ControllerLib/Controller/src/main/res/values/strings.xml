@@ -9,10 +9,11 @@
     <string name="srvr_provider_type">Provider Type</string>
     <string name="srvr_provider_type__postgis">PostGIS</string>
     <string name="srvr_provider_type__gpkg">GeoPackage</string>
-    <string name="srvr_config_type">Config Type</string>
-    <string name="srvr_config_type__local">LOCAL</string>
-    <string name="srvr_config_type__remote">REMOTE</string>
-    <string name="srvr_config_sel">Config Selection</string>
+    <string name="srvr_postgis_provider_config_type">PostGIS Provider - Config Type</string>
+    <string name="srvr_postgis_provider_config_type__local">LOCAL</string>
+    <string name="srvr_postgis_provider_config_type__remote">REMOTE</string>
+    <string name="srvr_postgis_provider_config_sel">PostGIS Provider - Config Selection</string>
+    <string name="srvr_gpkg_provider_bundle_sel">GeoPackage Provider - Bundle Selection</string>
     <string name="srvr_status">Server Status</string>
 
     <string name="start">Start</string>

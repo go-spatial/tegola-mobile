@@ -15,8 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import okhttp3.Call;
@@ -169,25 +169,80 @@ public class Utils {
             }
         }
 
-        public static class AsyncGetFileInvalidParameterException extends Exception {
-            public AsyncGetFileInvalidParameterException(String message) {
+        public static class AsyncGetFileTask_RemoteFileInvalidParameterException extends Exception {
+            public AsyncGetFileTask_RemoteFileInvalidParameterException(String message) {
                 super(message);
             }
         }
-        public static class AsyncGetFileAlreadyExistsException extends Exception {
-            public AsyncGetFileAlreadyExistsException(String message) {
-                super(message);
+        public static class AsyncGetFileTask_RemoteFile_SizeException extends Exception {
+            private final HttpUrl m_httpUrl;
+            public final HttpUrl get_httpurl() {
+                return m_httpUrl;
+            }
+            public AsyncGetFileTask_RemoteFile_SizeException(final HttpUrl httpUrl) {
+                m_httpUrl = httpUrl;
+            }
+            public AsyncGetFileTask_RemoteFile_SizeException(final HttpUrl httpUrl, final String msg) {
+                super(msg);
+                m_httpUrl = httpUrl;
             }
         }
-        public static class AsyncGetFileSizeException extends Exception {
-            public AsyncGetFileSizeException(String message) {
-                super(message);
+        public static class AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException extends IOException {
+            private final HttpUrl_To_Local_File m_httpUrl_to_local_file;
+            public final HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpUrl_to_local_file;
+            }
+            public AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException(final HttpUrl_To_Local_File httpUrl_to_local_file) {
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+            public AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException(final HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
+                super(msg);
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+        }
+        public static class AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileCreateException extends IOException {
+            private final HttpUrl_To_Local_File m_httpUrl_to_local_file;
+            public final HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpUrl_to_local_file;
+            }
+            public AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileCreateException(final HttpUrl_To_Local_File httpUrl_to_local_file) {
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+            public AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileCreateException(final HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
+                super(msg);
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+        }
+        public static class AsyncGetFileTask_StageHandlerOnChunkRead_GeneralIOException extends IOException {
+            private final HttpUrl_To_Local_File m_httpUrl_to_local_file;
+            public final HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpUrl_to_local_file;
+            }
+            public AsyncGetFileTask_StageHandlerOnChunkRead_GeneralIOException(final HttpUrl_To_Local_File httpUrl_to_local_file) {
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+            public AsyncGetFileTask_StageHandlerOnChunkRead_GeneralIOException(final HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
+                super(msg);
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
             }
         }
 
         public static abstract class AsyncGetFileTaskStageHandler {
             private final static String TAG = AsyncGetFileTaskStageHandler.class.getName();
             private HttpUrl_To_Local_File m_httpUrl_to_local_file = null;
+            private AsyncGetFileTask m_asyncgetfiletask = null;
+            private final Object m_asyncgetfiletask_sync_target = new Object();
+
+            public void set_asyncgetfiletask(final AsyncGetFileTask asyncgetfiletask) {
+                synchronized (m_asyncgetfiletask_sync_target) {
+                    m_asyncgetfiletask =  asyncgetfiletask;
+                }
+            }
+            public AsyncGetFileTask get_asyncgetfiletask() {
+                synchronized (m_asyncgetfiletask_sync_target) {
+                    return m_asyncgetfiletask;
+                }
+            }
 
             private void set_httpUrl_to_local_file(@NonNull final HttpUrl_To_Local_File httpUrl_to_local_file) {
                 m_httpUrl_to_local_file = httpUrl_to_local_file;
@@ -197,8 +252,7 @@ public class Utils {
             }
 
             public abstract void onPreExecute();
-            public abstract void onChunkRead(Buffer sink, long bytesRead, long contentLength, boolean done);
-            public abstract void onFileAlreadyExists();
+            public abstract void onChunkRead(Buffer sink, long bytesRead, long contentLength, boolean done) throws IOException;
             public abstract void onCancelled(Exception exception);
             public abstract void onPostExecute(Exception exception);
         }
@@ -210,6 +264,7 @@ public class Utils {
 
             public AsyncGetFileTask(@NonNull final AsyncGetFileTaskStageHandler asyncgetfiletask_stage_handler) {
                 m_asyncgetfiletask_stage_handler = asyncgetfiletask_stage_handler;
+                asyncgetfiletask_stage_handler.set_asyncgetfiletask(this);
             }
 
             private static class ChunkedResponseBody extends ResponseBody {
@@ -237,7 +292,7 @@ public class Utils {
                 @Override
                 public BufferedSource source() {
                     if (m_bufferedSource == null) {
-                        Log.d(TAG, "Okio buffering ResponseBody source (contentLength " + contentLength() + ")");
+                        Log.d(TAG, "source: Okio buffering ResponseBody source (contentLength " + contentLength() + ")");
                         m_bufferedSource = Okio.buffer(source(m_responseBody.source()));
                     } else {
 //                        Log.d(TAG, "NOT using Okio to buffer source(m_responseBody.source())..");
@@ -267,7 +322,7 @@ public class Utils {
                 m_asyncgetfiletask_stage_handler.onPreExecute();
             }
 
-            private long request_file_size(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url) throws IOException, AsyncGetFileSizeException {
+            private long request_file_size(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url) throws IOException, AsyncGetFileTask_RemoteFile_SizeException {
                 long l_file_size = 0;
                 final Request http_request_file_size = new Request.Builder()
                         .url(http_url)
@@ -305,16 +360,16 @@ public class Utils {
                             }
                             String s_content_length = response_headers.get("Content-Length");
                             if (s_content_length == null) {
-                                throw new AsyncGetFileSizeException(http_url.url().toString() + " - no Content-Length header");
+                                throw new AsyncGetFileTask_RemoteFile_SizeException(http_url, "no Content-Length header");
                             }
                             try {
                                 s_content_length = s_content_length.trim();
                                 Long l_content_length = Long.parseLong(s_content_length);
                                 if (l_content_length == null)
-                                    throw new AsyncGetFileSizeException(http_url.url().toString() + " - invalid \"Content-Length value\": \"" + s_content_length + "\"");
+                                    throw new AsyncGetFileTask_RemoteFile_SizeException(http_url, "invalid \"Content-Length value\": \"" + s_content_length + "\"");
                                 l_file_size = l_content_length.longValue();
                             } catch (NumberFormatException e) {
-                                throw new AsyncGetFileSizeException(http_url.url().toString() + " - invalid \"Content-Length value\": \"" + s_content_length + "\"");
+                                throw new AsyncGetFileTask_RemoteFile_SizeException(http_url, "invalid \"Content-Length value\": \"" + s_content_length + "\"");
                             }
                         }
                     }
@@ -323,6 +378,28 @@ public class Utils {
                         response.close();
                 }
                 return l_file_size;
+            }
+
+            private void download_file(@NonNull final Response response) throws IOException {
+                if (response.body().contentLength() > 0) {
+                    Log.d(TAG, "download_file: downloading ChunkedResponseBody (" + response.body().contentLength() + " bytes)...");
+                    byte[] bytes = new byte[1024];
+                    int n_bytes_read = 0;
+                    long n_bytes_remaining = response.body().contentLength();
+                    Log.d(TAG, "download_file: entering response.body().source().read() loop...");
+                    while (true) {
+                        n_bytes_read = response.body().source().read(bytes);
+                        if (n_bytes_read != -1) {
+                            //Log.d(TAG, "download_file: response.body().source().read() loop: read next " + n_bytes_read + " byte-chunk of " + n_bytes_remaining + " bytes remaining");
+                            n_bytes_remaining -= n_bytes_read;
+                        } else {
+                            //Log.d(TAG, "download_file: response.body().source().read() loop: n_bytes_read==-1 --> breaking out of loop");
+                            break;
+                        }
+                    }
+                } else {
+
+                }
             }
 
             private void request_file_download(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url, final long l_byte_offset, final long l_byte_length) throws IOException {
@@ -364,8 +441,12 @@ public class Utils {
                         Log.d(TAG, "request_file_download: Response (to " + http_request_file_download.toString() + ") body has " + response.body().byteStream().available() + " bytes available");
                     }
                 } finally {
-                    if (response != null)
+                    if (response != null) {
+                        Log.d(TAG, "request_file_download: closing response (to " + http_request_file_download.toString() + ")");
                         response.close();
+                    } else {
+                        Log.d(TAG, "request_file_download: cannot close response (to " + http_request_file_download.toString() + ") as response is null");
+                    }
                 }
             }
             private void request_file_download(@NonNull final OkHttpClient httpClient, @NonNull final HttpUrl http_url) throws IOException {
@@ -403,18 +484,15 @@ public class Utils {
                                 Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
                             }
                         }
-
-                        if (response.body().contentLength() > 0) {
-                            Log.d(TAG, "request_file_download: downloading ChunkedResponseBody (" + response.body().contentLength() + " bytes)...");
-                            byte[] bytes = new byte[1024];
-                            int n_bytes_read = 0;
-                            while ((n_bytes_read += response.body().source().read(bytes)) < response.body().contentLength()) {}
-                            Log.d(TAG, "request_file_download: done downloading ChunkedResponseBody (" + response.body().contentLength() + " bytes)!");
-                        }
+                        download_file(response);
                     }
                 } finally {
-                    if (response != null)
+                    if (response != null) {
+                        Log.d(TAG, "request_file_download: closing response (to " + http_request_file_download.toString() + ")");
                         response.close();
+                    } else {
+                        Log.d(TAG, "request_file_download: cannot close response (to " + http_request_file_download.toString() + ") as response is null");
+                    }
                 }
             }
 
@@ -423,18 +501,12 @@ public class Utils {
                 Exception exception = null;
 
                 try {
-                    if (httpUrl_to_local_file == null || httpUrl_to_local_file[0] == null) {
-                        cancel(false);
-                        throw new AsyncGetFileInvalidParameterException("HttpUrl_To_Local_File is null");
-                    }
-                    if (httpUrl_to_local_file[0].get_url() == null) {
-                        cancel(false);
-                        throw new AsyncGetFileInvalidParameterException("HttpUrl_To_Local_File.url is null");
-                    }
-                    if (httpUrl_to_local_file[0].get_file() == null) {
-                        cancel(false);
-                        throw new AsyncGetFileInvalidParameterException("HttpUrl_To_Local_File.file is null");
-                    }
+                    if (httpUrl_to_local_file == null || httpUrl_to_local_file[0] == null)
+                        throw new AsyncGetFileTask_RemoteFileInvalidParameterException("HttpUrl_To_Local_File is null");
+                    if (httpUrl_to_local_file[0].get_url() == null)
+                        throw new AsyncGetFileTask_RemoteFileInvalidParameterException("HttpUrl_To_Local_File.url is null");
+                    if (httpUrl_to_local_file[0].get_file() == null)
+                        throw new AsyncGetFileTask_RemoteFileInvalidParameterException("HttpUrl_To_Local_File.file is null");
                     final OkHttpClient httpClient = new OkHttpClient.Builder()
                             //network interceptor not currently needed - only application interceptor
 //                            .addNetworkInterceptor(new Interceptor() {
@@ -459,12 +531,8 @@ public class Utils {
                     HttpUrl http_url = httpUrl_to_local_file[0].get_url();
                     request_file_download(httpClient, http_url);
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    cancel(false);
                     exception = e;
-                } catch (AsyncGetFileInvalidParameterException e) {
-                    e.printStackTrace();
-                    cancel(false);
+                } catch (AsyncGetFileTask_RemoteFileInvalidParameterException e) {
                     exception = e;
                 }
                 return exception;
@@ -502,9 +570,12 @@ public class Utils {
             }
         }
         public static abstract class AsyncGetFileTaskExecuteQueueListener {
+            private final LinkedHashMap<AsyncGetFileTaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map = new LinkedHashMap<AsyncGetFileTaskExecuteQueueItemExecutor, Exception>();
+
             public abstract void onItemExecutor_PostExecute(final AsyncGetFileTaskExecuteQueueItemExecutor executor);
+            public abstract void onItemExecutor_Cancelled(final AsyncGetFileTaskExecuteQueueItemExecutor executor);
             public abstract void onCancelled();
-            public abstract void onPostExecute();
+            public abstract void onPostExecute(final LinkedHashMap<AsyncGetFileTaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map);
         }
         public static class AsyncGetFileTaskExecuteQueue extends LinkedBlockingQueue<AsyncGetFileTaskExecuteQueueItem> {
             private final AsyncGetFileTaskExecuteQueueListener m_listener;
@@ -540,6 +611,8 @@ public class Utils {
         }
 
         public static class AsyncGetFileTaskExecuteQueueItemExecutor extends AsyncGetFileTask {
+            private final static String TAG = AsyncGetFileTaskExecuteQueueItemExecutor.class.getSimpleName();
+
             private final AsyncGetFileTaskExecuteQueue m_queue;
 
             public AsyncGetFileTaskExecuteQueueItemExecutor(@NonNull AsyncGetFileTaskStageHandler stage_handler, @NonNull AsyncGetFileTaskExecuteQueue queue) {
@@ -548,14 +621,45 @@ public class Utils {
             }
 
             @Override
+            protected void onCancelled(Exception exception) {
+                Log.d(TAG, "onCancelled: " + (exception != null ? exception.getClass().getName() : " no exception") +"; calling super.onCancelled(exception)...");
+                super.onCancelled(exception);
+                --m_queue.m_n_pending;
+                if (m_queue.m_listener != null) {
+                    if (exception != null) {
+                        Log.d(TAG, "onCancelled: adding " + exception.getClass().getName() + " for this executor to m_queue.m_listener.item_excutor_exception_map...");
+                        m_queue.m_listener.item_excutor_exception_map.put(this, exception);
+                    }
+                    m_queue.m_listener.onItemExecutor_Cancelled(this);
+                }
+                if (m_queue.m_n_pending == 0) {
+                    if (m_queue.m_listener != null) {
+                        Log.d(TAG, "onCancelled: calling m_queue.m_listener.onPostExecute() w/ " + (m_queue.m_listener.item_excutor_exception_map.size() > 0 ? "non-" : "") + "empty m_queue.m_listener.item_excutor_exception_map");
+                        m_queue.m_listener.onPostExecute(m_queue.m_listener.item_excutor_exception_map.size() > 0 ? m_queue.m_listener.item_excutor_exception_map : null);
+                        m_queue.m_listener.item_excutor_exception_map.clear();
+                    }
+                    m_queue.clear();
+                }
+            }
+
+            @Override
             protected void onPostExecute(Exception exception) {
+                Log.d(TAG, "onPostExecute: " + (exception != null ? exception.getClass().getName() : " no exception") +"; calling super.onPostExecute(exception)...");
                 super.onPostExecute(exception);
                 --m_queue.m_n_pending;
-                if (m_queue.m_listener != null)
+                if (m_queue.m_listener != null) {
+                    if (exception != null) {
+                        Log.d(TAG, "onPostExecute: adding " + exception.getClass().getName() + " for this executor to m_queue.m_listener.item_excutor_exception_map...");
+                        m_queue.m_listener.item_excutor_exception_map.put(this, exception);
+                    }
                     m_queue.m_listener.onItemExecutor_PostExecute(this);
+                }
                 if (m_queue.m_n_pending == 0) {
-                    if (m_queue.m_listener != null)
-                        m_queue.m_listener.onPostExecute();
+                    if (m_queue.m_listener != null) {
+                        Log.d(TAG, "onPostExecute: calling m_queue.m_listener.onPostExecute() w/ " + (m_queue.m_listener.item_excutor_exception_map.size() > 0 ? "non-" : "") + "empty m_queue.m_listener.item_excutor_exception_map");
+                        m_queue.m_listener.onPostExecute(m_queue.m_listener.item_excutor_exception_map.size() > 0 ? m_queue.m_listener.item_excutor_exception_map : null);
+                        m_queue.m_listener.item_excutor_exception_map.clear();
+                    }
                     m_queue.clear();
                 }
             }

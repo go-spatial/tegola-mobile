@@ -31,6 +31,8 @@ public class SharedPrefsManager {
     }
 
     public interface Strings {
+        String TM_PROVIDER_TYPE_SEL__GEOPACKAGE = "TM_PROVIDER_TYPE_SEL__GEOPACKAGE";
+        String TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL = "TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL";
         String TM_CONFIG_TYPE_SEL__REMOTE = "TM_CONFIG_TYPE_SEL__REMOTE";
         String TM_CONFIG_TYPE_SEL__LOCAL__VAL = "TM_CONFIG_TYPE_SEL__LOCAL__VAL";
         String TM_CONFIG_TYPE_SEL__REMOTE__VAL = "TM_CONFIG_TYPE_SEL__REMOTE__VAL";
@@ -85,13 +87,15 @@ public class SharedPrefsManager {
 
 
     public enum BOOLEAN_SHARED_PREF {
-        TM_CONFIG_TYPE_SEL__REMOTE
+        TM_PROVIDER_TYPE_SEL__GEOPACKAGE
+        , TM_CONFIG_TYPE_SEL__REMOTE
         ;
 
         @Override
         public String toString() {
             switch (this) {
                 case TM_CONFIG_TYPE_SEL__REMOTE: return Strings.TM_CONFIG_TYPE_SEL__REMOTE;
+                case TM_PROVIDER_TYPE_SEL__GEOPACKAGE: return Strings.TM_PROVIDER_TYPE_SEL__GEOPACKAGE;
                 default: return null;
             }
         }
@@ -101,13 +105,15 @@ public class SharedPrefsManager {
     }
 
     public enum STRING_SHARED_PREF {
-        TM_CONFIG_TYPE_SEL__LOCAL__VAL
+        TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL
+        , TM_CONFIG_TYPE_SEL__LOCAL__VAL
         , TM_CONFIG_TYPE_SEL__REMOTE__VAL
         ;
 
         @Override
         public String toString() {
             switch (this) {
+                case TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL: return Strings.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL;
                 case TM_CONFIG_TYPE_SEL__LOCAL__VAL: return Strings.TM_CONFIG_TYPE_SEL__LOCAL__VAL;
                 case TM_CONFIG_TYPE_SEL__REMOTE__VAL: return Strings.TM_CONFIG_TYPE_SEL__REMOTE__VAL;
                 default: return null;
