@@ -785,6 +785,11 @@ public class MainActivity extends AppCompatActivity {
                 alertDialogBuilder
                         .setMessage(getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundles_installed__alert_msg))
                         .setCancelable(false)
+                        .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.dismiss();
+                            }
+                        })
                         .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 startActivityForResult(new Intent(MainActivity.this, InstallGpkgBundleActivity.class), REQUEST_CODES.REQUEST_CODE__INSTALL_GPKG_BUNDLE);
@@ -972,6 +977,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     case RESULT_CANCELED: {
                         Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__LOCAL_STORAGE | resultCode: RESULT_CANCELED");
+                        super.onActivityResult(requestCode, resultCode, data);
                         break;
                     }
                     default: {
@@ -1019,6 +1025,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     case RESULT_CANCELED: {
                         Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_CANCELED -- flow control handler: user canceled -- normal flow termination");
+                        super.onActivityResult(requestCode, resultCode, data);
+                        break;
+                    }
+                    default: {
+                        Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
+                        super.onActivityResult(requestCode, resultCode, data);
                         break;
                     }
                 }
@@ -1033,6 +1045,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     case RESULT_CANCELED: {
                         Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_CANCELED -- flow control handler: abnormal flow termination :(");
+                        super.onActivityResult(requestCode, resultCode, data);
+                        break;
+                    }
+                    default: {
+                        Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
+                        super.onActivityResult(requestCode, resultCode, data);
                         break;
                     }
                 }
@@ -1052,22 +1070,45 @@ public class MainActivity extends AppCompatActivity {
             }
             */
             case REQUEST_CODES.REQUEST_CODE__MANAGE_GPKG_BUNDLES: {
-                synchronize_spinner_val_gpkg_bundle_sel();
+                switch (resultCode) {
+                    case ManageGpkgBundlesActivity.MNG_GPKG_BUNDLES_RESULT__CHANGED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__MANAGE_GPKG_BUNDLES | resultCode: MNG_GPKG_BUNDLES_RESULT__CHANGED");
+                        synchronize_spinner_val_gpkg_bundle_sel();
+                        break;
+                    }
+                    case ManageGpkgBundlesActivity.MNG_GPKG_BUNDLES_RESULT__UNCHANGED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__MANAGE_GPKG_BUNDLES | resultCode: MNG_GPKG_BUNDLES_RESULT__UNCHANGED");
+                        super.onActivityResult(requestCode, resultCode, data);
+                        break;
+                    }
+                    default: {
+                        Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
+                        super.onActivityResult(requestCode, resultCode, data);
+                        break;
+                    }
+                }
                 break;
             }
             case REQUEST_CODES.REQUEST_CODE__INSTALL_GPKG_BUNDLE: {
                 switch (resultCode) {
-                    case InstallGpkgBundleActivity.ACTIVITY_RESULT__INSTALLATION_SUCCESSFUL: {
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: ACTIVITY_RESULT__INSTALLATION_SUCCESSFUL");
+                    case InstallGpkgBundleActivity.INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL");
                         synchronize_spinner_val_gpkg_bundle_sel();
                         break;
                     }
-                    case InstallGpkgBundleActivity.ACTIVITY_RESULT__INSTALLATION_CANCELLED: {
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: ACTIVITY_RESULT__INSTALLATION_CANCELLED");
+                    case InstallGpkgBundleActivity.INSTALL_GPKG_BUNDLE_RESULT__CANCELLED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: INSTALL_GPKG_BUNDLE_RESULT__CANCELLED");
+                        super.onActivityResult(requestCode, resultCode, data);
                         break;
                     }
-                    case InstallGpkgBundleActivity.ACTIVITY_RESULT__INSTALLATION_FAILED: {
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: ACTIVITY_RESULT__INSTALLATION_FAILED");
+                    case InstallGpkgBundleActivity.INSTALL_GPKG_BUNDLE_RESULT__FAILED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: INSTALL_GPKG_BUNDLE_RESULT__FAILED");
+                        super.onActivityResult(requestCode, resultCode, data);
+                        break;
+                    }
+                    default: {
+                        Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
+                        super.onActivityResult(requestCode, resultCode, data);
                         break;
                     }
                 }
@@ -1244,9 +1285,52 @@ public class MainActivity extends AppCompatActivity {
 
     private void start_mvt_server() {
         Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
-        boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue();
-        String s_config_toml = (remote_config ? SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue() : SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
-        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, remote_config);
+        String s_config_toml = null;
+        boolean gpkg_provider = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.getValue();
+        if (gpkg_provider) {
+            File
+                    f_gpkg_bundles_root_dir = null
+                    , f_gpkg_bundle = null
+                    , f_gpkg_bundle__toml = null
+                    , f_gpkg_bundle__gpkg = null;
+            try {
+                f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
+            String s_gpkg_bundle = SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue();
+            f_gpkg_bundle = new File(f_gpkg_bundles_root_dir.getPath(), s_gpkg_bundle);
+            if (!f_gpkg_bundle.exists()) {
+                Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type GPKG since bundle " + f_gpkg_bundle.getPath() + " does not exist!");
+                return;
+            }
+            f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), getString(R.string.canon_fname__toml));
+            s_config_toml = f_gpkg_bundle__toml.getPath();
+            if (!f_gpkg_bundle__toml.exists()) {
+                Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type GPKG since toml file " + s_config_toml + " does not exist!");
+                return;
+            }
+            f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), getString(R.string.canon_fname__gpkg));
+            if (!f_gpkg_bundle__gpkg.exists()) {
+                Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type GPKG since gpkg file " + f_gpkg_bundle__gpkg.getPath() + " does not exist!");
+                return;
+            }
+        } else {
+            boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue();
+            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, remote_config);
+            if (!remote_config) {
+                File
+                        f_filesDir = getFilesDir()
+                        , f_postgis_toml = new File(f_filesDir.getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
+                s_config_toml = f_postgis_toml.getPath();
+                if (!f_postgis_toml.exists()) {
+                    Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type postgis since toml file " + s_config_toml + " does not exist!");
+                    return;
+                }
+            } else
+                s_config_toml = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue();
+        }
         intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG, s_config_toml);
         sendBroadcast(intent_start_mvt_server);
     }

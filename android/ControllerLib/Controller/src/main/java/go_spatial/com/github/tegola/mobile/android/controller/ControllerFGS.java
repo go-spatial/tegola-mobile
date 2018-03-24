@@ -174,8 +174,12 @@ public class ControllerFGS extends Service {
 
         //create geopackage bundle dir
         try {
-            File f_gpkg_root_dir = new File(getPackageManager().getPackageInfo(getPackageName(), 0).applicationInfo.dataDir + File.separator + Constants.Strings.GPKG_BUNDLE_SUBDIR);
-            f_gpkg_root_dir.mkdir();
+            File f_gpkg_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+            if (!f_gpkg_root_dir.exists()) {
+                Log.d(TAG, "init: creating gepackage-bundle root directory " + f_gpkg_root_dir.getPath());
+                f_gpkg_root_dir.mkdir();
+            }
+            Log.d(TAG, "init: gepackage-bundle root directory " + f_gpkg_root_dir.getPath() + " " + (f_gpkg_root_dir.exists() ? "exists" : "does not exist"));
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
@@ -265,21 +269,31 @@ public class ControllerFGS extends Service {
         stop_tegola();
     }
 
-    private boolean start_tegola(final String s_fname_config, final boolean remote_config) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException {
-        if (s_fname_config == null || s_fname_config.isEmpty())
+    private boolean start_tegola(final String s_config_toml_path, final boolean remote_config) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException {
+        if (s_config_toml_path == null || s_config_toml_path.isEmpty())
             throw new Exceptions.InvalidTegolaArgumentException(Constants.Strings.TEGOLA_ARG.CONFIG + ": is null or empty");
         final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
         File
                 f_filesDir = getFilesDir()
-                , f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + e_tegola_bin.name())
-                , f_tegola_config_toml = (remote_config ? null : new File(f_filesDir.getPath() + "/" + s_fname_config));
+                , f_tegola_bin_executable = new File(f_filesDir.getPath() + File.separator + e_tegola_bin.name())
+                , f_tegola_config_toml = (remote_config ? null : new File(s_config_toml_path));
         final String
                 s_tegola_bin_executable_path = f_tegola_bin_executable.getPath()
-                , s_tegola_config_toml_path = (remote_config ? null : f_tegola_config_toml.getPath());
-        if (!f_tegola_bin_executable.exists())
+                , s_tegola_config_toml_path = (remote_config ? s_config_toml_path : f_tegola_config_toml.getPath());
+        if (!f_tegola_bin_executable.exists()) {
             throw new FileNotFoundException("tegola bin file " + s_tegola_bin_executable_path + " does not exist");
-        if (!(!remote_config && f_tegola_config_toml.exists()))
+        } else {
+            Log.d(TAG, "start_tegola: found/using tegola bin: " + s_tegola_bin_executable_path);
+        }
+        if (!(!remote_config && f_tegola_config_toml.exists())) {
             throw new FileNotFoundException("tegola config file " + s_tegola_config_toml_path + " does not exist");
+        } else {
+            if (remote_config) {
+                Log.d(TAG, "start_tegola: start spec requests remote config for postgis provider but this is not currently supported!");
+            } else {
+                Log.d(TAG, "start_tegola: found/using config toml file: " + s_config_toml_path);
+            }
+        }
 
         stop_tegola();
 

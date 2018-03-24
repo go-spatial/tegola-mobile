@@ -275,13 +275,13 @@
                     <!-- srvr nfo section content - postgis provider spec container - BEGIN -->
                     <LinearLayout
                         android:id="@+id/sect__postgis_provider_spec"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
+                        style="@style/Section_Content_Item">
                         <!-- srvr nfo section content - postgis provider CONFIG type - BEGIN -->
                         <LinearLayout
                             android:id="@+id/sect_content__item__postgis_provider_config_type"
-                            style="@style/Section_Content_Item">
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tv_lbl_postgis_provider_config_type"
@@ -470,13 +470,13 @@
                     <!-- srvr nfo section content - geopackage provider spec container - BEGIN -->
                     <LinearLayout
                         android:id="@+id/sect__gpkg_provider_spec"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
+                        style="@style/Section_Content_Item">
                         <!-- srvr nfo section content - geopackage provider BUNDLE selection - BEGIN -->
                         <LinearLayout
                             android:id="@+id/sect_content__item__geopckage_provider_bundle_sel"
-                            style="@style/Section_Content_Item">
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
                             <TextView
                                 android:id="@+id/tv_lbl_gpkg_provider_bundle_sel"
@@ -549,6 +549,7 @@
                         </RelativeLayout>
                     </LinearLayout>
                     <!-- srvr nfo section content - STATUS - END -->
+
                     <!-- srvr nfo section content - CONSOLE OUTPUT - BEGIN -->
                     <LinearLayout
                         android:id="@+id/sect_content__item__srvr_console_output"

@@ -46,9 +46,10 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
     private ProgressBar m_pb_gpkg = null;
 
     private final int PROG_MAX = 100;
-    public static final int ACTIVITY_RESULT__INSTALLATION_SUCCESSFUL = 0;
-    public static final int ACTIVITY_RESULT__INSTALLATION_CANCELLED = -1;
-    public static final int ACTIVITY_RESULT__INSTALLATION_FAILED = -2;
+
+    public static final int INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL = 0;
+    public static final int INSTALL_GPKG_BUNDLE_RESULT__CANCELLED = -1;
+    public static final int INSTALL_GPKG_BUNDLE_RESULT__FAILED = -2;
 
     public enum AsyncGetGpkgBundleFileTaskHandlerState {
         NOT_STARTED
@@ -243,7 +244,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         dialog.dismiss();
-                                        InstallGpkgBundleActivity.this.setResult(ACTIVITY_RESULT__INSTALLATION_FAILED);
+                                        InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
                                         InstallGpkgBundleActivity.this.finish();
                                     }
                                 });
@@ -265,7 +266,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         dialog.dismiss();
-                                        InstallGpkgBundleActivity.this.setResult(ACTIVITY_RESULT__INSTALLATION_SUCCESSFUL);
+                                        InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL);
                                         InstallGpkgBundleActivity.this.finish();
                                     }
                                 });
@@ -304,7 +305,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
     private final View.OnClickListener OnClickListener__m_btn_install_remote_gpkg_bundle__cancel = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            InstallGpkgBundleActivity.this.setResult(ACTIVITY_RESULT__INSTALLATION_CANCELLED);
+            InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__CANCELLED);
             InstallGpkgBundleActivity.this.finish();
         }
     };

@@ -23,10 +23,7 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
@@ -37,10 +34,13 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
     private Button m_btn_gpkg_bundle__install = null;
     private ListView m_lv_gpk_bundles__installed = null;
     private final ArrayList<String> m_lv_gpkg_bundles__installed__items = new ArrayList<String>();
+    private Integer m_hashcode__first__lv_gpkg_bundles__installed__items = null;
     private TextView m_tv_gpkg_bundles__none_installed = null;
     private Button m_btn_gpkg_bundle__uninstall = null;
 
-    //private ArrayAdapter<String> m_lv_gpk_bundles__installed__dataadapter = null;
+    public static final int MNG_GPKG_BUNDLES_RESULT__CHANGED = 0;
+    public static final int MNG_GPKG_BUNDLES_RESULT__UNCHANGED = -1;
+
     private class CheckableItemArrayAdapter extends ArrayAdapter<String> {
         private final String TAG = CheckableItemArrayAdapter.class.getName();
 
@@ -105,7 +105,7 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
     private CheckableItemArrayAdapter m_lv_gpk_bundles__installed__dataadapter = null;
 
 
-    private int m_result = RESULT_OK;
+    private int m_result = MNG_GPKG_BUNDLES_RESULT__CHANGED;
     private final View.OnClickListener OnClickListener__m_btn_manage__geopackage_bundles__close = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -179,7 +179,7 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                                                     Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: geopackage-bundle \"" + s_gpkg_bundle_name + "\" contains no files; safe to delete");
                                                     if (f_gpkg_bundle.delete()) {
                                                         Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: geopackage-bundle \"" + s_gpkg_bundle_name + "\" has been successfully removed");
-                                                        m_lv_gpk_bundles__installed__dataadapter.remove(s_gpkg_bundle_name);
+                                                        //m_lv_gpk_bundles__installed__dataadapter.remove(s_gpkg_bundle_name);
                                                     } else {
                                                         Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: failed to remove geopackage-bundle \"" + s_gpkg_bundle_name + "\"");
                                                     }
@@ -189,7 +189,8 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                                             }
                                         }
                                     }
-                                    m_lv_gpk_bundles__installed__dataadapter.notifyDataSetChanged();
+                                    //m_lv_gpk_bundles__installed__dataadapter.notifyDataSetChanged();
+                                    new Handler().postDelayed(new RefeshList_Runnable(), 50);
                                 } catch (PackageManager.NameNotFoundException e) {
                                     e.printStackTrace();
                                 } finally {
@@ -256,13 +257,13 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+        Log.d(TAG, "onPostCreate: posting RefreshList_Runnable()...");
+        new Handler().postDelayed(new RefeshList_Runnable(), 50);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume: posting RefreshList_Runnable()...");
-        new Handler().postDelayed(new RefeshList_Runnable(), 50);
     }
 
     private class RefeshList_Runnable implements Runnable {
@@ -287,14 +288,59 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                                 String s_gpkg_bundle_name = f_gpkg_root_dir_file.getName();
                                 Log.d(TAG, "RefeshList_Runnable.run: adding geopackage-bundle name \"" + s_gpkg_bundle_name + "\" to listviewbg");
                                 m_lv_gpkg_bundles__installed__items.add(s_gpkg_bundle_name);
+
+                                //now compute size of corresponding files
                             }
                         }
+                        int hashcode__m_lv_gpkg_bundles__installed__items = m_lv_gpkg_bundles__installed__items.hashCode();
+                        Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() == " + hashcode__m_lv_gpkg_bundles__installed__items);
+                        if (m_hashcode__first__lv_gpkg_bundles__installed__items == null) {
+                            m_hashcode__first__lv_gpkg_bundles__installed__items = hashcode__m_lv_gpkg_bundles__installed__items;
+                            Log.d(TAG, "RefeshList_Runnable.run: set m_hashcode__first__lv_gpkg_bundles__installed__items := " + m_hashcode__first__lv_gpkg_bundles__installed__items);
+                        }
+                        if (hashcode__m_lv_gpkg_bundles__installed__items != m_hashcode__first__lv_gpkg_bundles__installed__items) {
+                            Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() value (" + hashcode__m_lv_gpkg_bundles__installed__items + ") differs from original value (" + m_hashcode__first__lv_gpkg_bundles__installed__items + "); updating m_result=MNG_GPKG_BUNDLES_RESULT__CHANGED;");
+                            m_result = MNG_GPKG_BUNDLES_RESULT__CHANGED;
+                        } else {
+                            Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() value (" + hashcode__m_lv_gpkg_bundles__installed__items + ") does not differ from original value (" + m_hashcode__first__lv_gpkg_bundles__installed__items + "); updating m_result=MNG_GPKG_BUNDLES_RESULT__UNCHANGED;");
+                            m_result = MNG_GPKG_BUNDLES_RESULT__UNCHANGED;
+                        }
+
                         m_lv_gpk_bundles__installed__dataadapter.notifyDataSetChanged();
                     } catch (PackageManager.NameNotFoundException e) {
                         e.printStackTrace();
                     }
                 }
             });
+        }
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        switch (requestCode) {
+            case Constants.REQUEST_CODES.REQUEST_CODE__INSTALL_GPKG_BUNDLE: {
+                switch (resultCode) {
+                    case InstallGpkgBundleActivity.INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL");
+                        new Handler().postDelayed(new RefeshList_Runnable(), 50);
+                        break;
+                    }
+                    case InstallGpkgBundleActivity.INSTALL_GPKG_BUNDLE_RESULT__CANCELLED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: INSTALL_GPKG_BUNDLE_RESULT__CANCELLED");
+                        break;
+                    }
+                    case InstallGpkgBundleActivity.INSTALL_GPKG_BUNDLE_RESULT__FAILED: {
+                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: INSTALL_GPKG_BUNDLE_RESULT__FAILED");
+                        break;
+                    }
+                }
+                break;
+            }
+            default: {
+                Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
+                super.onActivityResult(requestCode, resultCode, data);
+                break;
+            }
         }
     }
 }

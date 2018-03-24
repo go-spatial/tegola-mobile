@@ -47,8 +47,11 @@ public class Utils {
         public static class F_GPKG_DIR extends File {
             private static F_GPKG_DIR m_this = null;
 
+//            private F_GPKG_DIR(@NonNull final Context context) throws PackageManager.NameNotFoundException {
+//                super(context.getPackageManager().getPackageInfo(context.getPackageName(), 0).applicationInfo.dataDir + File.separator + Constants.Strings.GPKG_BUNDLE_SUBDIR);
+//            }
             private F_GPKG_DIR(@NonNull final Context context) throws PackageManager.NameNotFoundException {
-                super(context.getPackageManager().getPackageInfo(context.getPackageName(), 0).applicationInfo.dataDir + File.separator + Constants.Strings.GPKG_BUNDLE_SUBDIR);
+                super(context.getFilesDir(), Constants.Strings.GPKG_BUNDLE_SUBDIR);
             }
 
             public static F_GPKG_DIR getInstance(@NonNull final Context context) throws PackageManager.NameNotFoundException {
@@ -150,6 +153,18 @@ public class Utils {
                 } catch (IOException e) {}
             }
             return copyResult;
+        }
+
+        //in bytes
+        public static long folderSize(File directory) {
+            long length = 0;
+            for (File file : directory.listFiles()) {
+                if (file.isFile())
+                    length += file.length();
+                else
+                    length += folderSize(file);
+            }
+            return length;
         }
     }
 
