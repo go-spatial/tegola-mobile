@@ -70,24 +70,31 @@ set ERR__INVALID_GOOS=-5
 
         :case--t_platform--android-arm
           set GOOS=android
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOOS="%GOOS%"
           set GOARCH=arm
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOARCH="%GOARCH%"
           set GOARM=7
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOARM="%GOARM%"
           set arch_friendly=arm
           set ndk_arch=arm-linux-androideabi
-          set ndk_apilevel=16
+          set ndk_apilevel=15
           goto :switch-case-end--t_platform
 
         :case--t_platform--android-x86
           set GOOS=android
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOOS="%GOOS%"
           set GOARCH=386
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOARCH="%GOARCH%"
           set arch_friendly=x86
           set ndk_arch=i686-linux-android
-          set ndk_apilevel=16
+          set ndk_apilevel=15
           goto :switch-case-end--t_platform
 
         :case--t_platform--android-arm64
           set GOOS=android
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOOS="%GOOS%"
           set GOARCH=arm64
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOARCH="%GOARCH%"
           set arch_friendly=arm64
           set ndk_arch=aarch64-linux-android
           set ndk_apilevel=21
@@ -95,7 +102,9 @@ set ERR__INVALID_GOOS=-5
 
         :case--t_platform--android-x86_64
           set GOOS=android
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOOS="%GOOS%"
           set GOARCH=amd64
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOARCH="%GOARCH%"
           set arch_friendly=x86_64
           set ndk_arch=x86_64-linux-android
           set ndk_apilevel=21
@@ -103,13 +112,17 @@ set ERR__INVALID_GOOS=-5
 
         :case--t_platform--win-x86
           set GOOS=windows
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOOS="%GOOS%"
           set GOARCH=386
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOARCH="%GOARCH%"
           set arch_friendly=x86
           goto :switch-case-end--t_platform
 
         :case--t_platform--win-x86_64
           set GOOS=windows
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOOS="%GOOS%"
           set GOARCH=amd64
+          echo build_tegola.bat: go build command: pre-exec: go build env: var: GOARCH="%GOARCH%"
           set arch_friendly=x86_64
           goto :switch-case-end--t_platform
       :switch-case-end--t_platform
@@ -140,12 +153,9 @@ set ERR__INVALID_GOOS=-5
   goto :loop--do-while--parse-argument-name-value-pairs
 :loop--do-while-end---parse-argument-name-value-pairs
 
-echo build_tegola.bat: target GOOS: %GOOS%
-echo build_tegola.bat: target GOARCH: %GOARCH%
-
 set BASE_TEGOLA_SUBDIR=github.com\go-spatial\tegola
 set TEGOLA_SRC_DIR=%GOPATH%\src\%BASE_TEGOLA_SUBDIR%
-echo build_tegola.bat: source dir: %TEGOLA_SRC_DIR%
+echo build_tegola.bat: go build command: pre-exec: meta: source dir: %TEGOLA_SRC_DIR%
 
 if not defined TEGOLA_VER_STRING (
 	REM build version string in format: "TAG-SHORT_COMMIT_HASH-BRANCH_NAME", e.g. "v0.6.1-436b82e-master"
@@ -159,9 +169,9 @@ if not defined TEGOLA_VER_STRING (
 	git rev-parse --abbrev-ref HEAD > TEGOLA_VER_STRING__BRANCH.txt
 	set /p TEGOLA_VER_STRING__BRANCH=<TEGOLA_VER_STRING__BRANCH.txt
 	rm TEGOLA_VER_STRING__BRANCH.txt > nul 2>&1
-	set TEGOLA_VER_STRING=!TEGOLA_VER_STRING__TAG!-!TEGOLA_VER_STRING__SHORT_HASH!-!TEGOLA_VER_STRING__BRANCH!
+	set TEGOLA_VER_STRING=!TEGOLA_VER_STRING__TAG!_!TEGOLA_VER_STRING__SHORT_HASH!_!TEGOLA_VER_STRING__BRANCH!
 )
-echo build_tegola.bat: target cmd.Version: %TEGOLA_VER_STRING%
+echo build_tegola.bat: go build command: pre-exec: meta: cmd.Version: %TEGOLA_VER_STRING%
 
 :switch-case--GOOS
   goto :case--GOOS--%GOOS% 2>nul 
@@ -172,122 +182,140 @@ echo build_tegola.bat: target cmd.Version: %TEGOLA_VER_STRING%
   )
 
   :case--GOOS--android
-    if "%GOARCH%"=="arm" (
-      REM validate acceptable GOARM value for arm GOARCH
-      echo build_tegola.bat: target GOARM: %GOARM%
-    )
-
     REM android go builds require cross-compiling via the Android NDK - set cross-compilation options (via env vars below)
-    echo build_tegola.bat: target android x-compile ndk arch: %ndk_arch%
-    echo build_tegola.bat: target android x-compile ndk apilevel: %ndk_apilevel%
+	echo build_tegola.bat: go build command: pre-exec: meta: android x-compile: ndk: arch: %ndk_arch%
+	echo build_tegola.bat: go build command: pre-exec: meta: android x-compile: ndk: apilevel: %ndk_apilevel%
+
     set ANDROID_NDK_CURRENT_TOOLCHAIN=%MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME%\api-%ndk_apilevel%\%arch_friendly%
-    echo build_tegola.bat: source android x-compile ndk toolchain: %ANDROID_NDK_CURRENT_TOOLCHAIN%
-    set ndk_CC=%ANDROID_NDK_CURRENT_TOOLCHAIN%\bin\%ndk_arch%-gcc
-    echo build_tegola.bat: android ndk x-compiler CC: %ndk_CC%
+    echo build_tegola.bat: go build command: pre-exec: meta: android x-compile: ndk: toolchain: %ANDROID_NDK_CURRENT_TOOLCHAIN%
+
     REM ndk x-compile requires "CC" env var
-    set CC=%ndk_CC%
-    set ndk_CXX=%ANDROID_NDK_CURRENT_TOOLCHAIN%\bin\%ndk_arch%-g++
-    echo build_tegola.bat: android ndk x-compiler CXX: %ndk_CXX%
+	set CC=%ANDROID_NDK_CURRENT_TOOLCHAIN%\bin\%ndk_arch%-gcc
+	echo build_tegola.bat: go build command: pre-exec: go build env: var: CC="%CC%"
+
     REM ndk x-compile also requires "CXX" env var
-    set CXX=%ndk_CXX%
+	set CXX=%ANDROID_NDK_CURRENT_TOOLCHAIN%\bin\%ndk_arch%-g++
+	echo build_tegola.bat: go build command: pre-exec: go build env: var: CXX="%CXX%"
 
     REM CGO must be enabled for go build to make proper use of Android NDK (since Android NDK is C/C++ source) - see https://github.com/golang/go/wiki/cgo
-    set CGO_ENABLED=1
+	set CGO_ENABLED=1
+	echo build_tegola.bat: go build command: pre-exec: go build env: var: CGO_ENABLED="%CGO_ENABLED%"
 
 	REM set go build cmd "pkgdir" arg val - android go builds require use of: gomobile package
-    set GO_BLD_CMD_ARG_VAL__PKGDIR=%MY_GOLANG_WORKSPACE%\pkg\gomobile\pkg_android_%arch_friendly%
-	echo build_tegola.bat: go build - pkgdir: %GO_BLD_CMD_ARG_VAL__PKGDIR%
+	set GO_BLD_CMD_ARG_VAL__PKGDIR=%MY_GOLANG_WORKSPACE%\pkg\gomobile\pkg_android_%arch_friendly%
+	echo build_tegola.bat: go build command: pre-exec: command string: build: arg: pkgdir: %GO_BLD_CMD_ARG_VAL__PKGDIR%
 
 	REM set go build cmd "ldflags" arg val - set version string; also, android go builds require use of additional "extldflags" arg
-	set GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X %TEGOLA_SRC_DIR%\cmd\tegola\cmd\cmd.Version=\"%TEGOLA_VER_STRING%\" -extldflags=-pie"
-	echo build_tegola.bat: go build - ldflags: %GO_BLD_CMD_ARG_VAL__LDFLAGS%
+	set GO_BLD_CMD_ARG_VAL__LDFLAGS=-w -X %TEGOLA_SRC_DIR%\cmd\tegola\cmd.Version=%TEGOLA_VER_STRING% -extldflags=-pie
+	echo build_tegola.bat: go build command: pre-exec: command string: build: arg: ldflags: %GO_BLD_CMD_ARG_VAL__LDFLAGS%
 
 	REM set go build cmd "o" arg val - this specifies output path of go build explicitly
 	set OUTPUT_DIR=%MY_GOLANG_WORKSPACE%\pkg\%BASE_TEGOLA_SUBDIR%\android\api-%ndk_apilevel%\%arch_friendly%
-	set OUTPUT_BIN=tegola--%TEGOLA_VER_STRING%--android-%arch_friendly%.bin
+	set OUTPUT_BIN=tegola__%TEGOLA_VER_STRING%__android_%arch_friendly%.bin
 	set OUTPUT_BIN_NORMALIZED_FN=tegola_bin__android_%arch_friendly%
 	set OUTPUT_PATH=%OUTPUT_DIR%\%OUTPUT_BIN%
 	set GO_BLD_CMD_ARG_VAL__O=%OUTPUT_PATH%
-    echo build_tegola.bat: go build - o (explicit output path): %GO_BLD_CMD_ARG_VAL__O%
+	echo build_tegola.bat: go build command: pre-exec: command string: build: arg: o (explicit output path): %GO_BLD_CMD_ARG_VAL__O%
 
     goto :switch-case-end--GOOS
 
   :case--GOOS--windows
     REM by default, standard tegola windows build-target builds do not use CGO bindings, however some new tegola features may actually require it globally - e.g. geopkg provider, so, althgough we default to disable CGO, we allow it to be turned on via a cmdline arg to this script
-    if defined CGO_ENABLED_OVERRIDE_DEFAULT (
-      set CGO_ENABLED=%CGO_ENABLED_OVERRIDE_DEFAULT%
-    ) else (
-      set CGO_ENABLED=0
-    )
+	if defined CGO_ENABLED_OVERRIDE_DEFAULT (
+		set CGO_ENABLED=%CGO_ENABLED_OVERRIDE_DEFAULT%
+	) else (
+		set CGO_ENABLED=0
+	)
+	echo build_tegola.bat: go build command: pre-exec: go build env: var: CGO_ENABLED="%GO_ENABLED%"
 
-    REM set go build cmd "ldflags" arg val - set version string
-	set GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X %TEGOLA_SRC_DIR%\cmd\tegola\cmd\cmd.Version=\"%TEGOLA_VER_STRING%\""
-	echo build_tegola.bat: go build - ldflags: %GO_BLD_CMD_ARG_VAL__LDFLAGS%
+	REM set go build cmd "ldflags" arg val - set version string
+	set GO_BLD_CMD_ARG_VAL__LDFLAGS=-w -X %TEGOLA_SRC_DIR%\cmd\tegola\cmd.Version=%TEGOLA_VER_STRING%
+	echo build_tegola.bat: go build command: pre-exec: command string: build: arg: ldflags: %GO_BLD_CMD_ARG_VAL__LDFLAGS%
 
-    REM set go build cmd "o" arg val - this specifies output path of go build explicitly
-    set OUTPUT_DIR=%MY_GOLANG_WORKSPACE%\pkg\%BASE_TEGOLA_SUBDIR%\windows\%arch_friendly%
-    set OUTPUT_BIN=tegola--%TEGOLA_VER_STRING%--windows-%arch_friendly%.bin
-    set OUTPUT_BIN_NORMALIZED_FN=tegola_bin__windows_%arch_friendly%
-    set OUTPUT_PATH=%OUTPUT_DIR%\%OUTPUT_BIN%
-    set GO_BLD_CMD_ARG_VAL__O=%OUTPUT_PATH%
+	REM set go build cmd "o" arg val - this specifies output path of go build explicitly
+	set OUTPUT_DIR=%MY_GOLANG_WORKSPACE%\pkg\%BASE_TEGOLA_SUBDIR%\windows\%arch_friendly%
+	set OUTPUT_BIN=tegola__%TEGOLA_VER_STRING%__windows_%arch_friendly%.bin
+	set OUTPUT_BIN_NORMALIZED_FN=tegola_bin__windows_%arch_friendly%
+	set OUTPUT_PATH=%OUTPUT_DIR%\%OUTPUT_BIN%
+	set GO_BLD_CMD_ARG_VAL__O=%OUTPUT_PATH%
+	echo build_tegola.bat: go build command: pre-exec: command string: build: arg: o (explicit output path): %GO_BLD_CMD_ARG_VAL__O%
 
     goto :switch-case-end--GOOS
 :switch-case-end--GOOS
 
-set ver_props_fn=version.properties
-
-REM create OUTPUT_DIR
-mkdir %OUTPUT_DIR% > nul 2>&1
-
-REM track ver in version.properties in output dir
-rm %OUTPUT_DIR%\%ver_props_fn% > nul 2>&1
-@echo TEGOLA_BIN_VER=%TEGOLA_VER_STRING%>%OUTPUT_DIR%\%ver_props_fn%
-
 REM build go build cmd string
-set go_build_cmd=go build -p=1
+set go_build_cmd=go build -p=8
 if defined GO_BLD_CMD_ARG_VAL__PKGDIR (
-	set go_build_cmd=%go_build_cmd% -pkgdir=%GO_BLD_CMD_ARG_VAL__PKGDIR%
+	set go_build_cmd=%go_build_cmd% -pkgdir="%GO_BLD_CMD_ARG_VAL__PKGDIR%"
 )
 set go_build_cmd=%go_build_cmd% -tags=""
 if defined GO_BLD_CMD_ARG_VAL__LDFLAGS (
-	set go_build_cmd=%go_build_cmd% -ldflags=%GO_BLD_CMD_ARG_VAL__LDFLAGS%
+	set go_build_cmd=%go_build_cmd% -ldflags="%GO_BLD_CMD_ARG_VAL__LDFLAGS%"
 )
 if defined GO_BLD_CMD_ARG_VAL__O (
 	set go_build_cmd=%go_build_cmd% -o %GO_BLD_CMD_ARG_VAL__O%
 )
 set go_build_cmd=%go_build_cmd% -x -a -v .
-echo build_tegola.bat: go build command: '%go_build_cmd%'
+echo build_tegola.bat: go build command: pre-exec: command string: build: final: %go_build_cmd%
 
-echo build_tegola.bat: CGO_ENABLED: %CGO_ENABLED%
-echo build_tegola.bat: running go build command in %TEGOLA_SRC_DIR%\cmd\tegola\...
+REM create OUTPUT_DIR
+mkdir %OUTPUT_DIR% > nul 2>&1
+
+rm %OUTPUT_DIR%\go_env.txt > nul 2>&1
+go env > %OUTPUT_DIR%\go_env.txt
+if exist %OUTPUT_DIR%\go_env.txt (
+    echo build_tegola.bat: go build command: pre-exec: go build env vars: save: result: successfully saved to %OUTPUT_DIR%\go_env.txt
+) else (
+    echo build_tegola.bat: go build command: pre-exec: go build env vars: save: result: FAILED to save to %OUTPUT_DIR%\go_env.txt
+)
+
+REM track ver in version.properties in output dir
+set ver_props_fn=version.properties
+rm %OUTPUT_DIR%/$ver_props_fn% > /dev/null 2>&1
+@echo TEGOLA_BIN_VER=%TEGOLA_VER_STRING%>%OUTPUT_DIR%\%ver_props_fn%
+if exist %OUTPUT_DIR%\%ver_props_fn% (
+    echo build_tegola.bat: go build command: pre-exec: ver_props_fn file: create: result: successfully created %OUTPUT_DIR%\%ver_props_fn%
+) else (
+    echo build_tegola.bat: go build command: pre-exec: ver_props_fn file: create: result: FAILED to create %OUTPUT_DIR%\%ver_props_fn%
+)
+
 cd %TEGOLA_SRC_DIR%\cmd\tegola\
-set build_output=%OUTPUT_DIR%\build_%OUTPUT_BIN%.out
+set build_output=%OUTPUT_DIR%\build_%OUTPUT_BIN%.txt
+echo build_tegola.bat: go build command: exec: running command in %cd%...
 call %go_build_cmd% > "%build_output%" 2>&1
-echo build_tegola.bat: go build: complete - see build output file %build_output% for details
+echo build_tegola.bat: go build command: exec: complete
 
 if exist %OUTPUT_PATH% (
-	echo build_tegola.bat: successfully built tegola binary %OUTPUT_PATH%
+	echo build_tegola.bat: go build command: post-exec: successfully built tegola binary %OUTPUT_PATH%
 	if defined OUTPUT_BIN_NORMALIZED_FN__DIR (
+	    if not exist %OUTPUT_BIN_NORMALIZED_FN__DIR%\ (
+	        mkdir %OUTPUT_BIN_NORMALIZED_FN__DIR%\
+	        if exist %OUTPUT_BIN_NORMALIZED_FN__DIR%\ (
+	            echo build_tegola.bat: go build command: post-exec: successfully created %OUTPUT_BIN_NORMALIZED_FN__DIR%\ directory
+	        ) else (
+	            echo build_tegola.bat: go build command: post-exec: failed to create %OUTPUT_BIN_NORMALIZED_FN__DIR%\ directory
+	        )
+	    )
 		if exist %OUTPUT_BIN_NORMALIZED_FN__DIR%\ (
 			rm %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN% > nul 2>&1
-			echo build_tegola.bat: copying %OUTPUT_PATH% to %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN%...
 			cp %OUTPUT_PATH% %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN%
 			if exist %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN% (
 				if defined VER_PROPS__DIR (
-					if exist %VER_PROPS__DIR%\ (
-						cp %OUTPUT_DIR%\%ver_props_fn% %VER_PROPS__DIR%\%ver_props_fn%
+					if not exist %VER_PROPS__DIR%\ (
+					    mkdir %VER_PROPS__DIR%\
 					)
+					cp %OUTPUT_DIR%\%ver_props_fn% %VER_PROPS__DIR%\%ver_props_fn%
                 )
-				echo build_tegola.bat: succeeded!
+				echo build_tegola.bat: go build command: post-exec: successfully copied %OUTPUT_PATH% to %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN%
 			) else (
-				echo build_tegola.bat: failed!
+				echo build_tegola.bat: go build command: post-exec: failed to copy %OUTPUT_PATH% to %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN%
 			)
 		) else (
-			echo build_tegola.bat: cannot copy %OUTPUT_PATH% to %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN% since %OUTPUT_BIN_NORMALIZED_FN__DIR%\ does not exist!
+			echo build_tegola.bat: go build command: post-exec: failed to copy %OUTPUT_PATH% to %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN% since %OUTPUT_BIN_NORMALIZED_FN__DIR%\ does not exist!
 		)
 	)
 ) else (
-	echo build_tegola.bat: go build: failed to build %OUTPUT_PATH%
+	echo build_tegola.bat: go build command: post-exec: failed to build %OUTPUT_PATH% - see build output file %build_output% for details
 )
 
 echo build_tegola.bat: all done!

@@ -21,7 +21,7 @@ set i=0
 :build_loop
 if %i% equ %len% goto :eof
 for /f "usebackq delims== tokens=2" %%j in (`set t_platform[%i%]`) do (
-	echo Running tegola android-platform build: %%j
+	echo rebuild_tegola_android_all.bat: Running tegola android-platform build: %%j
 	call clean_tegola.bat -t_platform %%j %REQUIRED_ARGS%
 	call build_tegola.bat -t_platform %%j %COMMON_ARGS%
     echo.

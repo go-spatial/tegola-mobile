@@ -173,7 +173,6 @@ case $GOOS in
         echo build_tegola.sh: go build command: pre-exec: go build env: var: CGO_ENABLED="$(printenv CGO_ENABLED)"
 
         # set go build cmd "ldflags" arg val - set version string
-        tegola/cmd/tegola/cmd.Version=
         GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd.Version=${TEGOLA_VER_STRING}"
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
 
@@ -214,7 +213,6 @@ if [[ -e ${OUTPUT_DIR}/go_env.txt ]]; then
 else
     echo build_tegola.sh: go build command: pre-exec: go build env vars: save: result: FAILED to save to ${OUTPUT_DIR}/go_env.txt
 fi
-
 
 # track ver in version.properties in output dir
 ver_props_fn=version.properties

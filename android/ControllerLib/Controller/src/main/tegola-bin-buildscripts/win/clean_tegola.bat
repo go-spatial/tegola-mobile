@@ -136,9 +136,8 @@ set BASE_TEGOLA_SUBDIR=github.com\go-spatial\tegola
     goto :switch-case-end--GOOS
 :switch-case-end--GOOS
 
-set ver_props_fn=version.properties
-
 REM remove version.properties file from VER_PROPS__DIR if it exists...
+set ver_props_fn=version.properties
 if defined VER_PROPS__DIR (
 	if exist %VER_PROPS__DIR%\ (
 		echo clean_tegola.bat: Cleaning %VER_PROPS__DIR%\%ver_props_fn%...
@@ -146,7 +145,7 @@ if defined VER_PROPS__DIR (
 	)
 )
 
-REM remove binaries with normalized fnames if they exist...
+REM remove binary with normalized fnames if it exists...
 if defined OUTPUT_BIN_NORMALIZED_FN__DIR (
 	if exist %OUTPUT_BIN_NORMALIZED_FN__DIR%\ (
 		echo clean_tegola.bat: Cleaning %OUTPUT_BIN_NORMALIZED_FN__DIR%\%OUTPUT_BIN_NORMALIZED_FN%...
@@ -156,5 +155,3 @@ if defined OUTPUT_BIN_NORMALIZED_FN__DIR (
 
 echo clean_tegola.bat: Cleaning %OUTPUT_DIR%...
 rm -rf %OUTPUT_DIR% > nul 2>&1
-
-echo clean_tegola.bat: all done!
