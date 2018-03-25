@@ -10,6 +10,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,23 +41,63 @@ public class Utils {
         properties.load(f_inputstream_props);
         return properties.getProperty(s_prop_name);
     }
+    public static String getAssetProperty(final Context context, final String s_props_filename, final String s_prop_name) {
+        InputStream f_is_props = null;
+        try {
+            Properties properties = new Properties();
+            f_is_props = context.getAssets().open(s_props_filename);
+            properties.load(f_is_props);
+            return properties.getProperty(s_prop_name);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (f_is_props != null) {
+                try {
+                    f_is_props.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
 
     public static class Files {
         private final static String TAG = Utils.Files.class.getName();
 
         public static class F_GPKG_DIR extends File {
             private static F_GPKG_DIR m_this = null;
-
-//            private F_GPKG_DIR(@NonNull final Context context) throws PackageManager.NameNotFoundException {
-//                super(context.getPackageManager().getPackageInfo(context.getPackageName(), 0).applicationInfo.dataDir + File.separator + Constants.Strings.GPKG_BUNDLE_SUBDIR);
-//            }
-            private F_GPKG_DIR(@NonNull final Context context) throws PackageManager.NameNotFoundException {
-                super(context.getFilesDir(), Constants.Strings.GPKG_BUNDLE_SUBDIR);
+            private F_GPKG_DIR(@NonNull final Context context) throws PackageManager.NameNotFoundException, IOException {
+                super(
+                        Boolean.valueOf(
+                                getAssetProperty(
+                                        context
+                                        , "gpkg.properties"
+                                        , "PUBLIC"
+                                )
+                        )
+                            ? F_PUBLIC_ROOT_DIR.getInstance(context)
+                            : context.getFilesDir()
+                        , Constants.Strings.GPKG_BUNDLE_SUBDIR
+                );
             }
-
-            public static F_GPKG_DIR getInstance(@NonNull final Context context) throws PackageManager.NameNotFoundException {
+            public static F_GPKG_DIR getInstance(@NonNull final Context context) throws PackageManager.NameNotFoundException, IOException {
                 if (m_this == null)
                     m_this = new F_GPKG_DIR(context);
+                return m_this;
+            }
+        }
+
+        public static class F_PUBLIC_ROOT_DIR extends File {
+            private static F_PUBLIC_ROOT_DIR m_this = null;
+            private F_PUBLIC_ROOT_DIR(@NonNull final Context context) {
+                super(context.getExternalCacheDir().getPath());
+            }
+            public static F_PUBLIC_ROOT_DIR getInstance(@NonNull final Context context) throws PackageManager.NameNotFoundException {
+                if (m_this == null)
+                    m_this = new F_PUBLIC_ROOT_DIR(context);
                 return m_this;
             }
         }

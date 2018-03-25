@@ -45,8 +45,5 @@
     <string name="srvr_config_type__remote__no_url_specified__alert_msg">Tegola MVT server cannot be started without specifying a config TOML URL.\n\nPlease specify one, or alternatively change config type to \"local\".</string>
     <string name="srvr_console_ouput">Server Console Output:</string>
 
-    <string name="canon_fname__toml">config.toml</string>
-    <string name="canon_fname__gpkg">gpkg</string>
-
     <string name="gpkg_bundle__root_url__default">s3-us-west-2.amazonaws.com/tegola-mobile</string>
 </resources>

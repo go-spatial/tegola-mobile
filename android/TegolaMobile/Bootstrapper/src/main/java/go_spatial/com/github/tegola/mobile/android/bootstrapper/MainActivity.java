@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
@@ -361,15 +362,15 @@ public class MainActivity extends AppCompatActivity {
                 m_vw_sect_content__andro_dev_nfo.callOnClick();
                 m_vw_sect_content__ctrlr_nfo.callOnClick();
 
-//                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER_TYPE_SEL__GEOPACKAGE val
-//                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.getValue() == true) {
+//                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER__IS_GEOPACKAGE val
+//                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue() == true) {
 //                    m_rb_val_provider_type_sel__gpkg.setChecked(true);
 //                } else {
 //                    m_rb_val_provider_type_sel__postgis.setChecked(true);
 //                }
 //
-//                //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TYPE_SEL__REMOTE val
-//                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue() == true) {
+//                //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TOML__IS_REMOTE val
+//                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue() == true) {
 //                    m_rb_val_config_type_sel__remote.setChecked(true);
 //                } else {
 //                    m_rb_val_config_type_sel__local.setChecked(true);
@@ -387,15 +388,15 @@ public class MainActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER_TYPE_SEL__GEOPACKAGE val
-                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.getValue() == true) {
+                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER__IS_GEOPACKAGE val
+                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue() == true) {
                     m_rb_val_provider_type_sel__gpkg.setChecked(true);
                 } else {
                     m_rb_val_provider_type_sel__postgis.setChecked(true);
                 }
 
-                //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TYPE_SEL__REMOTE val
-                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue() == true) {
+                //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TOML__IS_REMOTE val
+                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue() == true) {
                     m_rb_val_config_type_sel__remote.setChecked(true);
                 } else {
                     m_rb_val_config_type_sel__local.setChecked(true);
@@ -456,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
             if (checked) {
                 m_sect__gpkg_provider_spec.setVisibility(View.GONE);
                 m_sect__postgis_provider_spec.setVisibility(View.VISIBLE);
-                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.setValue(false);
+                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.setValue(false);
             }
         }
     };
@@ -468,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
             if (checked) {
                 m_sect__postgis_provider_spec.setVisibility(View.GONE);
                 m_sect__gpkg_provider_spec.setVisibility(View.VISIBLE);
-                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.setValue(true);
+                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.setValue(true);
                 synchronize_spinner_val_gpkg_bundle_sel();
             }
         }
@@ -482,6 +483,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         File[] f_gpkg_bundles_root_dir_files = f_gpkg_bundles_root_dir.listFiles();
 
@@ -508,15 +511,15 @@ public class MainActivity extends AppCompatActivity {
             m_spinner_val_gpkg_bundle_sel__items.add(s_no_geopackage_bundles_installed);
         }
 
-        //3. reconcile ConfigSettings.STRING_CONFIG_SETTING.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL setting with m_spinner_val_gpkg_bundle_sel__items selection and update selection as necessary
-        int i_sel_pos = m_spinner_val_gpkg_bundle_sel__dataadapter.getPosition(SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue());
+        //3. reconcile ConfigSettings.STRING_CONFIG_SETTING.TM_PROVIDER__GPKG_BUNDLE__SELECTION setting with m_spinner_val_gpkg_bundle_sel__items selection and update selection as necessary
+        int i_sel_pos = m_spinner_val_gpkg_bundle_sel__dataadapter.getPosition(SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
         if (i_sel_pos != -1) {
-            Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_sel: synchronizing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue() + "\" spinner item selection to existing item position " + i_sel_pos);
+            Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_sel: synchronizing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue() + "\" spinner item selection to existing item position " + i_sel_pos);
         } else {
             //note that we must reset i_sel_pos to 0 here since it will be assigned -1 if we are here
             i_sel_pos = 0;
             Log.d(TAG,
-                    "synchronize_spinner_val_gpkg_bundle_sel: cannot synchronize shared prefs setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue()
+                    "synchronize_spinner_val_gpkg_bundle_sel: cannot synchronize shared prefs setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue()
                             + "\" to spinner item selection since spinner does not currently have a selectable item with that value; setting spinner selected item position to " + i_sel_pos + " for value \"" + m_spinner_val_gpkg_bundle_sel__items.get(i_sel_pos) + "\"");
         }
 
@@ -530,12 +533,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
             if (checked) {
-                boolean sdcardmounted = android.os.Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+                boolean sdcardmounted = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
                 m_btn_config_sel_local_import__sdcard.setBackgroundColor(sdcardmounted ? ContextCompat.getColor(getApplicationContext(), android.R.color.holo_green_light) : ContextCompat.getColor(getApplicationContext(), android.R.color.holo_red_dark));
                 m_btn_config_sel_local_import__sdcard.setEnabled(sdcardmounted);
                 m_vw_config_sel_container__remote.setVisibility(View.GONE);
                 m_vw_config_sel_container__local.setVisibility(View.VISIBLE);
-                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.setValue(false);
+                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.setValue(false);
                 synchronize_spinner_val_config_sel_local();
             }
         }
@@ -555,18 +558,18 @@ public class MainActivity extends AppCompatActivity {
             String s_sel_val = adapter.getItemAtPosition(position).toString();
             Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: triggered item selection @ position " + position + " with value " + (s_sel_val == null ? "null" : "\"" + s_sel_val + "\""));
 
-            String s_cached_config_sel__local_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue();
-            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " current value is \"" + s_cached_config_sel__local_val + "\"");
+            String s_cached_config_sel__local_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue();
+            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " current value is \"" + s_cached_config_sel__local_val + "\"");
 
             boolean no_config_files = (s_sel_val == null || s_sel_val.compareTo(getString(R.string.srvr_config_type__local__no_config_files_found)) == 0);
             if (no_config_files) {
                 Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: no-config-files condition!");
                 if (!s_cached_config_sel__local_val.isEmpty()) {
-                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value (currently \"" + s_cached_config_sel__local_val + "\")");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " value (currently \"" + s_cached_config_sel__local_val + "\")");
                     Toast.makeText(getApplicationContext(), "Clearing setting value for local config toml file selection since there are none available", Toast.LENGTH_LONG).show();
-                    SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.setValue("");
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.setValue("");
                 } else {
-                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " since it is already cleared (value is \"" + s_cached_config_sel__local_val + "\")");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " since it is already cleared (value is \"" + s_cached_config_sel__local_val + "\")");
                 }
 
                 //edit button obviously not applicable in this case
@@ -593,15 +596,15 @@ public class MainActivity extends AppCompatActivity {
                 if (s_cached_config_sel__local_val.compareTo(s_sel_val) != 0) {
                     Toast.makeText(getApplicationContext(), "Saving new setting value for local config toml file \"" + s_sel_val + "\" selection", Toast.LENGTH_LONG).show();
                     //now update shared pref
-                    SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.setValue(s_sel_val);
-                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value from \"" + s_cached_config_sel__local_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue() + "\"");
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.setValue(s_sel_val);
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " value from \"" + s_cached_config_sel__local_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue() + "\"");
                 } else {
                     //no change to shared pref val
-                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue() + "\") since new value (\"" + s_sel_val + "\") is no different");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue() + "\") since new value (\"" + s_sel_val + "\") is no different");
                 }
 
-                //now update m_btn_config_sel_local__edit_file UI based on existence of current local config toml file selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue())
-                File file = new File(getFilesDir().getPath() + "/" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
+                //now update m_btn_config_sel_local__edit_file UI based on existence of current local config toml file selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue())
+                File file = new File(getFilesDir().getPath() + "/" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue());
                 m_btn_config_sel_local__edit_file.setVisibility(file.exists() ? View.VISIBLE : View.GONE);
                 m_btn_config_sel_local__edit_file.setEnabled(file.exists());
                 //and same MVT srvr control (start/stop) button
@@ -622,7 +625,7 @@ public class MainActivity extends AppCompatActivity {
     private final View.OnClickListener OnClickListener__m_btn_config_sel_local__edit_file = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            edit_local_config_file(SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
+            edit_local_config_file(SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue());
         }
     };
 
@@ -690,7 +693,7 @@ public class MainActivity extends AppCompatActivity {
             if (checked) {
                 m_vw_config_sel_container__local.setVisibility(View.GONE);
                 m_vw_config_sel_container__remote.setVisibility(View.VISIBLE);
-                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.setValue(true);
+                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.setValue(true);
                 synchronize_edittext_val_config_sel_remote();
             }
         }
@@ -725,19 +728,19 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: normalizing remote config change (null) to \"\"");
                 s_remote_config_toml_sel_normalized = "";
             }
-            String s_old_config_sel__remote_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue();
-            Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value is \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue() + "\"");
+            String s_old_config_sel__remote_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue();
+            Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.toString() + " current value is \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue() + "\"");
             if (s_old_config_sel__remote_val.compareTo(s_remote_config_toml_sel_normalized) != 0) {
                 if (s_remote_config_toml_sel_normalized.isEmpty())
                     Toast.makeText(getApplicationContext(), "Clearing remote config toml file selection", Toast.LENGTH_LONG).show();
                 else
                     Toast.makeText(getApplicationContext(), "Saving new setting value for remote config toml file https://" + s_remote_config_toml_sel_normalized, Toast.LENGTH_LONG).show();
-                SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.setValue(s_remote_config_toml_sel_normalized);
-                Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " value from \"" + s_old_config_sel__remote_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue() + "\"");
+                SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.setValue(s_remote_config_toml_sel_normalized);
+                Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.toString() + " value from \"" + s_old_config_sel__remote_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue() + "\"");
                 m_btn_config_sel_remote_apply_changes.setEnabled(false);
             } else {
                 //no change to share pref val - do nothing other than log
-                Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue() + "\") since normalized new value (\"" + s_remote_config_toml_sel_normalized + "\") is no different");
+                Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue() + "\") since normalized new value (\"" + s_remote_config_toml_sel_normalized + "\") is no different");
             }
             synchronize_edittext_val_config_sel_remote();
         }
@@ -763,18 +766,18 @@ public class MainActivity extends AppCompatActivity {
             String s_sel_val = adapter.getItemAtPosition(position).toString();
             Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: triggered item selection @ position " + position + " with value " + (s_sel_val == null ? "null" : "\"" + s_sel_val + "\""));
 
-            String s_cached_gpkg_bundle_val = SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue();
-            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " current value is \"" + s_cached_gpkg_bundle_val + "\"");
+            String s_cached_gpkg_bundle_val = SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue();
+            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " current value is \"" + s_cached_gpkg_bundle_val + "\"");
 
             boolean no_gpkg_bundles = (s_sel_val == null || s_sel_val.compareTo(getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundles_installed)) == 0);
             if (no_gpkg_bundles) {
                 Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: no-gpkg-bundles condition!");
                 if (!s_cached_gpkg_bundle_val.isEmpty()) {
-                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " value (currently \"" + s_cached_gpkg_bundle_val + "\")");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " value (currently \"" + s_cached_gpkg_bundle_val + "\")");
                     Toast.makeText(getApplicationContext(), "Clearing setting value for geopackage-bundle selection since there are none installed", Toast.LENGTH_LONG).show();
-                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.setValue("");
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.setValue("");
                 } else {
-                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " since it is already cleared (value is \"" + s_cached_gpkg_bundle_val + "\")");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " since it is already cleared (value is \"" + s_cached_gpkg_bundle_val + "\")");
                 }
 
                 m_btn_srvr_ctrl.setEnabled(false);
@@ -803,21 +806,23 @@ public class MainActivity extends AppCompatActivity {
                 if (s_cached_gpkg_bundle_val.compareTo(s_sel_val) != 0) {
                     Toast.makeText(getApplicationContext(), "Saving new setting value for geopackage-bundle \"" + s_sel_val + "\" selection", Toast.LENGTH_LONG).show();
                     //now update shared pref
-                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.setValue(s_sel_val);
-                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " value from \"" + s_cached_gpkg_bundle_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue() + "\"");
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.setValue(s_sel_val);
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " value from \"" + s_cached_gpkg_bundle_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue() + "\"");
                 } else {
                     //no change to shared pref val
-                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue() + "\") since new value (\"" + s_sel_val + "\") is no different");
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue() + "\") since new value (\"" + s_sel_val + "\") is no different");
                 }
 
-                //now update UI based on existence of current local geopackage-bundle selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue())
+                //now update UI based on existence of current local geopackage-bundle selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue())
                 File f_gpkg_bundles_root_dir = null;
                 try {
                     f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
-                    File f_gpkg_bundle = new File(f_gpkg_bundles_root_dir, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue());
+                    File f_gpkg_bundle = new File(f_gpkg_bundles_root_dir, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
                     //and same MVT srvr control (start/stop) button
                     m_btn_srvr_ctrl.setEnabled(f_gpkg_bundle.exists());
                 } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -891,15 +896,15 @@ public class MainActivity extends AppCompatActivity {
             m_spinner_val_config_sel_local__items.add(s_config_sel__local_val__no_config_files_found);
         }
 
-        //3. reconcile ConfigSettings.STRING_CONFIG_SETTING.TM_CONFIG_TYPE_SEL__LOCAL__VAL setting with m_spinner_val_config_sel_local__dataadapter items and update selection as necessary
-        int i_sel_pos = m_spinner_val_config_sel_local__dataadapter.getPosition(SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
+        //3. reconcile ConfigSettings.STRING_CONFIG_SETTING.TM_CONFIG_TOML__LOCAL__SELECTION setting with m_spinner_val_config_sel_local__dataadapter items and update selection as necessary
+        int i_sel_pos = m_spinner_val_config_sel_local__dataadapter.getPosition(SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue());
         if (i_sel_pos != -1) {
-            Log.d(TAG, "synchronize_spinner_val_config_sel_local: synchronizing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue() + "\" spinner item selection to existing item position " + i_sel_pos);
+            Log.d(TAG, "synchronize_spinner_val_config_sel_local: synchronizing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue() + "\" spinner item selection to existing item position " + i_sel_pos);
         } else {
             //note that we must reset i_sel_pos to 0 here since it will be assigned -1 if we are here
             i_sel_pos = 0;
             Log.d(TAG,
-                    "synchronize_spinner_val_config_sel_local: cannot synchronize shared prefs setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue()
+                    "synchronize_spinner_val_config_sel_local: cannot synchronize shared prefs setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue()
                     + "\" to spinner item selection since spinner does not currently have a selectable item with that value; setting spinner selected item position to " + i_sel_pos + " for value \"" + m_spinner_val_config_sel_local__items.get(i_sel_pos) + "\"");
         }
 
@@ -909,9 +914,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void synchronize_edittext_val_config_sel_remote() {
-        m_edt_val_config_sel__remote.setText(SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue());
+        m_edt_val_config_sel__remote.setText(SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue());
         m_btn_config_sel_remote_apply_changes.setEnabled(false);
-        if (SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue().isEmpty()) {
+        if (SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue().isEmpty()) {
             m_btn_srvr_ctrl.setEnabled(false);
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.alert_dialog));
             alertDialogBuilder.setTitle(getString(R.string.srvr_config_type__remote__no_url_specified));
@@ -930,14 +935,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void validate__m_edt_val_config_sel__remote() {
-        String s_old_config_sel__remote_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue();
+        String s_old_config_sel__remote_val = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue();
         String s_config_sel__remote_val__proposted = m_edt_val_config_sel__remote.getText().toString();
-        Log.d(TAG, "validate__m_edt_val_config_sel__remote: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value is \"" + s_old_config_sel__remote_val + "\"");
+        Log.d(TAG, "validate__m_edt_val_config_sel__remote: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.toString() + " current value is \"" + s_old_config_sel__remote_val + "\"");
         if (s_old_config_sel__remote_val.compareTo(s_config_sel__remote_val__proposted) == 0) {
-            Log.d(TAG, "validate__m_edt_val_config_sel__remote: m_edt_val_config_sel__remote value is no different than shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value \"" + s_old_config_sel__remote_val + "\"");
+            Log.d(TAG, "validate__m_edt_val_config_sel__remote: m_edt_val_config_sel__remote value is no different than shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.toString() + " current value \"" + s_old_config_sel__remote_val + "\"");
             m_btn_config_sel_remote_apply_changes.setEnabled(false);
         } else {
-            Log.d(TAG, "validate__m_edt_val_config_sel__remote: m_edt_val_config_sel__remote proposed value \"" + s_config_sel__remote_val__proposted + "\" differs from shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.toString() + " current value \"" + s_old_config_sel__remote_val + "\"");
+            Log.d(TAG, "validate__m_edt_val_config_sel__remote: m_edt_val_config_sel__remote proposed value \"" + s_config_sel__remote_val__proposted + "\" differs from shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.toString() + " current value \"" + s_old_config_sel__remote_val + "\"");
             m_btn_config_sel_remote_apply_changes.setEnabled(true);
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(m_edt_val_config_sel__remote.getWindowToken(), 0);
@@ -1232,15 +1237,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void OnMVTServerOutputLogcat(final String logcat_line) {
-        sv_append_mvt_server_console_output("<LOGCAT> " + logcat_line);
+        sv_append_mvt_server_console_output("LOGCAT> " + logcat_line);
     }
 
     private void OnMVTServerOutputStdErr(final String stderr_line) {
-        sv_append_mvt_server_console_output("<STDERR> " + stderr_line);
+        sv_append_mvt_server_console_output("STDERR> " + stderr_line);
     }
 
     private void OnMVTServerOutputStdOut(final String stdout_line) {
-        sv_append_mvt_server_console_output("<STDOUT> " + stdout_line);
+        sv_append_mvt_server_console_output("STDOUT> " + stdout_line);
     }
 
     private void m_scrvw_tegola_console_output__scroll_max() {
@@ -1286,52 +1291,27 @@ public class MainActivity extends AppCompatActivity {
     private void start_mvt_server() {
         Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
         String s_config_toml = null;
-        boolean gpkg_provider = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE.getValue();
+        boolean gpkg_provider = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue();
+        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, gpkg_provider);
         if (gpkg_provider) {
-            File
-                    f_gpkg_bundles_root_dir = null
-                    , f_gpkg_bundle = null
-                    , f_gpkg_bundle__toml = null
-                    , f_gpkg_bundle__gpkg = null;
-            try {
-                f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-                return;
-            }
-            String s_gpkg_bundle = SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL.getValue();
-            f_gpkg_bundle = new File(f_gpkg_bundles_root_dir.getPath(), s_gpkg_bundle);
-            if (!f_gpkg_bundle.exists()) {
-                Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type GPKG since bundle " + f_gpkg_bundle.getPath() + " does not exist!");
-                return;
-            }
-            f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), getString(R.string.canon_fname__toml));
-            s_config_toml = f_gpkg_bundle__toml.getPath();
-            if (!f_gpkg_bundle__toml.exists()) {
-                Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type GPKG since toml file " + s_config_toml + " does not exist!");
-                return;
-            }
-            f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), getString(R.string.canon_fname__gpkg));
-            if (!f_gpkg_bundle__gpkg.exists()) {
-                Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type GPKG since gpkg file " + f_gpkg_bundle__gpkg.getPath() + " does not exist!");
-                return;
-            }
+            String s_gpkg_bundle = SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue();
+            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
         } else {
-            boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE.getValue();
-            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, remote_config);
+            boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue();
+            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__IS_REMOTE, remote_config);
             if (!remote_config) {
                 File
                         f_filesDir = getFilesDir()
-                        , f_postgis_toml = new File(f_filesDir.getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__LOCAL__VAL.getValue());
+                        , f_postgis_toml = new File(f_filesDir.getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue());
                 s_config_toml = f_postgis_toml.getPath();
                 if (!f_postgis_toml.exists()) {
                     Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type postgis since toml file " + s_config_toml + " does not exist!");
                     return;
                 }
             } else
-                s_config_toml = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TYPE_SEL__REMOTE__VAL.getValue();
+                s_config_toml = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue();
         }
-        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG, s_config_toml);
+        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__PATH, s_config_toml);
         sendBroadcast(intent_start_mvt_server);
     }
 

@@ -31,11 +31,11 @@ public class SharedPrefsManager {
     }
 
     public interface Strings {
-        String TM_PROVIDER_TYPE_SEL__GEOPACKAGE = "TM_PROVIDER_TYPE_SEL__GEOPACKAGE";
-        String TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL = "TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL";
-        String TM_CONFIG_TYPE_SEL__REMOTE = "TM_CONFIG_TYPE_SEL__REMOTE";
-        String TM_CONFIG_TYPE_SEL__LOCAL__VAL = "TM_CONFIG_TYPE_SEL__LOCAL__VAL";
-        String TM_CONFIG_TYPE_SEL__REMOTE__VAL = "TM_CONFIG_TYPE_SEL__REMOTE__VAL";
+        String TM_PROVIDER__IS_GEOPACKAGE = "TM_PROVIDER__IS_GEOPACKAGE";
+        String TM_PROVIDER__GPKG_BUNDLE__SELECTION = "TM_PROVIDER__GPKG_BUNDLE__SELECTION";
+        String TM_CONFIG_TOML__IS_REMOTE = "TM_CONFIG_TOML__IS_REMOTE";
+        String TM_CONFIG_TOML__LOCAL__SELECTION = "TM_CONFIG_TOML__LOCAL__SELECTION";
+        String TM_CONFIG_TOML__REMOTE__SELECTION = "TM_CONFIG_TOML__REMOTE__SELECTION";
     }
 
 
@@ -87,15 +87,15 @@ public class SharedPrefsManager {
 
 
     public enum BOOLEAN_SHARED_PREF {
-        TM_PROVIDER_TYPE_SEL__GEOPACKAGE
-        , TM_CONFIG_TYPE_SEL__REMOTE
+        TM_PROVIDER__IS_GEOPACKAGE      //true: provider type is geopackage, else provider type is postgis
+        , TM_CONFIG_TOML__IS_REMOTE     //true: config toml file is hosted remotely (http), else config toml file is hosted locally on device
         ;
 
         @Override
         public String toString() {
             switch (this) {
-                case TM_CONFIG_TYPE_SEL__REMOTE: return Strings.TM_CONFIG_TYPE_SEL__REMOTE;
-                case TM_PROVIDER_TYPE_SEL__GEOPACKAGE: return Strings.TM_PROVIDER_TYPE_SEL__GEOPACKAGE;
+                case TM_PROVIDER__IS_GEOPACKAGE: return Strings.TM_PROVIDER__IS_GEOPACKAGE;
+                case TM_CONFIG_TOML__IS_REMOTE: return Strings.TM_CONFIG_TOML__IS_REMOTE;
                 default: return null;
             }
         }
@@ -105,17 +105,17 @@ public class SharedPrefsManager {
     }
 
     public enum STRING_SHARED_PREF {
-        TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL
-        , TM_CONFIG_TYPE_SEL__LOCAL__VAL
-        , TM_CONFIG_TYPE_SEL__REMOTE__VAL
+        TM_PROVIDER__GPKG_BUNDLE__SELECTION
+        , TM_CONFIG_TOML__LOCAL__SELECTION
+        , TM_CONFIG_TOML__REMOTE__SELECTION
         ;
 
         @Override
         public String toString() {
             switch (this) {
-                case TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL: return Strings.TM_PROVIDER_TYPE_SEL__GEOPACKAGE__VAL;
-                case TM_CONFIG_TYPE_SEL__LOCAL__VAL: return Strings.TM_CONFIG_TYPE_SEL__LOCAL__VAL;
-                case TM_CONFIG_TYPE_SEL__REMOTE__VAL: return Strings.TM_CONFIG_TYPE_SEL__REMOTE__VAL;
+                case TM_PROVIDER__GPKG_BUNDLE__SELECTION: return Strings.TM_PROVIDER__GPKG_BUNDLE__SELECTION;
+                case TM_CONFIG_TOML__LOCAL__SELECTION: return Strings.TM_CONFIG_TOML__LOCAL__SELECTION;
+                case TM_CONFIG_TOML__REMOTE__SELECTION: return Strings.TM_CONFIG_TOML__REMOTE__SELECTION;
                 default: return null;
             }
         }

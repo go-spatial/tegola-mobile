@@ -104,19 +104,19 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                         Log.d(TAG, "onChunkRead: content_length==" + content_length);
                         s_url_remote_file = get_httpUrl_to_local_file().get_url().toString();
                         if (get_httpUrl_to_local_file().get_file().exists()) {
-                            Log.d(TAG, "onChunkRead: local file " + get_httpUrl_to_local_file().get_file().getPath() + " already exists");
+                            Log.d(TAG, "onChunkRead: local file " + get_httpUrl_to_local_file().get_file().getCanonicalPath() + " already exists");
                             throw new Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException(get_httpUrl_to_local_file());
                         } else {
-                            Log.d(TAG, "onChunkRead: local file " + get_httpUrl_to_local_file().get_file().getPath() + " does not exist");
+                            Log.d(TAG, "onChunkRead: local file " + get_httpUrl_to_local_file().get_file().getCanonicalPath() + " does not exist");
                             if (!get_httpUrl_to_local_file().get_file().getParentFile().exists()) {
-                                Log.d(TAG, "onChunkRead: local file directory " + get_httpUrl_to_local_file().get_file().getParentFile() + " does not exist; creating...");
+                                Log.d(TAG, "onChunkRead: local file directory " + get_httpUrl_to_local_file().get_file().getParentFile().getCanonicalPath() + " does not exist; creating...");
                                 get_httpUrl_to_local_file().get_file().getParentFile().mkdirs();
                             }
                             boolean created_file = get_httpUrl_to_local_file().get_file().createNewFile();
-                            Log.d(TAG, "onChunkRead: " + (created_file ? "Succcessfully created" : "Failed to create") + " new local file " + get_httpUrl_to_local_file().get_file().getPath() + "; opening outputstream");
+                            Log.d(TAG, "onChunkRead: " + (created_file ? "Succcessfully created" : "Failed to create") + " new local file " + get_httpUrl_to_local_file().get_file().getCanonicalPath() + "; opening outputstream");
                             f_outputstream__local_file = new FileOutputStream(get_httpUrl_to_local_file().get_file());
                         }
-                        Log.d(TAG, "onChunkRead: downloading/writing " + get_httpUrl_to_local_file().get_url().toString() + " outputstream to " + get_httpUrl_to_local_file().get_file().getPath() + "...");
+                        Log.d(TAG, "onChunkRead: downloading/writing " + get_httpUrl_to_local_file().get_url().toString() + " outputstream to " + get_httpUrl_to_local_file().get_file().getCanonicalPath() + "...");
                     }
 
                     //write bytes to outputstream
@@ -142,15 +142,15 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                             }
                         });
                     } else {
-                        Log.d(TAG, "onChunkRead: cannot update interim progress for " + get_httpUrl_to_local_file().get_url().toString() + " to " + get_httpUrl_to_local_file().get_file().getPath() + " download since content_length==" + content_length);
+                        Log.d(TAG, "onChunkRead: cannot update interim progress for " + get_httpUrl_to_local_file().get_url().toString() + " to " + get_httpUrl_to_local_file().get_file().getCanonicalPath() + " download since content_length==" + content_length);
                     }
                 } else {//done
-                    Log.d(TAG, "onChunkRead: done; wrote: " + total_bytes_read + " bytes to " + get_httpUrl_to_local_file().get_file().getPath());
+                    Log.d(TAG, "onChunkRead: done; wrote: " + total_bytes_read + " bytes to " + get_httpUrl_to_local_file().get_file().getCanonicalPath());
                     if (f_outputstream__local_file != null) {
-                        Log.d(TAG, "onChunkRead: Closing fileoutputstream for " + get_httpUrl_to_local_file().get_file().getPath());
+                        Log.d(TAG, "onChunkRead: Closing fileoutputstream for " + get_httpUrl_to_local_file().get_file().getCanonicalPath());
                         f_outputstream__local_file.close();
                     } else {
-                        Log.d(TAG, "onChunkRead: Cannot close null fileoutputstream for " + get_httpUrl_to_local_file().get_file().getPath());
+                        Log.d(TAG, "onChunkRead: Cannot close null fileoutputstream for " + get_httpUrl_to_local_file().get_file().getCanonicalPath());
                     }
                     runOnUiThread(new Runnable() {
                         @Override
@@ -294,7 +294,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                 .toString();
     }
 
-    private String build_local_gpkg_bundle_path_string() throws PackageManager.NameNotFoundException {
+    private String build_local_gpkg_bundle_path_string() throws PackageManager.NameNotFoundException, IOException {
         return new StringBuilder()
                 .append(Utils.Files.F_GPKG_DIR.getInstance(InstallGpkgBundleActivity.this.getApplicationContext()).getPath())
                 .append(File.separator)
@@ -379,7 +379,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                 HttpUrl httpurl_toml = HttpUrl.parse(build_remote_gpkg_bundle_file_url_string(getString(R.string.canon_fname__toml)));
                 Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: httpurl_toml ==" + httpurl_toml.toString());
                 File localfile_toml = new File(local_gpkg_bundle_path, getString(R.string.canon_fname__toml));
-                Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: localfile_toml path ==" + localfile_toml.getPath());
+                Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: localfile_toml path ==" + localfile_toml.getCanonicalPath());
                 m_asyncgetgpkgbundlefileexecutequeue.add(
                         new Utils.HTTP.AsyncGetFileTaskExecuteQueueItem(
                                 new Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor(
@@ -393,7 +393,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                 HttpUrl httpurl_gpkg = HttpUrl.parse(build_remote_gpkg_bundle_file_url_string(getString(R.string.canon_fname__gpkg)));
                 Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: httpurl_gpkg ==" + httpurl_gpkg.toString());
                 File localfile_gpkg = new File(local_gpkg_bundle_path, getString(R.string.canon_fname__gpkg));
-                Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: localfile_gpkg path ==" + localfile_gpkg.getPath());
+                Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: localfile_gpkg path ==" + localfile_gpkg.getCanonicalPath());
                 m_asyncgetgpkgbundlefileexecutequeue.add(
                         new Utils.HTTP.AsyncGetFileTaskExecuteQueueItem(
                                 new Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor(
@@ -407,6 +407,8 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             } catch (Utils.HTTP.AsyncGetFileTaskExecuteQueueException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }

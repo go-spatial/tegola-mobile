@@ -23,12 +23,13 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ControllerFGS extends Service {
@@ -176,11 +177,17 @@ public class ControllerFGS extends Service {
         try {
             File f_gpkg_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
             if (!f_gpkg_root_dir.exists()) {
-                Log.d(TAG, "init: creating gepackage-bundle root directory " + f_gpkg_root_dir.getPath());
-                f_gpkg_root_dir.mkdir();
+                boolean created = f_gpkg_root_dir.mkdirs();
+                if (created) {
+                    Log.d(TAG, "init: successfully created gepackage-bundle root directory: " + f_gpkg_root_dir.getPath() + " (canonical path: " + f_gpkg_root_dir.getCanonicalPath() + ")");
+                } else {
+                    Log.d(TAG, "init: failed to create gepackage-bundle root directory: " + f_gpkg_root_dir.getPath());
+                }
             }
-            Log.d(TAG, "init: gepackage-bundle root directory " + f_gpkg_root_dir.getPath() + " " + (f_gpkg_root_dir.exists() ? "exists" : "does not exist"));
+            Log.d(TAG, "init: gepackage-bundle root directory " + f_gpkg_root_dir.getPath() + " " + (f_gpkg_root_dir.exists() ? "exists" : "DOES NOT EXIST!!!"));
         } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -195,10 +202,18 @@ public class ControllerFGS extends Service {
                 switch (e_mvt_srvr_ctrl_request) {
                     case MVT_SERVER__START: {
                         Log.i(TAG, "Received MVT_SERVER__START request");
-                        handle_mvt_server_control_request__start(
-                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG)
-                                , intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__REMOTE, false)
-                        );
+                        MVT_SERVER_START_SPEC server_start_spec = null;
+                        if (intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, false))
+                            server_start_spec = new MVT_SERVER_START_SPEC__GPKG_PROVIDER(
+                                    intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE)
+                            );
+                        else {
+                            server_start_spec = new MVT_SERVER_START_SPEC__POSTGIS_PROVIDER(
+                                    intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__IS_REMOTE, false)
+                                    , intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__PATH)
+                            );
+                        }
+                        handle_mvt_server_control_request__start(server_start_spec);
                         break;
                     }
                     case MVT_SERVER__STOP: {
@@ -240,10 +255,37 @@ public class ControllerFGS extends Service {
         return pid;
     }
 
-    private void handle_mvt_server_control_request__start(@NonNull final String s_config_toml, final boolean remote_config) {
+    private abstract class MVT_SERVER_START_SPEC {
+        public final boolean provider__is_gpkg;
+        public final boolean config_toml__is_remote;
+        private MVT_SERVER_START_SPEC(final boolean provider__is_gpkg, final boolean config_toml__is_remote) {
+            this.provider__is_gpkg = provider__is_gpkg;
+            this.config_toml__is_remote = config_toml__is_remote;
+        }
+    }
+    private class MVT_SERVER_START_SPEC__POSTGIS_PROVIDER extends MVT_SERVER_START_SPEC {
+        public final String config_toml;
+        public MVT_SERVER_START_SPEC__POSTGIS_PROVIDER(final boolean config_toml__is_remote, @NonNull final String config_toml) {
+            super(false, config_toml__is_remote);
+            this.config_toml = config_toml;
+        }
+    }
+    private class MVT_SERVER_START_SPEC__GPKG_PROVIDER extends MVT_SERVER_START_SPEC {
+        public final String gpkg_bundle;
+        public MVT_SERVER_START_SPEC__GPKG_PROVIDER(final String gpkg_bundle) {
+            super(true, false);
+            this.gpkg_bundle = gpkg_bundle;
+        }
+    }
+    public class UnknownMVTServerStartSpecType extends Exception {
+        public UnknownMVTServerStartSpecType(@NonNull final MVT_SERVER_START_SPEC unknown) {
+            super(unknown.getClass().getName());
+        }
+    }
+    private void handle_mvt_server_control_request__start(@NonNull final MVT_SERVER_START_SPEC server_start_spec) {
         try {
-            final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
-            start_tegola(s_config_toml, remote_config);  //note that this function internally handles sending the MVT_SERVER__STARTING and MVT_SERVER__STARTED notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
+            final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());   //this line just asserts tegola bin supports this device's ABI
+            start_tegola(server_start_spec);  //note that this function internally handles sending the MVT_SERVER__STARTING and MVT_SERVER__STARTED notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
         } catch (IOException e) {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
@@ -262,6 +304,12 @@ public class ControllerFGS extends Service {
             intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
             fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
+        } catch (UnknownMVTServerStartSpecType e) {
+            e.printStackTrace();
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            fgs_asn__update(getString(R.string.stopped));
+            sendBroadcast(intent_notify_mvt_server_start_failed);
         }
     }
 
@@ -269,31 +317,69 @@ public class ControllerFGS extends Service {
         stop_tegola();
     }
 
-    private boolean start_tegola(final String s_config_toml_path, final boolean remote_config) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException {
-        if (s_config_toml_path == null || s_config_toml_path.isEmpty())
-            throw new Exceptions.InvalidTegolaArgumentException(Constants.Strings.TEGOLA_ARG.CONFIG + ": is null or empty");
+    private boolean start_tegola(@NonNull final MVT_SERVER_START_SPEC server_start_spec) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException, UnknownMVTServerStartSpecType {
         final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
-        File
+        final File
                 f_filesDir = getFilesDir()
-                , f_tegola_bin_executable = new File(f_filesDir.getPath() + File.separator + e_tegola_bin.name())
-                , f_tegola_config_toml = (remote_config ? null : new File(s_config_toml_path));
+                , f_tegola_bin_executable = new File(f_filesDir.getPath() + File.separator + e_tegola_bin.name());
         final String
-                s_tegola_bin_executable_path = f_tegola_bin_executable.getPath()
-                , s_tegola_config_toml_path = (remote_config ? s_config_toml_path : f_tegola_config_toml.getPath());
-        if (!f_tegola_bin_executable.exists()) {
+                s_tegola_bin_executable_path = f_tegola_bin_executable.getCanonicalPath()
+                ;
+        if (!f_tegola_bin_executable.exists())
             throw new FileNotFoundException("tegola bin file " + s_tegola_bin_executable_path + " does not exist");
-        } else {
-            Log.d(TAG, "start_tegola: found/using tegola bin: " + s_tegola_bin_executable_path);
-        }
-        if (!(!remote_config && f_tegola_config_toml.exists())) {
-            throw new FileNotFoundException("tegola config file " + s_tegola_config_toml_path + " does not exist");
-        } else {
-            if (remote_config) {
-                Log.d(TAG, "start_tegola: start spec requests remote config for postgis provider but this is not currently supported!");
-            } else {
-                Log.d(TAG, "start_tegola: found/using config toml file: " + s_config_toml_path);
+        Log.d(TAG, "start_tegola: found/using tegola bin: " + s_tegola_bin_executable_path);
+        ArrayList<String> als_cmd_line = new ArrayList<String>();
+        als_cmd_line.add("./" + f_tegola_bin_executable.getName());
+        als_cmd_line.add("serve");
+        ProcessBuilder pb = new ProcessBuilder();
+        pb = pb.directory(f_tegola_bin_executable.getParentFile());
+
+        if (server_start_spec instanceof MVT_SERVER_START_SPEC__GPKG_PROVIDER) {
+            final MVT_SERVER_START_SPEC__GPKG_PROVIDER server_start_spec__gpkg_provider = (MVT_SERVER_START_SPEC__GPKG_PROVIDER)server_start_spec;
+            File
+                    f_gpkg_bundles_root_dir = null
+                    , f_gpkg_bundle = null
+                    , f_gpkg_bundle__toml = null
+                    , f_gpkg_bundle__gpkg = null;
+            try {
+                f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+                throw new FileNotFoundException("geopcackage-bundle root directory not found");
             }
-        }
+            f_gpkg_bundle = new File(f_gpkg_bundles_root_dir.getPath(), server_start_spec__gpkg_provider.gpkg_bundle);
+            if (!f_gpkg_bundle.exists())
+                throw new FileNotFoundException("geopcackage-bundle " + f_gpkg_bundle.getCanonicalPath()+ " not found");
+            Log.d(TAG, "start_tegola: found/using gpkg-bundle: " + f_gpkg_bundle.getName());
+            f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), getString(R.string.canon_fname__toml));
+            if (!f_gpkg_bundle__toml.exists())
+                throw new FileNotFoundException("geopcackage-bundle toml file " + f_gpkg_bundle__toml.getCanonicalPath() + " not found");
+            Log.d(TAG, "start_tegola: found/using gpkg-bundle toml file: " + f_gpkg_bundle__toml.getCanonicalPath());
+            als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
+            als_cmd_line.add(f_gpkg_bundle__toml.getCanonicalPath());
+            f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), getString(R.string.canon_fname__gpkg));
+            if (!f_gpkg_bundle__gpkg.exists())
+                throw new FileNotFoundException("geopcackage-bundle gpkg file " + f_gpkg_bundle__gpkg.getCanonicalPath() + " not found");
+            String s_process_env__GPKG_var_name = "GPKG_PATH";
+            Log.d(TAG, "start_tegola: found/using gpkg-bundle gpkg file: " + f_gpkg_bundle__gpkg.getCanonicalPath() + "; setting process environment var \"" + s_process_env__GPKG_var_name + "\"");
+            pb.environment().put(s_process_env__GPKG_var_name, f_gpkg_bundle__gpkg.getCanonicalPath());
+        } else if (server_start_spec instanceof MVT_SERVER_START_SPEC__POSTGIS_PROVIDER) {
+            final MVT_SERVER_START_SPEC__POSTGIS_PROVIDER server_start_spec_postgis_provider = (MVT_SERVER_START_SPEC__POSTGIS_PROVIDER)server_start_spec;
+            if (server_start_spec_postgis_provider.config_toml__is_remote)
+                throw new Exceptions.InvalidTegolaArgumentException("start spec requests remote config \"" + server_start_spec_postgis_provider.config_toml + "\"for postgis provider but this is temporarily not supported in Tegola Mobile");
+            else {
+                if (server_start_spec_postgis_provider.config_toml == null || server_start_spec_postgis_provider.config_toml.isEmpty())
+                    throw new Exceptions.InvalidTegolaArgumentException("argument \"" + Constants.Strings.TEGOLA_ARG.CONFIG + "\" is null or empty");
+                final File f_postgis_config_toml = new File(server_start_spec_postgis_provider.config_toml);
+                if (f_postgis_config_toml != null && !f_postgis_config_toml.exists())
+                    throw new FileNotFoundException("toml file " + f_postgis_config_toml.getCanonicalPath() + " not found");
+                Log.d(TAG, "start_tegola: found/using config toml file: " + f_postgis_config_toml.getCanonicalPath());
+                als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
+                als_cmd_line.add(f_postgis_config_toml.getPath());
+            }
+        } else
+            throw new UnknownMVTServerStartSpecType(server_start_spec);
+        pb = pb.command(als_cmd_line);
 
         stop_tegola();
 
@@ -305,11 +391,17 @@ public class ControllerFGS extends Service {
 
         //build and exec tegola cmd line in new process
         StringBuilder sb_cmdline = new StringBuilder();
-        sb_cmdline.append(s_tegola_bin_executable_path);
-        sb_cmdline.append(" --" + Constants.Strings.TEGOLA_ARG.CONFIG + "=" + s_tegola_config_toml_path);
+        if (pb.command() != null) {
+            for (int i = 0; i < pb.command().size(); i++) {
+                if (i > 0)
+                    sb_cmdline.append(" ");
+                sb_cmdline.append(pb.command().get(i));
+            }
+        }
         String s_cmdline = sb_cmdline.toString();
-        Log.d(TAG, "start_tegola: tegola process cmdline is '" + s_cmdline + "'");
-        m_process_tegola = Runtime.getRuntime().exec(s_cmdline);
+        String s_working_dir = pb.directory().getPath();
+        Log.d(TAG, "start_tegola: tegola process cmdline is '" + s_cmdline + "' and will run in " + s_working_dir);
+        m_process_tegola = pb.start();
 
         //immediately notify br receivers MVT_SERVER__STOPPED if we fail to create tegola process
         if (m_process_tegola == null) {

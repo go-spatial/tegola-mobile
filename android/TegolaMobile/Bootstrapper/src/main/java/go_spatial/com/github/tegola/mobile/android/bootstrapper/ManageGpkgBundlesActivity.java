@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -193,6 +194,8 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                                     new Handler().postDelayed(new RefeshList_Runnable(), 50);
                                 } catch (PackageManager.NameNotFoundException e) {
                                     e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
                                 } finally {
                                     dialog.dismiss();
                                 }
@@ -308,6 +311,8 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
 
                         m_lv_gpk_bundles__installed__dataadapter.notifyDataSetChanged();
                     } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }

@@ -13,11 +13,15 @@ public class Constants {
             interface ACTION {
                 String EXTRA__KEY__HARNESS = "HARNESS";
                 String EXTRA__KEY__CONFIG = "CONFIG";
+                String EXTRA__KEY__PATH = "PATH";
                 String EXTRA__KEY__MSG = "MSG";
                 String EXTRA__KEY__VERSION = "VERSION";
                 String EXTRA__KEY__PID = "PID";
                 String EXTRA__KEY__REASON = "REASON";
+                String EXTRA__KEY__PROVIDER = "PROVIDER";
                 String EXTRA__KEY__REMOTE = "REMOTE";
+                String EXTRA__KEY__GPKG = "GPKG";
+                String EXTRA__KEY__BUNDLE = "BUNDLE";
 
                 interface FGS_CONTROL_REQUEST {
                     String FGS__START_FOREGROUND = PKG + "START_FOREGROUND";
@@ -31,8 +35,10 @@ public class Constants {
                     String MVT_SERVER__START = PKG + ".MVT_SERVER__START";
                     String MVT_SERVER__STOP = PKG + ".MVT_SERVER__STOP";
                     interface EXTRA__KEY {
-                        String MVT_SERVER__START__CONFIG = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG;
-                        String MVT_SERVER__START__CONFIG__REMOTE = MVT_SERVER__START + "." + EXTRA__KEY__REMOTE;
+                        String MVT_SERVER__START__PROVIDER__IS_GPKG = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG;     //boolean: true: use local gpkg provider, else use postgis provider
+                        String MVT_SERVER__START__GPKG_PROVIDER__BUNDLE = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG + "." + EXTRA__KEY__BUNDLE;
+                        String MVT_SERVER__START__CONFIG__IS_REMOTE = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__REMOTE;     //boolean: true: config toml file is retreieved from a remote host, else config toml file exists on local device
+                        String MVT_SERVER__START__CONFIG__PATH = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__PATH;         //string: the path to config toml file - note that if MVT_SERVER__START__CONFIG__IS_REMOTE is true, then MVT_SERVER__START__CONFIG__PATH should be a URL pointing to remote config toml file
                     }
                 }
                 interface CTRLR_NOTIFICATION {
