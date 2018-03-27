@@ -152,7 +152,7 @@ case $GOOS in
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: pkgdir: $GO_BLD_CMD_ARG_VAL__PKGDIR
 
         # set go build cmd "ldflags" arg val - set version string; also, android go builds require use of additional "extldflags" arg
-        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd.Version=${TEGOLA_VER_STRING} -extldflags=-pie"
+        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd/cmd.Version=${TEGOLA_VER_STRING} -linkmode=external '-extldflags=-pie'"
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
 
         # set go build cmd "o" arg val - this specifies output path of go build explicitly
@@ -173,7 +173,7 @@ case $GOOS in
         echo build_tegola.sh: go build command: pre-exec: go build env: var: CGO_ENABLED="$(printenv CGO_ENABLED)"
 
         # set go build cmd "ldflags" arg val - set version string
-        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd.Version=${TEGOLA_VER_STRING}"
+        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd/cmd.Version=${TEGOLA_VER_STRING}"
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
 
         # set go build cmd "o" arg val - this specifies output path of go build explicitly

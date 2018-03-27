@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private Button m_btn_srvr_ctrl = null;
 
     //srvr info - console output - UI objects
+    private View m_sect_content__item__srvr_console_output = null;
     private TextView m_tv_tegola_console_output = null;
 
 
@@ -219,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
 
         m_tv_val_srvr_status = (TextView)findViewById(R.id.tv_val_srvr_status);
         m_btn_srvr_ctrl = (Button)findViewById(R.id.btn_srvr_ctrl);
+        m_sect_content__item__srvr_console_output = findViewById(R.id.sect_content__item__srvr_console_output);
         m_tv_tegola_console_output = (TextView)findViewById(R.id.tv_tegola_console_output);
 
         //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
@@ -351,6 +353,7 @@ public class MainActivity extends AppCompatActivity {
         m_vw_sect_content__ctrlr_nfo.expand();
         m_vw_sect_content__ctrlr_nfo.setExpanded(true);
 
+        m_sect_content__item__srvr_console_output.setVisibility(View.GONE);
         m_tv_tegola_console_output.setMovementMethod(new ScrollingMovementMethod());
 
         //now queue up initial automated UI actions
@@ -1209,6 +1212,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void OnMVTServerStarting() {
         m_tv_val_srvr_status.setText(getString(R.string.starting));
+        m_sect_content__item__srvr_console_output.setVisibility(View.VISIBLE);
     }
 
     private void OnMVTServerStartFailed(final String reason) {
@@ -1243,12 +1247,14 @@ public class MainActivity extends AppCompatActivity {
     private void m_tv_tegola_console_output__scroll_max() {
         m_tv_tegola_console_output.postDelayed(new Runnable() {
             public void run() {
-                final int scrollAmount = m_tv_tegola_console_output.getLayout().getLineTop(m_tv_tegola_console_output.getLineCount()) - m_tv_tegola_console_output.getHeight();
-                // if there is no need to scroll, scrollAmount will be <=0
-                if (scrollAmount > 0)
-                    m_tv_tegola_console_output.scrollTo(0, scrollAmount);
-                else
-                    m_tv_tegola_console_output.scrollTo(0, 0);
+                if (m_tv_tegola_console_output != null && m_tv_tegola_console_output.getLayout() != null) {
+                    final int scrollAmount = m_tv_tegola_console_output.getLayout().getLineTop(m_tv_tegola_console_output.getLineCount()) - m_tv_tegola_console_output.getHeight();
+                    // if there is no need to scroll, scrollAmount will be <=0
+                    if (scrollAmount > 0)
+                        m_tv_tegola_console_output.scrollTo(0, scrollAmount);
+                    else
+                        m_tv_tegola_console_output.scrollTo(0, 0);
+                }
             }
         }, 50);
     }
@@ -1269,6 +1275,7 @@ public class MainActivity extends AppCompatActivity {
         m_btn_srvr_ctrl.setText(getString(R.string.start));
         m_btn_config_sel_local__edit_file.setEnabled(true);
         m_tv_tegola_console_output.setText("");
+        m_sect_content__item__srvr_console_output.setVisibility(View.GONE);
     }
 
     private void start_controller_fgs() {

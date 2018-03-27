@@ -280,6 +280,7 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                         //remove current entries from m_lv_gpk_bundles__installed__dataadapter
                         m_lv_gpk_bundles__installed__dataadapter.getCheckedItems().clear();
                         m_lv_gpk_bundles__installed__dataadapter.getItems().clear();
+                        m_lv_gpk_bundles__installed.clearChoices();
                         m_lv_gpkg_bundles__installed__items.clear();
 
                         //add installed geopackage bundles (directories) to m_lv_gpk_bundles__installed__dataadapter
