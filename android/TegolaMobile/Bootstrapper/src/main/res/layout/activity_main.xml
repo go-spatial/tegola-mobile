@@ -357,6 +357,7 @@
                                         android:text="Import"
                                         android:textSize="12sp"/>
 
+                                    <!--
                                     <ImageButton
                                         android:id="@+id/btn_postgis_provider_config_sel_local_import__googledrive"
                                         android:layout_width="25dp"
@@ -380,17 +381,18 @@
                                         android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_local_import__googledrive"
                                         android:layout_toStartOf="@id/btn_postgis_provider_config_sel_local_import__googledrive"
                                         android:background="@android:color/holo_blue_light"/>
+                                    -->
 
                                     <ImageButton
                                         android:id="@+id/btn_postgis_provider_config_sel_local_import__sdcard"
                                         android:layout_width="25dp"
                                         android:layout_height="25dp"
-                                        android:layout_alignBottom="@id/btn_postgis_provider_config_sel_local_import__googledrive"
-                                        android:layout_alignTop="@id/btn_postgis_provider_config_sel_local_import__googledrive"
-                                        android:layout_toLeftOf="@id/vw_vert_div__postgis_provider_config_sel_local_import"
-                                        android:layout_toStartOf="@id/vw_vert_div__postgis_provider_config_sel_local_import"
+                                        android:layout_alignEnd="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                        android:layout_alignRight="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                        android:layout_below="@+id/tv_lbl_postgis_provider_config_sel_local_import"
                                         android:background="@android:color/holo_red_dark"
-                                        android:src="@drawable/ic_sd_card_black_24dp"/>
+                                        android:src="@drawable/ic_sd_card_black_24dp"
+                                    />
 
                                     <ImageButton
                                         android:id="@+id/btn_postgis_provider_config_sel_local__edit_file"
@@ -403,7 +405,8 @@
                                         android:layout_toStartOf="@id/btn_postgis_provider_config_sel_local_import__sdcard"
                                         android:background="?attr/colorButtonNormal"
                                         android:src="@drawable/ic_mode_edit_black_24dp"
-                                        android:visibility="gone"/>
+                                        android:visibility="gone"
+                                    />
 
                                     <go_spatial.com.github.tegola.mobile.android.bootstrapper.CustomSpinner
                                         android:id="@+id/spinner_val_postgis_provider_config_sel__local"
@@ -573,19 +576,14 @@
                             android:orientation="vertical"
                             android:visibility="visible">
 
-                            <ScrollView
-                                android:id="@+id/scrvw_tegola_console_output"
+                            <TextView
+                                android:id="@+id/tv_tegola_console_output"
                                 android:layout_width="fill_parent"
                                 android:layout_height="match_parent"
-                                android:fillViewport="true"
-                                android:scrollbars="vertical">
-
-                                <TextView
-                                    android:id="@+id/tv_tegola_console_output"
-                                    android:layout_width="fill_parent"
-                                    android:layout_height="match_parent"
-                                    android:layout_weight="1.0"/>
-                            </ScrollView>
+                                android:layout_weight="1.0"
+                                android:maxLines = "10"
+                                android:scrollbars = "vertical"
+                            />
                         </LinearLayout>
                     </LinearLayout>
                     <!-- srvr nfo section content - CONSOLE OUTPUT - END -->

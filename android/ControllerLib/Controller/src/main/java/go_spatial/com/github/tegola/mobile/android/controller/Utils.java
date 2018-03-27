@@ -36,26 +36,43 @@ import okio.Okio;
 import okio.Source;
 
 public class Utils {
-    public static String getProperty(final InputStream f_inputstream_props, final String s_prop_name) throws IOException {
-        Properties properties = new Properties();
-        properties.load(f_inputstream_props);
-        return properties.getProperty(s_prop_name);
-    }
-    public static String getAssetProperty(final Context context, final String s_props_filename, final String s_prop_name) {
-        InputStream f_is_props = null;
+    public static String getProperty(final File f_props, final String s_prop_name) throws IOException {
+        InputStream f_inputstream_props = null;
         try {
             Properties properties = new Properties();
-            f_is_props = context.getAssets().open(s_props_filename);
-            properties.load(f_is_props);
+            f_inputstream_props = new FileInputStream(f_props);
+            properties.load(f_inputstream_props);
             return properties.getProperty(s_prop_name);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (f_is_props != null) {
+            if (f_inputstream_props != null) {
                 try {
-                    f_is_props.close();
+                    f_inputstream_props.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
+    public static String getAssetProperty(final Context context, final String s_props_filename, final String s_prop_name) {
+        InputStream f_inputstream_props = null;
+        try {
+            Properties properties = new Properties();
+            f_inputstream_props = context.getAssets().open(s_props_filename);
+            properties.load(f_inputstream_props);
+            return properties.getProperty(s_prop_name);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (f_inputstream_props != null) {
+                try {
+                    f_inputstream_props.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

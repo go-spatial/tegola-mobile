@@ -23,13 +23,13 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.List;
 
 
 public class ControllerFGS extends Service {
@@ -156,22 +156,10 @@ public class ControllerFGS extends Service {
             e.printStackTrace();
         }
 
-        //grab tegola bin version string from version.properties output from latest bin build
-        InputStream f_inputstream_version_props = null;
-        try {
-            f_inputstream_version_props = getApplicationContext().getAssets().open("version.properties");
-            String s_version = Utils.getProperty(f_inputstream_version_props, "TEGOLA_BIN_VER");
-            if (s_version != null)
-                Constants.Enums.TEGOLA_BIN.set_version_string(s_version);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (f_inputstream_version_props != null) {
-                try {
-                    f_inputstream_version_props.close();
-                } catch (IOException e) {}
-            }
-        }
+        //grab tegola bin version string from tegola_version.properties output from latest bin build
+        String s_version = Utils.getAssetProperty(getApplicationContext(), "tegola_version.properties", "TEGOLA_BIN_VER");
+        if (s_version != null)
+            Constants.Enums.TEGOLA_BIN.set_version_string(s_version);
 
         //create geopackage bundle dir
         try {
@@ -349,20 +337,38 @@ public class ControllerFGS extends Service {
             }
             f_gpkg_bundle = new File(f_gpkg_bundles_root_dir.getPath(), server_start_spec__gpkg_provider.gpkg_bundle);
             if (!f_gpkg_bundle.exists())
-                throw new FileNotFoundException("geopcackage-bundle " + f_gpkg_bundle.getCanonicalPath()+ " not found");
+                throw new FileNotFoundException("geopcackage-bundle " + f_gpkg_bundle.getCanonicalPath() + " not found");
             Log.d(TAG, "start_tegola: found/using gpkg-bundle: " + f_gpkg_bundle.getName());
-            f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), getString(R.string.canon_fname__toml));
+
+            //process version.properties file for this gpk-bundle
+            File f_gpkg_bundle_ver_props = new File(f_gpkg_bundle.getPath(), Constants.Strings.GPKG_BUNDLE_VERSION_PROPS__FNAME);
+            if (!f_gpkg_bundle_ver_props.exists())
+                throw new FileNotFoundException("geopcackage-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath() + " not found");
+            Log.d(TAG, "start_tegola: found/using gpkg-bundle version.properties: " + f_gpkg_bundle_ver_props.getCanonicalPath());
+            //get gpkg-bundle toml file spec from version.props, confirm existence, then build "--config" arg for tegola commandline
+            String s_gpkg_bundle__toml = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE);
+            f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_gpkg_bundle__toml);
+            Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE + "==" + f_gpkg_bundle__toml.getCanonicalPath());
             if (!f_gpkg_bundle__toml.exists())
                 throw new FileNotFoundException("geopcackage-bundle toml file " + f_gpkg_bundle__toml.getCanonicalPath() + " not found");
             Log.d(TAG, "start_tegola: found/using gpkg-bundle toml file: " + f_gpkg_bundle__toml.getCanonicalPath());
             als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
             als_cmd_line.add(f_gpkg_bundle__toml.getCanonicalPath());
-            f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), getString(R.string.canon_fname__gpkg));
-            if (!f_gpkg_bundle__gpkg.exists())
-                throw new FileNotFoundException("geopcackage-bundle gpkg file " + f_gpkg_bundle__gpkg.getCanonicalPath() + " not found");
-            String s_process_env__GPKG_var_name = "GPKG_PATH";
-            Log.d(TAG, "start_tegola: found/using gpkg-bundle gpkg file: " + f_gpkg_bundle__gpkg.getCanonicalPath() + "; setting process environment var \"" + s_process_env__GPKG_var_name + "\"");
-            pb.environment().put(s_process_env__GPKG_var_name, f_gpkg_bundle__gpkg.getCanonicalPath());
+
+            //now get gpkg-bundle geopcackages spec from version.props, then confirm existence
+            String[] s_list_geopcackage_files = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES).split(",");
+            if (s_list_geopcackage_files != null && s_list_geopcackage_files.length > 0) {
+                for (int i = 0; i < s_list_geopcackage_files.length; i++) {
+                    String s_gpkg_file = s_list_geopcackage_files[i];
+                    f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_file);
+                    Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES + "[" + i + "] ==" + f_gpkg_bundle__toml.getCanonicalPath());
+                    if (!f_gpkg_bundle__gpkg.exists())
+                        throw new FileNotFoundException("geopcackage-bundle gpkg file " + f_gpkg_bundle__gpkg.getCanonicalPath() + " not found");
+                    Log.d(TAG, "start_tegola: found/using gpkg-bundle gpkg file: " + f_gpkg_bundle__gpkg.getCanonicalPath());
+                }
+            } else {
+                throw new FileNotFoundException("failed to retrieve list of geopackage files from gpkg-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath());
+            }
         } else if (server_start_spec instanceof MVT_SERVER_START_SPEC__POSTGIS_PROVIDER) {
             final MVT_SERVER_START_SPEC__POSTGIS_PROVIDER server_start_spec_postgis_provider = (MVT_SERVER_START_SPEC__POSTGIS_PROVIDER)server_start_spec;
             if (server_start_spec_postgis_provider.config_toml__is_remote)

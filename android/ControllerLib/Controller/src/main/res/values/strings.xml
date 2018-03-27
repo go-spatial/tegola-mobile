@@ -22,7 +22,4 @@
     <string name="stop">Stop</string>
     <string name="stopping">STOPPING...</string>
     <string name="stopped">STOPPED</string>
-
-    <string name="canon_fname__toml">config.toml</string>
-    <string name="canon_fname__gpkg">gpkg</string>
 </resources>

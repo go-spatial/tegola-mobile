@@ -269,8 +269,8 @@ if exist %OUTPUT_DIR%\go_env.txt (
     echo build_tegola.bat: go build command: pre-exec: go build env vars: save: result: FAILED to save to %OUTPUT_DIR%\go_env.txt
 )
 
-REM track ver in version.properties in output dir
-set ver_props_fn=version.properties
+REM track ver in tegola_version.properties in output dir
+set ver_props_fn=tegola_version.properties
 rm %OUTPUT_DIR%/$ver_props_fn% > /dev/null 2>&1
 @echo TEGOLA_BIN_VER=%TEGOLA_VER_STRING%>%OUTPUT_DIR%\%ver_props_fn%
 if exist %OUTPUT_DIR%\%ver_props_fn% (

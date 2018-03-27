@@ -214,8 +214,8 @@ else
     echo build_tegola.sh: go build command: pre-exec: go build env vars: save: result: FAILED to save to ${OUTPUT_DIR}/go_env.txt
 fi
 
-# track ver in version.properties in output dir
-ver_props_fn=version.properties
+# track ver in tegola_version.properties in output dir
+ver_props_fn=tegola_version.properties
 rm ${OUTPUT_DIR}/$ver_props_fn > /dev/null 2>&1
 echo TEGOLA_BIN_VER=${TEGOLA_VER_STRING}>${OUTPUT_DIR}/${ver_props_fn}
 if [[ -e ${OUTPUT_DIR}/${ver_props_fn} ]]; then

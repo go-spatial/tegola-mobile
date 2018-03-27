@@ -8,6 +8,11 @@ public class Constants {
     public interface Strings {
         String PKG = "go_spatial.com.github.tegola.android.controller";
         String GPKG_BUNDLE_SUBDIR = "gpkg-bundle";
+        String GPKG_BUNDLE_VERSION_PROPS__FNAME = "version.properties";
+        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE = "TOML_FILE";
+        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_VERSION = "TOML_VERSION";
+        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES = "GPKG_FILES";
+        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_VERSIONS = "GPKG_VERSIONS";
 
         interface INTENT {
             interface ACTION {

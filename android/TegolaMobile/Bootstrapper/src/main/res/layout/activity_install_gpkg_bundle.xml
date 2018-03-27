@@ -270,35 +270,39 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tv_lbl__install_gpkg_bundle__progress__toml"
+                    android:id="@+id/tv_lbl__install_gpkg_bundle__file_download_progress"
                     style="@style/Section_Content_SubItem_Label"
-                    android:text="@string/lbl__install_gpkg_bundle__progress_toml_file"
+                    android:layout_width="wrap_content"
+                    android:text="@string/lbl__install_gpkg_bundle__file_progress"
                     android:visibility="visible"
-                />
-
-                <ProgressBar
-                    android:id="@+id/pb_toml"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tv_lbl__install_gpkg_bundle__progress__toml"
                 />
 
                 <TextView
-                    android:id="@+id/tv_lbl__install_gpkg_bundle__progress__gpkg"
+                    android:id="@+id/tv_val__install_gpkg_bundle__file_download_progress"
                     style="@style/Section_Content_SubItem_Label"
-                    android:text="@string/lbl__install_gpkg_bundle__progress_gpkg_file"
+                    android:text=""
                     android:visibility="visible"
-                    android:layout_below="@+id/pb_toml"
+                    android:layout_alignParentLeft="false"
+                    android:layout_alignParentStart="false"
+                    android:layout_toRightOf="@+id/tv_lbl__install_gpkg_bundle__file_download_progress"
+                    android:layout_toEndOf="@+id/tv_lbl__install_gpkg_bundle__file_download_progress"
                 />
 
                 <ProgressBar
-                    android:id="@+id/pb_gpkg"
+                    android:id="@+id/pb"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/tv_lbl__install_gpkg_bundle__progress__gpkg"
+                    android:layout_below="@+id/tv_lbl__install_gpkg_bundle__file_download_progress"
                 />
+
+                <TextView
+                    android:id="@+id/tv_val__install_gpkg_bundle__file_download_progress__bytes"
+                    style="@style/Section_Content_SubItem_Label"
+                    android:layout_below="@+id/pb"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:visibility="visible" />
 
             </RelativeLayout>
 

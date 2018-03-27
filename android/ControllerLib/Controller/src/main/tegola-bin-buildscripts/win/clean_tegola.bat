@@ -136,8 +136,8 @@ set BASE_TEGOLA_SUBDIR=github.com\go-spatial\tegola
     goto :switch-case-end--GOOS
 :switch-case-end--GOOS
 
-REM remove version.properties file from VER_PROPS__DIR if it exists...
-set ver_props_fn=version.properties
+REM remove tegola_version.properties file from VER_PROPS__DIR if it exists...
+set ver_props_fn=tegola_version.properties
 if defined VER_PROPS__DIR (
 	if exist %VER_PROPS__DIR%\ (
 		echo clean_tegola.bat: Cleaning %VER_PROPS__DIR%\%ver_props_fn%...

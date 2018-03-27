@@ -89,8 +89,8 @@ case $GOOS in
         ;;
 esac
 
-# remove version.properties file from VER_PROPS__DIR if it exists...
-ver_props_fn=version.properties
+# remove tegola_version.properties file from VER_PROPS__DIR if it exists...
+ver_props_fn=tegola_version.properties
 if [[ -n "${VER_PROPS__DIR}" ]]; then
 	if [[ -e ${VER_PROPS__DIR}/ ]]; then
 		echo clean_tegola.sh: Cleaning ${VER_PROPS__DIR}/$ver_props_fn

@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
+import android.text.method.ScrollingMovementMethod;
 import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -98,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<String> m_spinner_val_config_sel_local__items = new ArrayList<String>();
     private ArrayAdapter<String> m_spinner_val_config_sel_local__dataadapter = null;
     private ImageButton m_btn_config_sel_local__edit_file = null;
-    private ImageButton m_btn_config_sel_local_import__googledrive = null;
+//    private ImageButton m_btn_config_sel_local_import__googledrive = null;
     private ImageButton m_btn_config_sel_local_import__sdcard = null;
 
     //srvr info - config sel remote - UI objects
@@ -119,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
     private Button m_btn_srvr_ctrl = null;
 
     //srvr info - console output - UI objects
-    private ScrollView m_scrvw_tegola_console_output = null;
     private TextView m_tv_tegola_console_output = null;
 
 
@@ -138,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
             int h = drawable_cloud_download.getIntrinsicHeight();
             int w = drawable_cloud_download.getIntrinsicWidth();
             drawable_cloud_download.setBounds(0, 0, w, h);
-            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_download);
-            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_green_light));
+//            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_download);
+//            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_green_light));
             Log.i(TAG, "onConnected: GoogleApiClient flow handler: connection success");
             Toast.makeText(getApplicationContext(), "GoogleApiClient successfully connected", Toast.LENGTH_LONG).show();
         }
@@ -151,8 +151,8 @@ public class MainActivity extends AppCompatActivity {
             int h = drawable_cloud_disconnected.getIntrinsicHeight();
             int w = drawable_cloud_disconnected.getIntrinsicWidth();
             drawable_cloud_disconnected.setBounds(0, 0, w, h);
-            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_disconnected);
-            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
+//            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_disconnected);
+//            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
             Log.i(TAG, "onConnectionSuspended: GoogleApiClient flow handler: connection suspended");
             Toast.makeText(getApplicationContext(), "GoogleApiClient connection suspended", Toast.LENGTH_LONG).show();
         }
@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
         //GoogleApiClient override
         @Override
         public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
+//            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
             if (!connectionResult.hasResolution()) {
                 Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: abnormal termination :(");
                 Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed with no reported resolution!", Toast.LENGTH_LONG).show();
@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         m_spinner_val_config_sel_local = (CustomSpinner)findViewById(R.id.spinner_val_postgis_provider_config_sel__local);
         m_btn_config_sel_local__edit_file = (ImageButton)findViewById(R.id.btn_postgis_provider_config_sel_local__edit_file);
         m_btn_config_sel_local_import__sdcard = (ImageButton)findViewById(R.id.btn_postgis_provider_config_sel_local_import__sdcard);
-        m_btn_config_sel_local_import__googledrive = (ImageButton)findViewById(R.id.btn_postgis_provider_config_sel_local_import__googledrive);
+//        m_btn_config_sel_local_import__googledrive = (ImageButton)findViewById(R.id.btn_postgis_provider_config_sel_local_import__googledrive);
         m_vw_config_sel_container__remote = findViewById(R.id.postgis_provider_config_sel__remote__container);
         m_edt_val_config_sel__remote = (EditText)findViewById(R.id.edt_val_postgis_provider_config_sel__remote);
         m_btn_config_sel_remote_apply_changes = (Button)findViewById(R.id.btn_postgis_provider_config_sel_remote_apply_changes);
@@ -219,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
 
         m_tv_val_srvr_status = (TextView)findViewById(R.id.tv_val_srvr_status);
         m_btn_srvr_ctrl = (Button)findViewById(R.id.btn_srvr_ctrl);
-        m_scrvw_tegola_console_output = (ScrollView)findViewById(R.id.scrvw_tegola_console_output);
         m_tv_tegola_console_output = (TextView)findViewById(R.id.tv_tegola_console_output);
 
         //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
@@ -243,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         m_spinner_val_config_sel_local.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_config_sel_local);
         m_btn_config_sel_local__edit_file.setOnClickListener(OnClickListener__m_btn_config_sel_local__edit_file);
         m_btn_config_sel_local_import__sdcard.setOnClickListener(OnClickListener__m_btn_config_sel_local_import__sdcard);
-        m_btn_config_sel_local_import__googledrive.setOnClickListener(OnClickListener__m_btn_config_sel_local_import__googledrive);
+//        m_btn_config_sel_local_import__googledrive.setOnClickListener(OnClickListener__m_btn_config_sel_local_import__googledrive);
         m_rb_val_config_type_sel__remote.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_config_type_sel__remote);
         m_edt_val_config_sel__remote.setOnEditorActionListener(OnEditorActionListener__m_edt_val_config_sel__remote);
         m_edt_val_config_sel__remote.setOnFocusChangeListener(OnFocusChangeListener__m_edt_val_config_sel__remote);
@@ -352,6 +351,8 @@ public class MainActivity extends AppCompatActivity {
         m_vw_sect_content__ctrlr_nfo.expand();
         m_vw_sect_content__ctrlr_nfo.setExpanded(true);
 
+        m_tv_tegola_console_output.setMovementMethod(new ScrollingMovementMethod());
+
         //now queue up initial automated UI actions
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -362,19 +363,7 @@ public class MainActivity extends AppCompatActivity {
                 m_vw_sect_content__andro_dev_nfo.callOnClick();
                 m_vw_sect_content__ctrlr_nfo.callOnClick();
 
-//                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER__IS_GEOPACKAGE val
-//                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue() == true) {
-//                    m_rb_val_provider_type_sel__gpkg.setChecked(true);
-//                } else {
-//                    m_rb_val_provider_type_sel__postgis.setChecked(true);
-//                }
-//
-//                //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TOML__IS_REMOTE val
-//                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue() == true) {
-//                    m_rb_val_config_type_sel__remote.setChecked(true);
-//                } else {
-//                    m_rb_val_config_type_sel__local.setChecked(true);
-//                }
+                m_tv_tegola_console_output__scroll_max();
 
                 //adjust main scroll view (since expandable sections may or may not have been expanded/collapsed based on initial settings)
                 m_scvw_main__scroll_max();
@@ -401,6 +390,8 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     m_rb_val_config_type_sel__local.setChecked(true);
                 }
+
+                m_tv_tegola_console_output__scroll_max();
 
                 //adjust main scroll view (since expandable sections may or may not have been expanded/collapsed based on initial settings)
                 m_scvw_main__scroll_max();
@@ -1234,6 +1225,7 @@ public class MainActivity extends AppCompatActivity {
         m_btn_srvr_ctrl.setText(getString(R.string.stop));
         //now disable edit-config button
         m_btn_config_sel_local__edit_file.setEnabled(false);
+        m_tv_tegola_console_output.setText("");
     }
 
     private void OnMVTServerOutputLogcat(final String logcat_line) {
@@ -1248,17 +1240,22 @@ public class MainActivity extends AppCompatActivity {
         sv_append_mvt_server_console_output("STDOUT> " + stdout_line);
     }
 
-    private void m_scrvw_tegola_console_output__scroll_max() {
-        m_scrvw_tegola_console_output.postDelayed(new Runnable() {
+    private void m_tv_tegola_console_output__scroll_max() {
+        m_tv_tegola_console_output.postDelayed(new Runnable() {
             public void run() {
-                m_scrvw_tegola_console_output.fullScroll(View.FOCUS_DOWN);
+                final int scrollAmount = m_tv_tegola_console_output.getLayout().getLineTop(m_tv_tegola_console_output.getLineCount()) - m_tv_tegola_console_output.getHeight();
+                // if there is no need to scroll, scrollAmount will be <=0
+                if (scrollAmount > 0)
+                    m_tv_tegola_console_output.scrollTo(0, scrollAmount);
+                else
+                    m_tv_tegola_console_output.scrollTo(0, 0);
             }
         }, 50);
     }
 
     private void sv_append_mvt_server_console_output(final String s) {
         m_tv_tegola_console_output.append(s + "\n");
-        m_scrvw_tegola_console_output__scroll_max();
+        m_tv_tegola_console_output__scroll_max();
         m_scvw_main__scroll_max();
     }
 
@@ -1271,6 +1268,7 @@ public class MainActivity extends AppCompatActivity {
         m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
         m_btn_srvr_ctrl.setText(getString(R.string.start));
         m_btn_config_sel_local__edit_file.setEnabled(true);
+        m_tv_tegola_console_output.setText("");
     }
 
     private void start_controller_fgs() {
