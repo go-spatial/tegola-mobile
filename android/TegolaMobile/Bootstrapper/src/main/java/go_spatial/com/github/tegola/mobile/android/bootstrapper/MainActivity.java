@@ -42,6 +42,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.aakira.expandablelayout.ExpandableRelativeLayout;
+import com.ipaulpro.afilechooser.utils.FileUtils;
+
+/*
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -52,7 +55,7 @@ import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.OpenFileActivityBuilder;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.SearchableField;
-import com.ipaulpro.afilechooser.utils.FileUtils;
+*/
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -127,58 +130,57 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver m_br_ctrlr_notifications = null;
     private IntentFilter m_br_ctrlr_notifications_filter = null;
 
-    private DriveId m_google_drive_id;
-
-    private final class MyGoogleApiClientCallbacks implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-        private final String TAG = MyGoogleApiClientCallbacks.class.getName();
-
-        //GoogleApiClient override
-        @Override
-        public void onConnected(@Nullable Bundle bundle) {
-            Drawable drawable_cloud_download = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_cloud_download_black_24dp);
-            int h = drawable_cloud_download.getIntrinsicHeight();
-            int w = drawable_cloud_download.getIntrinsicWidth();
-            drawable_cloud_download.setBounds(0, 0, w, h);
+//    private DriveId m_google_drive_id;
+//    private final class MyGoogleApiClientCallbacks implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+//        private final String TAG = MyGoogleApiClientCallbacks.class.getName();
+//
+//        //GoogleApiClient override
+//        @Override
+//        public void onConnected(@Nullable Bundle bundle) {
+//            Drawable drawable_cloud_download = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_cloud_download_black_24dp);
+//            int h = drawable_cloud_download.getIntrinsicHeight();
+//            int w = drawable_cloud_download.getIntrinsicWidth();
+//            drawable_cloud_download.setBounds(0, 0, w, h);
 //            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_download);
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_green_light));
-            Log.i(TAG, "onConnected: GoogleApiClient flow handler: connection success");
-            Toast.makeText(getApplicationContext(), "GoogleApiClient successfully connected", Toast.LENGTH_LONG).show();
-        }
-
-        //GoogleApiClient override
-        @Override
-        public void onConnectionSuspended(int i) {
-            Drawable drawable_cloud_disconnected = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_cloud_off_black_24dp);
-            int h = drawable_cloud_disconnected.getIntrinsicHeight();
-            int w = drawable_cloud_disconnected.getIntrinsicWidth();
-            drawable_cloud_disconnected.setBounds(0, 0, w, h);
+//            Log.i(TAG, "onConnected: GoogleApiClient flow handler: connection success");
+//            Toast.makeText(getApplicationContext(), "GoogleApiClient successfully connected", Toast.LENGTH_LONG).show();
+//        }
+//
+//        //GoogleApiClient override
+//        @Override
+//        public void onConnectionSuspended(int i) {
+//            Drawable drawable_cloud_disconnected = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_cloud_off_black_24dp);
+//            int h = drawable_cloud_disconnected.getIntrinsicHeight();
+//            int w = drawable_cloud_disconnected.getIntrinsicWidth();
+//            drawable_cloud_disconnected.setBounds(0, 0, w, h);
 //            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_disconnected);
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
-            Log.i(TAG, "onConnectionSuspended: GoogleApiClient flow handler: connection suspended");
-            Toast.makeText(getApplicationContext(), "GoogleApiClient connection suspended", Toast.LENGTH_LONG).show();
-        }
-
-        //GoogleApiClient override
-        @Override
-        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+//            Log.i(TAG, "onConnectionSuspended: GoogleApiClient flow handler: connection suspended");
+//            Toast.makeText(getApplicationContext(), "GoogleApiClient connection suspended", Toast.LENGTH_LONG).show();
+//        }
+//
+//        //GoogleApiClient override
+//        @Override
+//        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
-            if (!connectionResult.hasResolution()) {
-                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: abnormal termination :(");
-                Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed with no reported resolution!", Toast.LENGTH_LONG).show();
-                GoogleApiAvailability.getInstance().getErrorDialog(MainActivity.this, connectionResult.getErrorCode(), 0).show();
-                return;
-            }
-            Log.i(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: starting GoogleApiClient connection resolution for this result...");
-            //Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed -- starting resolution flow...", Toast.LENGTH_LONG).show();
-            try {
-                connectionResult.startResolutionForResult(MainActivity.this, REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE);
-            } catch (IntentSender.SendIntentException e) {
-                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: IntentSender failed to send intent; abnormal termination :(", e);
-                Toast.makeText(getApplicationContext(), "GoogleApiClient connection-failure resolution flow abnormally terminated!", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-    private MyGoogleApiClientCallbacks m_google_api_callbacks = null;
+//            if (!connectionResult.hasResolution()) {
+//                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: abnormal termination :(");
+//                Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed with no reported resolution!", Toast.LENGTH_LONG).show();
+//                GoogleApiAvailability.getInstance().getErrorDialog(MainActivity.this, connectionResult.getErrorCode(), 0).show();
+//                return;
+//            }
+//            Log.i(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: starting GoogleApiClient connection resolution for this result...");
+//            Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed -- starting resolution flow...", Toast.LENGTH_LONG).show();
+//            try {
+//                connectionResult.startResolutionForResult(MainActivity.this, REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE);
+//            } catch (IntentSender.SendIntentException e) {
+//                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: IntentSender failed to send intent; abnormal termination :(", e);
+//                Toast.makeText(getApplicationContext(), "GoogleApiClient connection-failure resolution flow abnormally terminated!", Toast.LENGTH_LONG).show();
+//            }
+//        }
+//    }
+//    private MyGoogleApiClientCallbacks m_google_api_callbacks = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -255,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
         //instantiate PersistentConfigSettingsManager singleton
         SharedPrefsManager.newInstance(this);
 
-        m_google_api_callbacks = new MyGoogleApiClientCallbacks();
+//        m_google_api_callbacks = new MyGoogleApiClientCallbacks();
 
         //set up BR to listen to notifications from ControllerLib
         m_br_ctrlr_notifications_filter = new IntentFilter();
@@ -407,7 +409,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        GoogleDriveFileDownloadManager.getInstance().disconnect_api_client();
+//        GoogleDriveFileDownloadManager.getInstance().disconnect_api_client();
         super.onPause();
     }
 
@@ -662,22 +664,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //user clicks button to initiate import config toml files from google drive
-    private final View.OnClickListener OnClickListener__m_btn_config_sel_local_import__googledrive = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            import_config_toml__from_google_drive();
-        }
-    };
-
-    private void import_config_toml__from_google_drive() {
-        GoogleDriveFileDownloadManager.getInstance().validate_init_api_client(this, m_google_api_callbacks, m_google_api_callbacks);
-        if (GoogleDriveFileDownloadManager.getInstance().validate_connect_api_client(this)) {
-            Log.i(TAG, "import_config_toml__from_google_drive: calling select_and_download_files() for Filter Filters.contains(SearchableField.TITLE, \".toml\")...");
-            GoogleDriveFileDownloadManager.getInstance().select_and_download_files(this, Filters.contains(SearchableField.TITLE, ".toml"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE);
-        } else {
-            Log.i(TAG, "import_config_toml__from_google_drive: GoogleApiClient was not connected -- flow control was transferred to appropriate handler");
-        }
-    }
+//    private final View.OnClickListener OnClickListener__m_btn_config_sel_local_import__googledrive = new View.OnClickListener() {
+//        @Override
+//        public void onClick(View view) {
+//            import_config_toml__from_google_drive();
+//        }
+//    };
+//    private void import_config_toml__from_google_drive() {
+//        GoogleDriveFileDownloadManager.getInstance().validate_init_api_client(this, m_google_api_callbacks, m_google_api_callbacks);
+//        if (GoogleDriveFileDownloadManager.getInstance().validate_connect_api_client(this)) {
+//            Log.i(TAG, "import_config_toml__from_google_drive: calling select_and_download_files() for Filter Filters.contains(SearchableField.TITLE, \".toml\")...");
+//            GoogleDriveFileDownloadManager.getInstance().select_and_download_files(this, Filters.contains(SearchableField.TITLE, ".toml"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE);
+//        } else {
+//            Log.i(TAG, "import_config_toml__from_google_drive: GoogleApiClient was not connected -- flow control was transferred to appropriate handler");
+//        }
+//    }
 
 
     //reaction to srvr remote config-type selection - display all remote config selection UI and update shared prefs to reflect selection
@@ -986,88 +987,86 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             }
-            case REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE: {
-                switch (resultCode) {
-                    case RESULT_OK: {
-                        m_google_drive_id = (DriveId)data.getParcelableExtra(OpenFileActivityBuilder.EXTRA_RESPONSE_DRIVE_ID);
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_OK -- flow control handler: selected Google Drive file id " + m_google_drive_id.getResourceId() + "; calling GoogleDriveFileDownloadManager.download_file_contents() for this file...");
-                        GoogleDriveFileDownloadManager.getInstance().download_file_contents(this, m_google_drive_id, DriveFile.MODE_READ_ONLY, new GoogleDriveFileDownloadManager.FileContentsHandler() {
-                            @Override
-                            public void onProgress(long bytesDownloaded, long bytesExpected) {
-                            }
-
-                            @Override
-                            public void OnFileContentsDownloaded(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file) {
-                                final String
-                                    s_gd_id = google_drive_file_contents.getDriveId().encodeToString()
-                                    , s_gd_filename = google_drive_file_metadata.getOriginalFilename();
-                                Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: triggered from PendingResult from call to google_drive__download_file_contents() -- successfully downloaded google drive file \"" + s_gd_filename + "\" contents from: id " + s_gd_id);
-                                try {
-                                    Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: importing contents from google drive file \"" + s_gd_filename + " (id \"" + s_gd_id + ")\"");
-                                    final boolean succeeded = GoogleDriveFileDownloadManager.getInstance().import_file(MainActivity.this, google_drive_file_contents, google_drive_file_metadata, google_drive_file);
-                                    final String s_result_msg = (succeeded ? "Successfully imported" : "Failed to import") + " google drive file \"" + s_gd_filename + "\" (id " + s_gd_id + ")";
-                                    Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: " + s_result_msg);
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(), s_result_msg, Toast.LENGTH_LONG).show();
-                                            if (succeeded)
-                                                synchronize_spinner_val_config_sel_local();
-                                        }
-                                    });
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                        break;
-                    }
-                    case RESULT_CANCELED: {
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_CANCELED -- flow control handler: user canceled -- normal flow termination");
-                        super.onActivityResult(requestCode, resultCode, data);
-                        break;
-                    }
-                    default: {
-                        Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
-                        super.onActivityResult(requestCode, resultCode, data);
-                        break;
-                    }
-                }
-                break;
-            }
-            case REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE: {
-                switch (resultCode) {
-                    case RESULT_OK: {
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_OK -- flow control handler: validating GoogleApiClient connection...");
-                        GoogleDriveFileDownloadManager.getInstance().validate_connect_api_client(this);
-                        break;
-                    }
-                    case RESULT_CANCELED: {
-                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_CANCELED -- flow control handler: abnormal flow termination :(");
-                        super.onActivityResult(requestCode, resultCode, data);
-                        break;
-                    }
-                    default: {
-                        Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
-                        super.onActivityResult(requestCode, resultCode, data);
-                        break;
-                    }
-                }
-                break;
-            }
-            /*
-            case REQUEST_CODES.REQUEST_CODE__EDIT_TOML_FILE: {
-                switch (resultCode) {
-                    case RESULT_OK: {
-                        break;
-                    }
-                    case RESULT_CANCELED: {
-                        break;
-                    }
-                }
-                break;
-            }
-            */
+//            case REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE: {
+//                switch (resultCode) {
+//                    case RESULT_OK: {
+//                        m_google_drive_id = (DriveId)data.getParcelableExtra(OpenFileActivityBuilder.EXTRA_RESPONSE_DRIVE_ID);
+//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_OK -- flow control handler: selected Google Drive file id " + m_google_drive_id.getResourceId() + "; calling GoogleDriveFileDownloadManager.download_file_contents() for this file...");
+//                        GoogleDriveFileDownloadManager.getInstance().download_file_contents(this, m_google_drive_id, DriveFile.MODE_READ_ONLY, new GoogleDriveFileDownloadManager.FileContentsHandler() {
+//                            @Override
+//                            public void onProgress(long bytesDownloaded, long bytesExpected) {
+//                            }
+//
+//                            @Override
+//                            public void OnFileContentsDownloaded(final DriveContents google_drive_file_contents, final Metadata google_drive_file_metadata, final DriveFile google_drive_file) {
+//                                final String
+//                                    s_gd_id = google_drive_file_contents.getDriveId().encodeToString()
+//                                    , s_gd_filename = google_drive_file_metadata.getOriginalFilename();
+//                                Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: triggered from PendingResult from call to google_drive__download_file_contents() -- successfully downloaded google drive file \"" + s_gd_filename + "\" contents from: id " + s_gd_id);
+//                                try {
+//                                    Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: importing contents from google drive file \"" + s_gd_filename + " (id \"" + s_gd_id + ")\"");
+//                                    final boolean succeeded = GoogleDriveFileDownloadManager.getInstance().import_file(MainActivity.this, google_drive_file_contents, google_drive_file_metadata, google_drive_file);
+//                                    final String s_result_msg = (succeeded ? "Successfully imported" : "Failed to import") + " google drive file \"" + s_gd_filename + "\" (id " + s_gd_id + ")";
+//                                    Log.i(TAG, "inline GoogleDriveDownloadedFileContentsHandler.OnFileContentsDownloaded: " + s_result_msg);
+//                                    runOnUiThread(new Runnable() {
+//                                        @Override
+//                                        public void run() {
+//                                            Toast.makeText(getApplicationContext(), s_result_msg, Toast.LENGTH_LONG).show();
+//                                            if (succeeded)
+//                                                synchronize_spinner_val_config_sel_local();
+//                                        }
+//                                    });
+//                                } catch (IOException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                        });
+//                        break;
+//                    }
+//                    case RESULT_CANCELED: {
+//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_CANCELED -- flow control handler: user canceled -- normal flow termination");
+//                        super.onActivityResult(requestCode, resultCode, data);
+//                        break;
+//                    }
+//                    default: {
+//                        Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
+//                        super.onActivityResult(requestCode, resultCode, data);
+//                        break;
+//                    }
+//                }
+//                break;
+//            }
+//            case REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE: {
+//                switch (resultCode) {
+//                    case RESULT_OK: {
+//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_OK -- flow control handler: validating GoogleApiClient connection...");
+//                        GoogleDriveFileDownloadManager.getInstance().validate_connect_api_client(this);
+//                        break;
+//                    }
+//                    case RESULT_CANCELED: {
+//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_CANCELED -- flow control handler: abnormal flow termination :(");
+//                        super.onActivityResult(requestCode, resultCode, data);
+//                        break;
+//                    }
+//                    default: {
+//                        Log.d(TAG, "onActivityResult: default case: requestCode " + requestCode + ", resultCode " + resultCode);
+//                        super.onActivityResult(requestCode, resultCode, data);
+//                        break;
+//                    }
+//                }
+//                break;
+//            }
+//            case REQUEST_CODES.REQUEST_CODE__EDIT_TOML_FILE: {
+//                switch (resultCode) {
+//                    case RESULT_OK: {
+//                        break;
+//                    }
+//                    case RESULT_CANCELED: {
+//                        break;
+//                    }
+//                }
+//                break;
+//            }
             case REQUEST_CODES.REQUEST_CODE__MANAGE_GPKG_BUNDLES: {
                 switch (resultCode) {
                     case ManageGpkgBundlesActivity.MNG_GPKG_BUNDLES_RESULT__CHANGED: {
