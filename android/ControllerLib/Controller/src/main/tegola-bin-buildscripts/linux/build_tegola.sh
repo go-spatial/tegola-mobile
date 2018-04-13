@@ -113,7 +113,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 BASE_TEGOLA_SUBDIR=github.com/go-spatial/tegola
-TEGOLA_SRC_DIR=$GOPATH/src/$BASE_TEGOLA_SUBDIR
+TEGOLA_SRC_DIR=${GOPATH}/src/$BASE_TEGOLA_SUBDIR
 echo build_tegola.sh: go build command: pre-exec: meta: source dir: $TEGOLA_SRC_DIR
 
 if [[ -z "${TEGOLA_VER_STRING}" ]]; then
@@ -128,6 +128,11 @@ echo build_tegola.sh: go build command: pre-exec: meta: cmd.Version: $TEGOLA_VER
 
 case $GOOS in
     android)
+        if [[ -z "${MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME}" ]]; then
+            echo FATAL ERROR! Environment variable MY_ANDROID_NDK_STANDALONE_TOOLCHAIN_HOME not set! exiting...
+            exit ${ERR__INVALID_ARG}
+        fi
+
         # android go builds require cross-compiling via the Android NDK - set cross-compilation options (via env vars below)
         echo build_tegola.sh: go build command: pre-exec: meta: android x-compile: ndk: arch: $ndk_arch
         echo build_tegola.sh: go build command: pre-exec: meta: android x-compile: ndk: apilevel: $ndk_apilevel
@@ -148,15 +153,18 @@ case $GOOS in
         echo build_tegola.sh: go build command: pre-exec: go build env: var: CGO_ENABLED="$(printenv CGO_ENABLED)"
 
         # set go build cmd "pkgdir" arg val - android go builds require use of: gomobile package
-        GO_BLD_CMD_ARG_VAL__PKGDIR=${MY_GOLANG_WORKSPACE}/pkg/gomobile/pkg_android_$arch_friendly
+        GO_BLD_CMD_ARG_VAL__PKGDIR=${GOPATH}/pkg/gomobile/pkg_android_${GOARCH}
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: pkgdir: $GO_BLD_CMD_ARG_VAL__PKGDIR
+        if [[ ! -e ${GO_BLD_CMD_ARG_VAL__PKGDIR}/ ]]; then
+            echo build_tegola.sh: go build command: pre-exec: command string: build: arg: pkgdir: FATAL ERROR!!! ${GO_BLD_CMD_ARG_VAL__PKGDIR}/ directory DOES NOT EXIST! BUILD WILL FAIL!!!
+        fi
 
         # set go build cmd "ldflags" arg val - set version string; also, android go builds require use of additional "extldflags" arg
         GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd/cmd.Version=${TEGOLA_VER_STRING} -linkmode=external '-extldflags=-pie'"
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
 
         # set go build cmd "o" arg val - this specifies output path of go build explicitly
-        OUTPUT_DIR=${MY_GOLANG_WORKSPACE}/pkg/${BASE_TEGOLA_SUBDIR}/android/api-${ndk_apilevel}/$arch_friendly
+        OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/android/api-${ndk_apilevel}/$arch_friendly
         OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}__android_${arch_friendly}.bin
         OUTPUT_BIN_NORMALIZED_FN=tegola_bin__android_$arch_friendly
         OUTPUT_PATH=${OUTPUT_DIR}/${OUTPUT_BIN}
@@ -177,7 +185,7 @@ case $GOOS in
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
 
         # set go build cmd "o" arg val - this specifies output path of go build explicitly
-        OUTPUT_DIR=${MY_GOLANG_WORKSPACE}/pkg/${BASE_TEGOLA_SUBDIR}/windows/$arch_friendly
+        OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/windows/$arch_friendly
         OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}__windows_${arch_friendly}.bin
         OUTPUT_BIN_NORMALIZED_FN=tegola_bin__windows_$arch_friendly
         OUTPUT_PATH=${OUTPUT_DIR}/${OUTPUT_BIN}

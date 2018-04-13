@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+
+  tegola-android-xcompiler:
+    build:
+      context: .
+      args:
+        ANDROID_NDK_VERSION: r15c
+    image: tegola-android-xcompiler/ndk-r15c:latest

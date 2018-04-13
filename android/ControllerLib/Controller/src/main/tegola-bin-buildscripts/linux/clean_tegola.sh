@@ -80,11 +80,11 @@ BASE_TEGOLA_SUBDIR=github.com/go-spatial/tegola
 
 case $GOOS in
     android)
-        OUTPUT_DIR=${MY_GOLANG_WORKSPACE}/pkg/${BASE_TEGOLA_SUBDIR}/android/api-${ndk_apilevel}/$arch_friendly
+        OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/android/api-${ndk_apilevel}/$arch_friendly
         OUTPUT_BIN_NORMALIZED_FN=tegola_bin__android_$arch_friendly
         ;;
     windows)
-        OUTPUT_DIR=${MY_GOLANG_WORKSPACE}/pkg/${BASE_TEGOLA_SUBDIR}/windows/$arch_friendly
+        OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/windows/$arch_friendly
         OUTPUT_BIN_NORMALIZED_FN=tegola_bin__windows_$arch_friendly
         ;;
 esac
