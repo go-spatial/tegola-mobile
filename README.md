@@ -66,7 +66,7 @@ After compiling tegola Android-platform binaries, all four - for arm/API-16, arm
 
 
 #### Build Tegola Android-Platform Target Binaries
-Since tegola is written in Golang, we must use Golang and Gomobile build tools in combination with the NDK Standalone Toolchains (see above) to cross-compile the four supported Android-platform tegola binaries.  Note that these steps must be completed each time you want to target a new revision or different feature version of tegola (for Android).
+Since tegola is written in Golang, we must use Golang and Gomobile build tools in combination with custom built NDK Standalone Toolchains to cross-compile the four supported Android-platform tegola binaries.  Note that these steps must be completed each time you want to target a new revision or different feature version of tegola (for Android).
 
  1. (Only once) Fork the github **tegola-mobile** repo (https://github.com/go-spatial/tegola-mobile, *the repo this readme is in*) for your github account if you have not already done so
  2. (Only once) Create directory `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/`
