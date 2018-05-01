@@ -1,2 +1,2 @@
-include ':TMControllerSvc', ':Bootstrapper'
+include ':TMControllerSvc', ':TMHarnessUX'
 project(':TMControllerSvc').projectDir = new File(settingsDir, '../TMControllerSvcLib/TMControllerSvc')
