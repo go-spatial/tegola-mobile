@@ -1,2 +1,2 @@
-include ':ControllerSvc', ':Bootstrapper'
-project(':ControllerSvc').projectDir = new File(settingsDir, '../ControllerSvcLib/ControllerSvc')
+include ':TMControllerSvc', ':Bootstrapper'
+project(':TMControllerSvc').projectDir = new File(settingsDir, '../TMControllerSvcLib/TMControllerSvc')
