@@ -2,7 +2,7 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
-             tools:context="go_spatial.com.github.tegola.mobile.android.bootstrapper.ImportFilesFragment">
+             tools:context="go_spatial.com.github.tegola.mobile.android.ux.ImportFilesFragment">
 
     <RelativeLayout
         android:layout_width="wrap_content"

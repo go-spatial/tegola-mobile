@@ -51,9 +51,9 @@ android {
         versionProps['VERSION_BUILD'] = vBuild.toString()
         versionProps.store(versionPropsFile.newWriter(), null)
 
-        def base_archive_name = "tegolamobile-gpkg"
+        def base_archive_name = "tegolamobile"
         defaultConfig {
-            applicationId "go_spatial.com.github.tegola.mobile.android.bootstrapper"
+            applicationId "go_spatial.com.github.tegola.mobile.android.ux"
             versionCode vCode
             versionName vName
             archivesBaseName = base_archive_name

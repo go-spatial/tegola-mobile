@@ -1,4 +1,4 @@
-package go_spatial.com.github.tegola.mobile.android.bootstrapper;
+package go_spatial.com.github.tegola.mobile.android.ux;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -64,8 +64,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.REQUEST_CODES;
-import go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.Strings;
+import go_spatial.com.github.tegola.mobile.android.ux.Constants.REQUEST_CODES;
+import go_spatial.com.github.tegola.mobile.android.ux.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.FGS;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;

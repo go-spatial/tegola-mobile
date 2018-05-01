@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="go_spatial.com.github.tegola.mobile.android.bootstrapper"
+<manifest package="go_spatial.com.github.tegola.mobile.android.ux"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -56,7 +56,7 @@
 
         <provider
             android:name=".TMLocalStorageProvider"
-            android:authorities="go_spatial.com.github.tegola.mobile.android.bootstrapper.localstorage.documents"
+            android:authorities="go_spatial.com.github.tegola.mobile.android.ux.localstorage.documents"
             android:enabled="@bool/use_provider"
             android:exported="true"
             android:grantUriPermissions="true"

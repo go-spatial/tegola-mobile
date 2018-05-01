@@ -408,7 +408,7 @@
                                         android:visibility="gone"
                                     />
 
-                                    <go_spatial.com.github.tegola.mobile.android.bootstrapper.CustomSpinner
+                                    <go_spatial.com.github.tegola.mobile.android.ux.CustomSpinner
                                         android:id="@+id/spinner_val_postgis_provider_config_sel__local"
                                         android:layout_width="wrap_content"
                                         android:layout_height="25dp"
@@ -497,7 +497,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content">
 
-                                    <go_spatial.com.github.tegola.mobile.android.bootstrapper.CustomSpinner
+                                    <go_spatial.com.github.tegola.mobile.android.ux.CustomSpinner
                                         android:id="@+id/spinner_val_gpkg_provider_bundle_sel"
                                         android:layout_width="wrap_content"
                                         android:layout_height="25dp"

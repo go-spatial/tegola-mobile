@@ -1,4 +1,4 @@
-package go_spatial.com.github.tegola.mobile.android.bootstrapper;
+package go_spatial.com.github.tegola.mobile.android.ux;
 
 import com.ianhanniballake.localstorage.LocalStorageProvider;
 

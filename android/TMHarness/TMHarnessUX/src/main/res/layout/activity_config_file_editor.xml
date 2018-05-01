@@ -20,7 +20,7 @@
         android:scrollbars="horizontal|vertical"
         android:soundEffectsEnabled="true">
 
-        <go_spatial.com.github.tegola.mobile.android.bootstrapper.CustomEditText
+        <go_spatial.com.github.tegola.mobile.android.ux.CustomEditText
             android:id="@+id/edt_config_file_contents"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
