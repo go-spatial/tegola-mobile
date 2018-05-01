@@ -45,4 +45,6 @@
     <string name="srvr_console_ouput">Server Console Output:</string>
 
     <string name="gpkg_bundle__root_url__default">s3-us-west-2.amazonaws.com/tegola-mobile</string>
+
+    <string name="mbsdk_access_token">pk.eyJ1IjoidHJpcHBpZXN0MSIsImEiOiJjamdnc3E1ajUwMWZ5Mndxc2Z5ZGhqOGl4In0.MnLY3pX0xDU5t1aLwDy25A</string>
 </resources>

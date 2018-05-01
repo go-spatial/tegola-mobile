@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="go_spatial.com.github.tegola.mobile.android.ux"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="go_spatial.com.github.tegola.mobile.android.ux">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_LOGS"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
+        android:name=".TMHarnessApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -28,16 +30,16 @@
             android:launchMode="singleTop"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".ConfigFileEditorActivity"
             android:label="@string/activity_title__config_file_viewer"
-            android:windowSoftInputMode="stateHidden">
-        </activity>
+            android:windowSoftInputMode="stateHidden"
+        />
         <activity
             android:name="com.ipaulpro.afilechooser.FileChooserActivity"
             android:enabled="@bool/use_activity"
@@ -45,31 +47,30 @@
             android:icon="@drawable/ic_chooser"
             android:label="@string/choose_file">
             <intent-filter>
-                <action android:name="android.intent.action.GET_CONTENT"/>
+                <action android:name="android.intent.action.GET_CONTENT" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.OPENABLE"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
 
-                <data android:mimeType="text/*"/>
+                <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
 
         <provider
             android:name=".TMLocalStorageProvider"
-            android:authorities="go_spatial.com.github.tegola.mobile.android.ux.localstorage.documents"
+            android:authorities="go_spatial.com.github.tegola.mobile.android.localstorage.documents"
             android:enabled="@bool/use_provider"
             android:exported="true"
             android:grantUriPermissions="true"
             android:permission="android.permission.MANAGE_DOCUMENTS">
             <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
             </intent-filter>
         </provider>
 
-        <activity android:name=".ManageGpkgBundlesActivity">
-        </activity>
-        <activity android:name=".InstallGpkgBundleActivity">
-        </activity>
+        <activity android:name=".ManageGpkgBundlesActivity" />
+        <activity android:name=".InstallGpkgBundleActivity" />
+        <activity android:name=".MapboxActivity" />
     </application>
 
 </manifest>

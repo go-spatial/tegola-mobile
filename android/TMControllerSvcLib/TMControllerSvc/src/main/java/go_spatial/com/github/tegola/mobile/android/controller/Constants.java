@@ -4,15 +4,19 @@ package go_spatial.com.github.tegola.mobile.android.controller;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
+import static go_spatial.com.github.tegola.mobile.android.controller.Constants.Strings.PKG;
+
 public class Constants {
     public interface Strings {
-        String PKG = "go_spatial.com.github.tegola.android.controller";
+        String PKG = "go_spatial.com.github.tegola.mobile.android.controller";
+
         String GPKG_BUNDLE_SUBDIR = "gpkg-bundle";
         String GPKG_BUNDLE_VERSION_PROPS__FNAME = "version.properties";
         String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE = "TOML_FILE";
         String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_VERSION = "TOML_VERSION";
         String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES = "GPKG_FILES";
         String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_VERSIONS = "GPKG_VERSIONS";
+        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_PATH_ENV_VARS = "GPKG_PATH_ENV_VARS";
 
         interface INTENT {
             interface ACTION {
@@ -366,7 +370,8 @@ public class Constants {
         }
     }
 
-    public interface ASNB_NOTIFICATIONS {
-        int FGS_NB_ID = 99991;   //largest 5-digit prime number (for fun and to provide high degree of statistical uniqueness)
+    public interface ASNB_NOTIFICATIONS {//Android System Notification Bar - Notifications
+        int NOTIFICATION_ID__CONTROLLER_SERVICE = 99991;   //largest 5-digit prime number (for fun and to provide high degree of statistical uniqueness)
+        String NOTIFICATION_CHANNEL_ID__CONTROLLER_SERVICE = PKG + ".service";
     }
 }

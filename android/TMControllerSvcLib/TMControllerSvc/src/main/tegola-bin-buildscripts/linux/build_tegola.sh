@@ -85,6 +85,20 @@ while [[ $# -gt 0 ]] ; do
                     echo build_tegola.sh: go build command: pre-exec: go build env: var: GOARCH="$(printenv GOARCH)"
                     arch_friendly=x86_64
                     ;;
+                darwin-x86)
+                    export GOOS=darwin
+                    echo build_tegola.sh: go build command: pre-exec: go build env: var: GOOS="$(printenv GOOS)"
+                    export GOARCH=386
+                    echo build_tegola.sh: go build command: pre-exec: go build env: var: GOARCH="$(printenv GOARCH)"
+                    arch_friendly=x86
+                    ;;
+                darwin-x86_64)
+                    export GOOS=darwin
+                    echo build_tegola.sh: go build command: pre-exec: go build env: var: GOOS="$(printenv GOOS)"
+                    export GOARCH=amd64
+                    echo build_tegola.sh: go build command: pre-exec: go build env: var: GOARCH="$(printenv GOARCH)"
+                    arch_friendly=x86_64
+                    ;;
                 *)    # unknown platform
                     echo build_tegola.sh: ERROR: invalid target platform "$argument_value"
                     ;;
@@ -188,6 +202,27 @@ case $GOOS in
         OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/windows/$arch_friendly
         OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}__windows_${arch_friendly}.bin
         OUTPUT_BIN_NORMALIZED_FN=tegola_bin__windows_$arch_friendly
+        OUTPUT_PATH=${OUTPUT_DIR}/${OUTPUT_BIN}
+        GO_BLD_CMD_ARG_VAL__O=$OUTPUT_PATH
+        echo build_tegola.sh: go build command: pre-exec: command string: build: arg: o \(explicit output path\): $GO_BLD_CMD_ARG_VAL__O
+        ;;
+    darwin)
+        # by default, standard tegola darwin build-target builds do not use CGO bindings, however some new tegola features may actually require it globally - e.g. geopkg provider, so, althgough we default to disable CGO, we allow it to be turned on via a cmdline arg to this script
+        if [[ -n "${CGO_ENABLED_OVERRIDE_DEFAULT}" ]]; then
+            CGO_ENABLED=$CGO_ENABLED_OVERRIDE_DEFAULT
+        else
+            CGO_ENABLED=0
+        fi
+        echo build_tegola.sh: go build command: pre-exec: go build env: var: CGO_ENABLED="$(printenv CGO_ENABLED)"
+
+        # set go build cmd "ldflags" arg val - set version string
+        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd/cmd.Version=${TEGOLA_VER_STRING}"
+        echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
+
+        # set go build cmd "o" arg val - this specifies output path of go build explicitly
+        OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/darwin/$arch_friendly
+        OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}__darwin_${arch_friendly}.bin
+        OUTPUT_BIN_NORMALIZED_FN=tegola_bin__darwin_$arch_friendly
         OUTPUT_PATH=${OUTPUT_DIR}/${OUTPUT_BIN}
         GO_BLD_CMD_ARG_VAL__O=$OUTPUT_PATH
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: o \(explicit output path\): $GO_BLD_CMD_ARG_VAL__O

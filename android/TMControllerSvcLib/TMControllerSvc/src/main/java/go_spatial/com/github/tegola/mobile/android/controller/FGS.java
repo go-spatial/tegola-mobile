@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Map;
 
 
 public class FGS extends Service {
@@ -77,7 +78,7 @@ public class FGS extends Service {
                     Log.d(TAG, "onStartCommand: setting up ASN for FGS...");
 
                     Log.d(TAG, "onStartCommand: starting FGS...");
-                    startForeground(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, fgs_asn__prepare(getString(R.string.fgs_asn_title), getString(R.string.stopped)));
+                    startForeground(Constants.ASNB_NOTIFICATIONS.NOTIFICATION_ID__CONTROLLER_SERVICE, fgs_asn__prepare(getString(R.string.fgs_asn_title), getString(R.string.stopped)));
 
                     Log.d(TAG, "onStartCommand: ASN dispatched and FGS started - init'ing...");
                     init();
@@ -107,7 +108,8 @@ public class FGS extends Service {
         intent_bring_harness_to_foreground.addCategory(Intent.CATEGORY_LAUNCHER);
         PendingIntent pending_intent_bring_harness_to_foreground = PendingIntent.getActivity(getApplicationContext(), 0, intent_bring_harness_to_foreground, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        return new NotificationCompat.Builder(this)
+        NotificationCompat.Builder notificationBuilder = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new NotificationCompat.Builder(this, Constants.ASNB_NOTIFICATIONS.NOTIFICATION_CHANNEL_ID__CONTROLLER_SERVICE) : new NotificationCompat.Builder(this));
+        return notificationBuilder
             .setContentTitle(s_title)
             .setContentText(s_status)
             .setSmallIcon(R.drawable.ic_stat_satellite_black)
@@ -119,11 +121,11 @@ public class FGS extends Service {
 
     private void fgs_asn__update(final String s_title, final String s_status) {
         NotificationManager asn_mgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        asn_mgr.notify(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, fgs_asn__prepare(s_title, s_status));
+        asn_mgr.notify(Constants.ASNB_NOTIFICATIONS.NOTIFICATION_ID__CONTROLLER_SERVICE, fgs_asn__prepare(s_title, s_status));
     }
     private void fgs_asn__update(final String s_status) {
         NotificationManager asn_mgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        asn_mgr.notify(Constants.ASNB_NOTIFICATIONS.FGS_NB_ID, fgs_asn__prepare(getString(R.string.fgs_asn_title), s_status));
+        asn_mgr.notify(Constants.ASNB_NOTIFICATIONS.NOTIFICATION_ID__CONTROLLER_SERVICE, fgs_asn__prepare(getString(R.string.fgs_asn_title), s_status));
     }
 
     private void init() {
@@ -356,14 +358,17 @@ public class FGS extends Service {
 
             //now get gpkg-bundle geopcackages spec from version.props, then confirm existence
             String[] s_list_geopcackage_files = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES).split(",");
+            String[] s_list_geopcackage_path_env_vars = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_PATH_ENV_VARS).split(",");
             if (s_list_geopcackage_files != null && s_list_geopcackage_files.length > 0) {
+                Map<String, String> pb_env = pb.environment();
                 for (int i = 0; i < s_list_geopcackage_files.length; i++) {
                     String s_gpkg_file = s_list_geopcackage_files[i];
                     f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_file);
                     Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES + "[" + i + "] ==" + f_gpkg_bundle__toml.getCanonicalPath());
                     if (!f_gpkg_bundle__gpkg.exists())
                         throw new FileNotFoundException("geopcackage-bundle gpkg file " + f_gpkg_bundle__gpkg.getCanonicalPath() + " not found");
-                    Log.d(TAG, "start_tegola: found/using gpkg-bundle gpkg file: " + f_gpkg_bundle__gpkg.getCanonicalPath());
+                    pb_env.put(s_list_geopcackage_path_env_vars[i], f_gpkg_bundle__gpkg.getCanonicalPath());
+                    Log.d(TAG, "start_tegola: set pb env " + s_list_geopcackage_path_env_vars[i] + " to \"" + pb_env.get(s_list_geopcackage_path_env_vars[i]) + "\"");
                 }
             } else {
                 throw new FileNotFoundException("failed to retrieve list of geopackage files from gpkg-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath());

@@ -1228,6 +1228,8 @@ public class MainActivity extends AppCompatActivity {
         //now disable edit-config button
         m_btn_config_sel_local__edit_file.setEnabled(false);
         m_tv_tegola_console_output.setText("");
+
+        startActivity(new Intent(MainActivity.this, MapboxActivity.class));
     }
 
     private void OnMVTServerOutputLogcat(final String logcat_line) {
