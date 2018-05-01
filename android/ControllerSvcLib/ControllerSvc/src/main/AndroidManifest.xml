@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="go_spatial.com.github.tegola.mobile.android.controller"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-sdk android:minSdkVersion="15" android:maxSdkVersion="26"/>
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_LOGS"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <application>
+        <service android:name="go_spatial.com.github.tegola.mobile.android.controller.FGS"/>
+        <activity android:name="go_spatial.com.github.tegola.mobile.android.controller.ASNBContentActivity"/>
+    </application>
+
+</manifest>

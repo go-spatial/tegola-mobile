@@ -106,7 +106,7 @@ dependencies {
     //only import Google Drive API vs. the entire Google Play Services bundle
     //implementation 'com.google.android.gms:play-services-drive:11.0.4'
 
-    implementation project(':Controller')
+    implementation project(':ControllerSvc')
 
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
 

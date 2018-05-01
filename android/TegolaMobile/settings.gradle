@@ -1,2 +1,2 @@
-include ':Controller', ':Bootstrapper'
-project(':Controller').projectDir = new File(settingsDir, '../ControllerLib/Controller')
+include ':ControllerSvc', ':Bootstrapper'
+project(':ControllerSvc').projectDir = new File(settingsDir, '../ControllerSvcLib/ControllerSvc')

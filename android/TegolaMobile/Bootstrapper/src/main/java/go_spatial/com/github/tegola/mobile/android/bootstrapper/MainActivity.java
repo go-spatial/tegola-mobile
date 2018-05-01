@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -68,7 +67,7 @@ import java.util.ArrayList;
 import go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.REQUEST_CODES;
 import go_spatial.com.github.tegola.mobile.android.bootstrapper.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
-import go_spatial.com.github.tegola.mobile.android.controller.ControllerFGS;
+import go_spatial.com.github.tegola.mobile.android.controller.FGS;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
 public class MainActivity extends AppCompatActivity {
@@ -1279,7 +1278,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void start_controller_fgs() {
         m_tv_val_ctrlr_status.setText(getString(R.string.starting));
-        Intent intent_start_controller_fgs = new Intent(MainActivity.this, ControllerFGS.class);
+        Intent intent_start_controller_fgs = new Intent(MainActivity.this, FGS.class);
         intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND);
         intent_start_controller_fgs.putExtra(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS, MainActivity.class.getName());
         startService(intent_start_controller_fgs);
@@ -1287,7 +1286,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void stop_controller_fgs() {
         m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
-        Intent intent_stop_controller_fgs = new Intent(MainActivity.this, ControllerFGS.class);
+        Intent intent_stop_controller_fgs = new Intent(MainActivity.this, FGS.class);
         intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__STOP_FOREGROUND);
         stopService(intent_stop_controller_fgs);
     }
