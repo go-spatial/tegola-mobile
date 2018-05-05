@@ -5,6 +5,7 @@
     <string name="apply">Apply</string>
     <string name="commit_changes">Commit Changes</string>
     <string name="revert_changes">Revert Changes</string>
+    <string name="open">Open</string>
     <string name="close">Close</string>
     <string name="OK">OK</string>
     <string name="cancel">Cancel</string>
@@ -46,5 +47,6 @@
 
     <string name="gpkg_bundle__root_url__default">s3-us-west-2.amazonaws.com/tegola-mobile</string>
 
-    <string name="mbsdk_access_token">pk.eyJ1IjoidHJpcHBpZXN0MSIsImEiOiJjamdnc3E1ajUwMWZ5Mndxc2Z5ZGhqOGl4In0.MnLY3pX0xDU5t1aLwDy25A</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Map;
@@ -187,29 +188,36 @@ public class FGS extends Service {
         m_br_client_control_request = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Constants.Enums.E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST e_mvt_srvr_ctrl_request = Constants.Enums.E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST.fromString(intent != null ? intent.getAction() : null);
-                switch (e_mvt_srvr_ctrl_request) {
-                    case MVT_SERVER__START: {
-                        Log.i(TAG, "Received MVT_SERVER__START request");
-                        MVT_SERVER_START_SPEC server_start_spec = null;
-                        if (intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, false))
-                            server_start_spec = new MVT_SERVER_START_SPEC__GPKG_PROVIDER(
-                                    intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE)
-                            );
-                        else {
-                            server_start_spec = new MVT_SERVER_START_SPEC__POSTGIS_PROVIDER(
-                                    intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__IS_REMOTE, false)
-                                    , intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__PATH)
-                            );
+                if (intent != null) {
+                    Log.d(TAG, "m_br_client_control_request received: " + intent.getAction());
+                    Constants.Enums.E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST e_mvt_srvr_ctrl_request = Constants.Enums.E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST.fromString(intent != null ? intent.getAction() : null);
+                    switch (e_mvt_srvr_ctrl_request) {
+                        case MVT_SERVER__START: {
+                            MVT_SERVER_START_SPEC server_start_spec = null;
+                            if (intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, false))
+                                server_start_spec = new MVT_SERVER_START_SPEC__GPKG_PROVIDER(
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE)
+                                );
+                            else {
+                                server_start_spec = new MVT_SERVER_START_SPEC__POSTGIS_PROVIDER(
+                                        intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__IS_REMOTE, false)
+                                        , intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__PATH)
+                                );
+                            }
+                            handle_mvt_server_control_request__start(server_start_spec);
+                            break;
                         }
-                        handle_mvt_server_control_request__start(server_start_spec);
-                        break;
+                        case MVT_SERVER__STOP: {
+                            handle_mvt_server_control_request__stop();
+                            break;
+                        }
+                        default: {
+                            Log.e(TAG, "m_br_client_control_request received: " + intent.getAction() + " but NO HANDLER IS DEFINED!");
+                            break;
+                        }
                     }
-                    case MVT_SERVER__STOP: {
-                        Log.i(TAG, "Received MVT_SERVER__STOP request");
-                        handle_mvt_server_control_request__stop();
-                        break;
-                    }
+                } else {
+                    Log.e(TAG, "m_br_client_control_request received null intent!");
                 }
             }
         };
@@ -228,9 +236,10 @@ public class FGS extends Service {
             m_thread_tegola_process_monitor = null
             , m_thread_tegola_process_stdout_monitor = null
             , m_thread_tegola_process_stderr_monitor = null
-            , m_thread_tegola_process_logcat_monitor = null;
+            , m_thread_logcat_process_monitor = null;
     private volatile boolean m_tegola_process_is_running = false;
 
+    private Integer m_process_tegola_pid = null;
     private int getPid(Process p) {
         int pid = -1;
         try {
@@ -306,7 +315,10 @@ public class FGS extends Service {
         stop_tegola();
     }
 
+    private Process m_logcat_process = null;
+
     private boolean start_tegola(@NonNull final MVT_SERVER_START_SPEC server_start_spec) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException, UnknownMVTServerStartSpecType {
+        m_process_tegola_pid = null;
         final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
         final File
                 f_filesDir = getFilesDir()
@@ -349,10 +361,10 @@ public class FGS extends Service {
             //get gpkg-bundle toml file spec from version.props, confirm existence, then build "--config" arg for tegola commandline
             String s_gpkg_bundle__toml = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE);
             f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_gpkg_bundle__toml);
-            Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE + "==" + f_gpkg_bundle__toml.getCanonicalPath());
+            Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE + " == " + f_gpkg_bundle__toml.getCanonicalPath());
             if (!f_gpkg_bundle__toml.exists())
                 throw new FileNotFoundException("geopcackage-bundle toml file " + f_gpkg_bundle__toml.getCanonicalPath() + " not found");
-            Log.d(TAG, "start_tegola: found/using gpkg-bundle toml file: " + f_gpkg_bundle__toml.getCanonicalPath());
+            Log.d(TAG, "start_tegola: \tfound/using gpkg-bundle toml file: " + f_gpkg_bundle__toml.getCanonicalPath());
             als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
             als_cmd_line.add(f_gpkg_bundle__toml.getCanonicalPath());
 
@@ -364,11 +376,11 @@ public class FGS extends Service {
                 for (int i = 0; i < s_list_geopcackage_files.length; i++) {
                     String s_gpkg_file = s_list_geopcackage_files[i];
                     f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_file);
-                    Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES + "[" + i + "] ==" + f_gpkg_bundle__toml.getCanonicalPath());
+                    Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES + "[" + i + "] == " + f_gpkg_bundle__gpkg.getCanonicalPath());
                     if (!f_gpkg_bundle__gpkg.exists())
                         throw new FileNotFoundException("geopcackage-bundle gpkg file " + f_gpkg_bundle__gpkg.getCanonicalPath() + " not found");
                     pb_env.put(s_list_geopcackage_path_env_vars[i], f_gpkg_bundle__gpkg.getCanonicalPath());
-                    Log.d(TAG, "start_tegola: set pb env " + s_list_geopcackage_path_env_vars[i] + " to \"" + pb_env.get(s_list_geopcackage_path_env_vars[i]) + "\"");
+                    Log.d(TAG, "start_tegola: \tset pb env " + s_list_geopcackage_path_env_vars[i] + " to \"" + pb_env.get(s_list_geopcackage_path_env_vars[i]) + "\"");
                 }
             } else {
                 throw new FileNotFoundException("failed to retrieve list of geopackage files from gpkg-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath());
@@ -410,7 +422,7 @@ public class FGS extends Service {
         }
         String s_cmdline = sb_cmdline.toString();
         String s_working_dir = pb.directory().getPath();
-        Log.d(TAG, "start_tegola: tegola process cmdline is '" + s_cmdline + "' and will run in " + s_working_dir);
+        Log.d(TAG, "start_tegola: starting tegola server process (cmdline is '" + s_cmdline + "' and will run in " + s_working_dir + ")...");
         m_process_tegola = pb.start();
 
         //immediately notify br receivers MVT_SERVER__STOPPED if we fail to create tegola process
@@ -428,69 +440,115 @@ public class FGS extends Service {
         m_tegola_process_is_running = true;
 
         //get tegola pid if we can - may not work since "pid" is private field of Process, obtained via reflection...
-        final int pid_process_tegola = getPid(m_process_tegola);
-        Log.i(TAG, "start_tegola: server process " + (pid_process_tegola != -1 ? "(pid " + pid_process_tegola + ") ": "") + "started");
+        m_process_tegola_pid = getPid(m_process_tegola);
+        Log.i(TAG, "start_tegola: tegola server process " + (m_process_tegola_pid != -1 ? "(pid " + m_process_tegola_pid + ") ": "") + "started");
 
         //start tegola process logcat cat monitor and notify br receivers MVT_SERVER__STARTED
         Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED);
         intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION, getString(R.string.srvr_ver));
-        if (pid_process_tegola != -1)
-            intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, pid_process_tegola);
-        fgs_asn__update(getString(R.string.started) + (pid_process_tegola != -1 ? ", pid " + pid_process_tegola: ""));
+        if (m_process_tegola_pid != -1)
+            intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, m_process_tegola_pid.intValue());
+        fgs_asn__update(getString(R.string.started) + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid: ""));
         sendBroadcast(intent_notify_server_started);
 
         //now start tegola logcat monitor specifc to tegola process (before stderr and stdout monitors since there is always the possibility tegola could segfault or trigger some other native signal)
-        if (pid_process_tegola != -1) {
+        if (m_process_tegola_pid != -1) {
             sb_cmdline = new StringBuilder();
             sb_cmdline.append("logcat");
             sb_cmdline.append(" -v thread");
             s_cmdline = sb_cmdline.toString();
-            Log.d(TAG, "start_tegola: tegola process (pid " + pid_process_tegola + ") logcat monitor process cmdline is '" + s_cmdline + "'");
-            final Process tegola_logcat_monitor_process = Runtime.getRuntime().exec(s_cmdline);
-            Log.i(TAG, "start_tegola: tegola logcat monitor process started");
-            if (tegola_logcat_monitor_process != null) {
-                m_thread_tegola_process_logcat_monitor = new Thread(new Runnable() {
+
+            //the crux: start logcat process!
+            Log.d(TAG, "start_tegola: starting logcat process (cmdline: '" + s_cmdline + "')...");
+            m_logcat_process = Runtime.getRuntime().exec(s_cmdline);
+
+            if (m_logcat_process != null) {
+                final int pid_logcat = getPid(m_logcat_process);
+                Log.i(TAG, "start_tegola: logcat process (" + pid_logcat + ") started");
+
+                //now create/start thread to monitor the logcat process itself
+                m_thread_logcat_process_monitor = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d(TAG, "tegola_process_logcat_monitor_thread: thread started");
-                        InputStream input_stream_logcat_monitor_process = tegola_logcat_monitor_process != null ? tegola_logcat_monitor_process.getInputStream() : null;
-                        if (input_stream_logcat_monitor_process != null) {
-                            Log.d(TAG, "tegola_process_logcat_monitor_thread: got ref to tegola logcat monitor process inputstream");
-                            BufferedReader reader_logcat_monitor_process = new BufferedReader(new InputStreamReader(input_stream_logcat_monitor_process));
-                            String s_line = "";
-                            while (!Thread.currentThread().isInterrupted()) {
-                                try {
-                                    while ((s_line = reader_logcat_monitor_process.readLine()) != null) {
-                                        if (s_line.contains(pid_process_tegola + ":")) {
-                                            Intent intent_notify_server_output_logcat = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT);
-                                            intent_notify_server_output_logcat.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__LOGCAT__LINE, s_line);
-                                            sendBroadcast(intent_notify_server_output_logcat);
+                        Thread logcat_inputstream_processor_thread = null;
+                        try {
+                            Log.i(TAG, "logcat_inputstream_processor_thread: started");
+
+                            //create an additional thread which reads the inputstream of the process and sends content (line by line) back to consumer
+                            logcat_inputstream_processor_thread = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    InputStream inputstream_logcat_process = m_logcat_process != null ? m_logcat_process.getInputStream() : null;
+                                    if (inputstream_logcat_process != null) {
+                                        Log.d(TAG, "logcat_inputstream_processor_thread: got ref to logcat process inputstream");
+
+                                        BufferedReader reader_logcat_process_inputstream = new BufferedReader(new InputStreamReader(inputstream_logcat_process));
+                                        String s_line = "";
+                                        while  (!Thread.currentThread().isInterrupted()) {
+                                            try {
+                                                while ((s_line = reader_logcat_process_inputstream.readLine()) != null) {
+                                                    if (s_line.contains(m_process_tegola_pid + ":")) {
+                                                        Intent intent_notify_server_output_logcat = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT);
+                                                        intent_notify_server_output_logcat.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__LOGCAT__LINE, s_line);
+                                                        sendBroadcast(intent_notify_server_output_logcat);
+                                                    }
+                                                }
+                                                Thread.sleep(100);
+                                            } catch (InterruptedIOException e1) {
+                                                //e1.printStackTrace();
+                                                try {
+                                                    reader_logcat_process_inputstream.close();
+                                                } catch (IOException e2) {
+                                                    //e2.printStackTrace();
+                                                }
+                                                Log.d(TAG, "logcat_inputstream_processor_thread: thread interrupted");
+                                                Thread.currentThread().interrupt();
+                                            } catch (InterruptedException e1) {
+                                                //e1.printStackTrace();
+                                                if (reader_logcat_process_inputstream != null) {
+                                                    try {
+                                                        reader_logcat_process_inputstream.close();
+                                                    } catch (IOException e2) {
+                                                        //e2.printStackTrace();
+                                                    }
+                                                }
+                                                Log.d(TAG, "logcat_inputstream_processor_thread: thread interrupted");
+                                                Thread.currentThread().interrupt();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
                                         }
+                                    } else {
+                                        Log.e(TAG, "logcat_inputstream_processor_thread: could not get ref to tegola logcat monitor process inputstream!");
                                     }
-                                    Thread.sleep(100);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                } catch (InterruptedException e1) {
-                                    //e.printStackTrace();
-                                    if (reader_logcat_monitor_process != null) {
-                                        try {
-                                            reader_logcat_monitor_process.close();
-                                        } catch (IOException e2) {
-                                            //e2.printStackTrace();
-                                        }
-                                    }
-                                    Log.d(TAG, "tegola_process_logcat_monitor_thread: thread interrupted");
-                                    Thread.currentThread().interrupt();
+                                    Log.i(TAG, "logcat_inputstream_processor_thread: thread exiting");
                                 }
+                            });
+                            //Log.i(TAG, "logcat_process_monitor_thread: starting logcat_inputstream_processor_thread thread...");
+                            logcat_inputstream_processor_thread.start();
+                            if (logcat_inputstream_processor_thread.isAlive())
+                                m_logcat_process.waitFor();
+                            Log.i(TAG, "logcat_process_monitor_thread: logcat process stopped");
+                        } catch (InterruptedException e) {
+                            //e.printStackTrace();
+                        } finally {
+                            //now interrupt inputstream capture thread
+                            if (logcat_inputstream_processor_thread != null && logcat_inputstream_processor_thread.isAlive()) {
+                                //Log.i(TAG, "logcat_process_monitor_thread: interrupting logcat_inputstream_processor_thread thread...");
+                                logcat_inputstream_processor_thread.interrupt();
+                                try {
+                                    Log.i(TAG, "logcat_process_monitor_thread: interrupted inputstream processor thread and waiting 250 ms for thread to exit");
+                                    logcat_inputstream_processor_thread.join(250);
+                                } catch (InterruptedException e) {
+                                    //e.printStackTrace();
+                                }
+                                logcat_inputstream_processor_thread = null;
+                                Log.i(TAG, "logcat_process_monitor_thread: logcat_inputstream_processor_thread thread stopped or 250 ms wait to stop expired");
                             }
-                        } else {
-                            Log.e(TAG, "tegola_process_logcat_monitor_thread: could not get ref to tegola logcat monitor process inputstream!");
                         }
-                        Log.d(TAG, "tegola_process_logcat_monitor_thread: thread exiting");
-                        tegola_logcat_monitor_process.destroy();
                     }
                 });
-                m_thread_tegola_process_logcat_monitor.start();
+                m_thread_logcat_process_monitor.start();
             }
         }
 
@@ -583,22 +641,53 @@ public class FGS extends Service {
             public void run() {
                 try {
                     m_process_tegola.waitFor();
-                    Log.i(TAG, "tegola_process_monitor_thread: process stopped; interrupting monitor threads...");
-                    Thread.sleep(1000); //give a little bit of time to allow any remaining output to be flushed - no synchronization but this should suffice for now
-                    m_thread_tegola_process_stdout_monitor.interrupt();
-                    m_thread_tegola_process_stderr_monitor.interrupt();
-                    m_thread_tegola_process_logcat_monitor.interrupt();
+                    Log.i(TAG, "tegola_process_monitor_thread: tegola mvt server process stopped");
+                    //Thread.sleep(500); //give a little bit of time to allow any remaining output to be flushed - no synchronization but this should suffice for now
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
                 } finally {
-                    m_thread_tegola_process_stdout_monitor = null;
-                    m_thread_tegola_process_stderr_monitor = null;
-                    m_thread_tegola_process_logcat_monitor = null;
                     m_process_tegola = null;
+                    m_process_tegola_pid = null;
                     m_tegola_process_is_running = false;
+
+                    int n_thread_cleanup_wait_ms = 250;
+
+                    m_thread_tegola_process_stdout_monitor.interrupt();
+                    try {
+                        Log.i(TAG, "tegola_process_monitor_thread: interrupted stdout monitor thread and waiting " + n_thread_cleanup_wait_ms + " ms for thread to exit");
+                        m_thread_tegola_process_stdout_monitor.join(n_thread_cleanup_wait_ms);
+                    } catch (InterruptedException e) {
+                        //e.printStackTrace();
+                    }
+                    m_thread_tegola_process_stdout_monitor = null;
+                    Log.i(TAG, "tegola_process_monitor_thread: m_thread_tegola_process_stdout_monitor thread stopped or " + n_thread_cleanup_wait_ms + " ms wait to stop expired");
+
+                    m_thread_tegola_process_stderr_monitor.interrupt();
+                    try {
+                        Log.i(TAG, "tegola_process_monitor_thread: interrupted stderr monitor thread and waiting " + n_thread_cleanup_wait_ms + " ms for thread to exit");
+                        m_thread_tegola_process_stderr_monitor.join(n_thread_cleanup_wait_ms);
+                    } catch (InterruptedException e) {
+                        //e.printStackTrace();
+                    }
+                    m_thread_tegola_process_stderr_monitor = null;
+                    Log.i(TAG, "tegola_process_monitor_thread: m_thread_tegola_process_stderr_monitor thread stopped or " + n_thread_cleanup_wait_ms + " ms wait to stop expired");
+
+                    m_logcat_process.destroy();
+                    try {
+                        Log.i(TAG, "tegola_process_monitor_thread: destroyed logcat process and waiting " + n_thread_cleanup_wait_ms + " ms for monitor thread to exit");
+                        m_thread_logcat_process_monitor.join(n_thread_cleanup_wait_ms);
+                    } catch (InterruptedException e) {
+                        //e.printStackTrace();
+                    }
+                    m_thread_logcat_process_monitor = null;
+                    m_logcat_process = null;
+                    Log.i(TAG, "tegola_process_monitor_thread: m_thread_logcat_process_monitor thread stopped or " + n_thread_cleanup_wait_ms + " ms wait to stop expired");
+
                     Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
-                    fgs_asn__update(getString(R.string.stopped));
+                    //Log.d(TAG, "tegola_process_monitor_thread: broadcasting intent \"" + intent_notify_server_stopped.getAction() + "\"");
                     sendBroadcast(intent_notify_server_stopped);
+                    //Log.d(TAG, "tegola_process_monitor_thread: updating ASNB w/ \"" + getString(R.string.stopped) + "\"");
+                    fgs_asn__update(getString(R.string.stopped));
                 }
             }
         });
@@ -609,7 +698,7 @@ public class FGS extends Service {
 
     private boolean stop_tegola() {
         if (m_process_tegola != null) {
-            Log.i(TAG, "stop_tegola: killing current running instance of tegola mvt server...");
+            Log.i(TAG, "stop_tegola: destroying mvt server tegola process (pid " + m_process_tegola_pid + ")...");
             Intent intent_notify_server_stopping = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING);
             fgs_asn__update(getString(R.string.stopping));
             sendBroadcast(intent_notify_server_stopping);
@@ -618,15 +707,10 @@ public class FGS extends Service {
                 try {
                     m_thread_tegola_process_monitor.join();
                 } catch (InterruptedException e) {
-                    //e.printStackTrace();
+                    e.printStackTrace();
                 }
                 m_thread_tegola_process_monitor = null;
             }
-            m_process_tegola = null;
-            m_tegola_process_is_running = false;
-            Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
-            fgs_asn__update(getString(R.string.stopped));
-            sendBroadcast(intent_notify_server_stopped);
             return true;
         }
         Log.i(TAG, "stop_tegola: tegola mvt server is not currently running");

@@ -70,7 +70,6 @@
 
         <activity android:name=".ManageGpkgBundlesActivity" />
         <activity android:name=".InstallGpkgBundleActivity" />
-        <activity android:name=".MapboxActivity" />
     </application>
 
 </manifest>

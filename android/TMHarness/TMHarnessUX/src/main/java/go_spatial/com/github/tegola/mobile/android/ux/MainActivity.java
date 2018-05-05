@@ -15,7 +15,11 @@ import android.os.Handler;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -34,7 +38,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -70,8 +76,13 @@ import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.FGS;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MapboxFragment.OnFragmentInteractionListener {
     private static final String TAG = MainActivity.class.getName();
+
+    private DrawerLayout m_drawerlayout = null;
+    private LinearLayout m_drawerlayout_content__main = null;
+    private FrameLayout m_drawerlayout_content__drawer = null;
+    private DrawerHandle m_drawer_handle = null;
 
     private ScrollView m_scvw_main = null;
 
@@ -124,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
     //srvr info - console output - UI objects
     private View m_sect_content__item__srvr_console_output = null;
     private TextView m_tv_tegola_console_output = null;
+
+    private final MapboxFragment mb_frag = new MapboxFragment();
 
 
     private BroadcastReceiver m_br_ctrlr_notifications = null;
@@ -186,7 +199,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         //map UI objects to UI resources
+        m_drawerlayout = (DrawerLayout)findViewById(R.id.drawerlayout);
+        m_drawerlayout_content__main = (LinearLayout)findViewById(R.id.drawerlayout_content__main);
+        m_drawerlayout_content__drawer = (FrameLayout)findViewById(R.id.drawerlayout_content__drawer);
+        m_drawerlayout_main__DrawerToggle = new ActionBarDrawerToggle(this, m_drawerlayout, R.string.open, R.string.close) {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                super.onDrawerSlide(drawerView, slideOffset);
+                float slideX = drawerView.getWidth() * slideOffset;
+                m_drawerlayout_content__main.setTranslationX(slideX);
+                m_drawerlayout_content__main.setScaleX(1 - slideOffset);
+                m_drawerlayout_content__main.setScaleY(1 - slideOffset);
+            }
+        };
+
         m_scvw_main = (ScrollView)findViewById(R.id.sv_main);
 
         m_btn_sect__andro_dev_nfo__expand = (Button)findViewById(R.id.btn_sect__andro_dev_nfo__expand);
@@ -253,10 +281,12 @@ public class MainActivity extends AppCompatActivity {
         m_spinner_val_gpkg_bundle_sel.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel);
         m_btn_srvr_ctrl.setOnClickListener(OnClickListener__m_btn_srvr_ctrl);
 
+
         //instantiate PersistentConfigSettingsManager singleton
         SharedPrefsManager.newInstance(this);
 
 //        m_google_api_callbacks = new MyGoogleApiClientCallbacks();
+
 
         //set up BR to listen to notifications from ControllerLib
         m_br_ctrlr_notifications_filter = new IntentFilter();
@@ -275,64 +305,80 @@ public class MainActivity extends AppCompatActivity {
         m_br_ctrlr_notifications = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Constants.Enums.E_INTENT_ACTION__CTRLR_NOTIFICATION e_ctrlr_notification = Constants.Enums.E_INTENT_ACTION__CTRLR_NOTIFICATION.fromString(intent != null ? intent.getAction() : null);
-                switch (e_ctrlr_notification) {
-                    case CONTROLLER_FOREGROUND_STARTING: {
-                        OnControllerStarting();
-                        break;
-                    }
-                    case CONTROLLER_FOREGROUND_STARTED: {
-                        OnControllerStarted();
-                        break;
-                    }
-                    case CONTROLLER_FOREGROUND_STOPPING: {
-                        OnControllerStopping();
-                        break;
-                    }
-                    case CONTROLLER_FOREGROUND_STOPPED: {
-                        OnControllerStopped();
-                        break;
-                    }
-                    case MVT_SERVER__STARTING: {
-                        OnMVTServerStarting();
-                        break;
-                    }
-                    case MVT_SERVER__START_FAILED: {
-                        OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON));
-                        break;
-                    }
-                    case MVT_SERVER__STARTED: {
-                        OnMVTServerStarted(
-                            intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION)
-                            , intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, -1)
-                        );
-                        break;
-                    }
-                    case MVT_SERVER__OUTPUT__LOGCAT: {
-                        OnMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__LOGCAT__LINE));
-                        break;
-                    }
-                    case MVT_SERVER__OUTPUT__STDERR: {
-                        OnMVTServerOutputStdErr(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDERR__LINE));
-                        break;
-                    }
-                    case MVT_SERVER__OUTPUT__STDOUT: {
-                        OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDOUT__LINE));
-                        break;
-                    }
-                    case MVT_SERVER__STOPPING: {
-                        OnMVTServerStopping();
-                        break;
-                    }
-                    case MVT_SERVER__STOPPED: {
-                        OnMVTServerStopped();
-                        break;
-                    }
+                if (intent != null) {
+                    Log.d(TAG, "m_br_ctrlr_notifications received: " + intent.getAction());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Constants.Enums.E_INTENT_ACTION__CTRLR_NOTIFICATION e_ctrlr_notification = Constants.Enums.E_INTENT_ACTION__CTRLR_NOTIFICATION.fromString(intent != null ? intent.getAction() : null);
+                            switch (e_ctrlr_notification) {
+                                case CONTROLLER_FOREGROUND_STARTING: {
+                                    OnControllerStarting();
+                                    break;
+                                }
+                                case CONTROLLER_FOREGROUND_STARTED: {
+                                    OnControllerStarted();
+                                    break;
+                                }
+                                case CONTROLLER_FOREGROUND_STOPPING: {
+                                    OnControllerStopping();
+                                    break;
+                                }
+                                case CONTROLLER_FOREGROUND_STOPPED: {
+                                    OnControllerStopped();
+                                    break;
+                                }
+                                case MVT_SERVER__STARTING: {
+                                    OnMVTServerStarting();
+                                    break;
+                                }
+                                case MVT_SERVER__START_FAILED: {
+                                    OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON));
+                                    break;
+                                }
+                                case MVT_SERVER__STARTED: {
+                                    OnMVTServerStarted(
+                                            intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION)
+                                            , intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, -1)
+                                    );
+                                    break;
+                                }
+                                case MVT_SERVER__OUTPUT__LOGCAT: {
+                                    OnMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__LOGCAT__LINE));
+                                    break;
+                                }
+                                case MVT_SERVER__OUTPUT__STDERR: {
+                                    OnMVTServerOutputStdErr(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDERR__LINE));
+                                    break;
+                                }
+                                case MVT_SERVER__OUTPUT__STDOUT: {
+                                    OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDOUT__LINE));
+                                    break;
+                                }
+                                case MVT_SERVER__STOPPING: {
+                                    OnMVTServerStopping();
+                                    break;
+                                }
+                                case MVT_SERVER__STOPPED: {
+                                    OnMVTServerStopped();
+                                    break;
+                                }
+                                default: {
+                                    Log.e(TAG, "m_br_ctrlr_notifications received: " + intent.getAction() + " but NO HANDLER IS DEFINED!");
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    Log.e(TAG, "m_br_ctrlr_notifications received null intent!");
                 }
             }
         };
         registerReceiver(m_br_ctrlr_notifications, m_br_ctrlr_notifications_filter, null, new Handler(getMainLooper()));
     }
+
+    final String FRAG_DRAWER_CONTENT = "FRAG_DRAWER_CONTENT";
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
@@ -344,6 +390,11 @@ public class MainActivity extends AppCompatActivity {
         //set andro_dev info fixed val content
         m_tv_val_CPU_ABI.setText(Constants.Enums.CPU_ABI.fromDevice().toString());
         m_tv_val_API_level.setText(Build.VERSION.SDK);
+
+        //getSupportFragmentManager().beginTransaction().add(R.id.drawerlayout_content__drawer, new BlankFragment(), FRAG_DRAWER_CONTENT).commit();
+        //Log.d(TAG, "onPostCreate: swapping drawer content to MapboxFragment");
+        //getSupportFragmentManager().beginTransaction().add(R.id.drawerlayout_content__drawer, mb_frag, FRAG_DRAWER_CONTENT).commit();
+        m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         OnMVTServerStopped();
         OnControllerStopped();
@@ -831,6 +882,23 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+//    ActionBarDrawerToggle m_drawerlayout_main__DrawerToggle = new ActionBarDrawerToggle(this, m_drawerlayout, R.string.open, R.string.close) {
+//        @Override
+//        public void onDrawerSlide(View drawerView, float slideOffset) {
+//            super.onDrawerSlide(drawerView, slideOffset);
+//            float slideX = drawerView.getWidth() * slideOffset;
+//            m_drawerlayout_content__main.setTranslationX(slideX);
+//            m_drawerlayout_content__main.setScaleX(1 - slideOffset);
+//            m_drawerlayout_content__main.setScaleY(1 - slideOffset);
+//        }
+//    };
+    ActionBarDrawerToggle m_drawerlayout_main__DrawerToggle = null;
+
+    //MapboxFragment overrides
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+    }
+
 
 
     //auxiliary UI helper functions...
@@ -1229,7 +1297,21 @@ public class MainActivity extends AppCompatActivity {
         m_btn_config_sel_local__edit_file.setEnabled(false);
         m_tv_tegola_console_output.setText("");
 
-        startActivity(new Intent(MainActivity.this, MapboxActivity.class));
+        Log.d(TAG, "OnMVTServerStarted: swapping drawer content to MapboxFragment");
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(
+                    R.id.drawerlayout_content__drawer,
+                    MapboxFragment.newInstance("asset://mbgl-tile-gpkg-athens.json"),
+                    FRAG_DRAWER_CONTENT
+                )
+                .commit();
+        Log.d(TAG, "OnMVTServerStarted: adding drawerlistener m_drawerlayout_main__DrawerToggle to m_drawerlayout");
+        m_drawerlayout.addDrawerListener(m_drawerlayout_main__DrawerToggle);
+        Log.d(TAG, "OnMVTServerStarted: attaching drawerhandle R.layout.drawer_handle to m_drawerlayout_content__drawer");
+        m_drawer_handle = DrawerHandle.attach(m_drawerlayout_content__drawer, R.layout.drawer_handle, 0.5f);
+        Log.d(TAG, "OnMVTServerStarted: unlocking drawer");
+        m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
     private void OnMVTServerOutputLogcat(final String logcat_line) {
@@ -1267,9 +1349,29 @@ public class MainActivity extends AppCompatActivity {
 
     private void OnMVTServerStopping() {
         m_tv_val_srvr_status.setText(getString(R.string.stopping));
+
+        Log.d(TAG, "OnMVTServerStopping: locking drawer closed");
+        m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        if (m_drawer_handle != null) {
+            Log.d(TAG, "OnMVTServerStopping: detaching drawer handle");
+            m_drawer_handle.detach();
+        } else {
+            Log.d(TAG, "OnMVTServerStopping: no (null) drawerhandle to detach!");
+        }
+        Log.d(TAG, "OnMVTServerStopping: removing drawer listener: m_drawerlayout_main__DrawerToggle");
+        m_drawerlayout.removeDrawerListener(m_drawerlayout_main__DrawerToggle);
+        Fragment frag_current = getSupportFragmentManager().findFragmentByTag(FRAG_DRAWER_CONTENT);
+        if (frag_current != null) {
+            Log.d(TAG, "OnMVTServerStopping: removing MapFragment from drawer");
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .remove(frag_current)
+                    .commit();
+        }
     }
 
     private void OnMVTServerStopped() {
+        Log.d(TAG, "OnMVTServerStopped: updating status-related UX");
         m_tv_val_srvr_status.setText(getString(R.string.stopped));
         m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
         m_btn_srvr_ctrl.setText(getString(R.string.start));

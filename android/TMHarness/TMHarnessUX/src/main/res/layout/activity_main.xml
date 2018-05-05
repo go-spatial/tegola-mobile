@@ -1,295 +1,240 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:id="@+id/layout_bootstrapper"
+<android.support.v4.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerlayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:visibility="visible"
     tools:context=".MainActivity">
 
-    <ScrollView
-        android:id="@+id/sv_main"
+    <LinearLayout
+        android:id="@+id/drawerlayout_content__main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:scrollbars="vertical">
+        android:background="@android:color/transparent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <LinearLayout
+        <ScrollView
+            android:id="@+id/sv_main"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <!-- device info section: BEGIN -->
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:scrollbars="vertical">
+
             <LinearLayout
-                android:id="@+id/sect__andro_dev_nfo"
-                style="@style/Section"
-                android:layout_marginTop="0dp">
-                <!-- device info section heading: BEGIN -->
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <!-- device info section: BEGIN -->
                 <LinearLayout
-                    android:id="@+id/sect__andro_dev_nfo__heading"
-                    style="@style/Section_Heading">
-
-                    <RelativeLayout
-                        style="@style/Section_Heading_Content">
-
-                        <Button
-                            android:id="@+id/btn_sect__andro_dev_nfo__expand"
-                            style="@style/Expandable_Section_Heading_Button"/>
-
-                        <TextView
-                            android:id="@+id/tv_sect_heading_lbl__andro_device_info"
-                            style="@style/Section_Heading_Content_Label"
-                            android:layout_alignBottom="@+id/btn_sect__andro_dev_nfo__expand"
-                            android:layout_alignTop="@+id/btn_sect__andro_dev_nfo__expand"
-                            android:layout_centerVertical="false"
-                            android:layout_toLeftOf="@+id/btn_sect__andro_dev_nfo__expand"
-                            android:layout_toStartOf="@+id/btn_sect__andro_dev_nfo__expand"
-                            android:text="@string/android_device_info"/>
-                    </RelativeLayout>
-
-                    <View
-                        android:id="@+id/vw_sect_heading_underscore__andro_dev_nfo"
-                        style="@style/Section_Heading_Underscore"/>
-                </LinearLayout>
-                <!-- device info section heading: END -->
-                <!-- dev nfo section content: BEGIN -->
-                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
-                    android:id="@+id/sect_content__andro_dev_nfo"
-                    style="@style/Section_Content"
-                    app:ael_duration="200"
-                    app:ael_expanded="false"
-                    app:ael_interpolator="linear"
-                    app:ael_orientation="vertical">
-                    <!-- dev nfo section content item: CPU_ABI - BEGIN -->
+                    android:id="@+id/sect__andro_dev_nfo"
+                    style="@style/Section"
+                    android:layout_marginTop="0dp">
+                    <!-- device info section heading: BEGIN -->
                     <LinearLayout
-                        android:id="@+id/sect_content__item__CPU_ABI"
-                        style="@style/Section_Content_Item"
-                        android:layout_alignParentTop="true">
+                        android:id="@+id/sect__andro_dev_nfo__heading"
+                        style="@style/Section_Heading">
 
-                        <TextView
-                            android:id="@+id/tv_lbl_CPU_ABI"
-                            style="@style/Section_Content_Item_Label"
-                            android:text="@string/cpu_abi"
-                            android:visibility="visible"/>
+                        <RelativeLayout
+                            style="@style/Section_Heading_Content">
 
-                        <TextView
-                            android:id="@+id/tv_val_CPU_ABI"
-                            style="@style/Section_Content_Item_Content"
-                            android:text="**placeholder__cpu_abi**"
-                            android:visibility="visible"/>
-                    </LinearLayout>
-                    <!-- dev nfo section content item: CPU_ABI - END -->
-                    <!-- dev nfo section content item: API level - BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect_content__item__API_level"
-                        style="@style/Section_Content_Item"
-                        android:layout_below="@+id/sect_content__item__CPU_ABI">
-
-                        <TextView
-                            android:id="@+id/tv_lbl_API_level"
-                            style="@style/Section_Content_Item_Label"
-                            android:text="@string/api_level"
-                            android:visibility="visible"/>
-
-                        <TextView
-                            android:id="@+id/tv_val_API_level"
-                            style="@style/Section_Content_Item_Content"
-                            android:text="**placeholder__api_level**"
-                            android:visibility="visible"/>
-                    </LinearLayout>
-                    <!-- dev nfo section content item: API level - BEGIN -->
-                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
-                <!-- dev nfo section content: END -->
-            </LinearLayout>
-            <!-- device info section: END -->
-            <!-- controller info section: BEGIN -->
-            <LinearLayout
-                android:id="@+id/sect__ctrlr_nfo"
-                style="@style/Section">
-                <!-- controller info section heading: BEGIN -->
-                <LinearLayout
-                    android:id="@+id/sect__ctrlr_nfo__heading"
-                    style="@style/Section_Heading">
-
-                    <RelativeLayout
-                        style="@style/Section_Heading_Content">
-
-                        <Button
-                            android:id="@+id/btn_sect__ctrlr_nfo__expand"
-                            style="@style/Expandable_Section_Heading_Button"/>
-
-                        <TextView
-                            android:id="@+id/tv_sect_heading_lbl__ctrlr_nfo"
-                            style="@style/Section_Heading_Content_Label"
-                            android:layout_alignBottom="@+id/btn_sect__ctrlr_nfo__expand"
-                            android:layout_alignTop="@+id/btn_sect__ctrlr_nfo__expand"
-                            android:layout_toLeftOf="@+id/btn_sect__ctrlr_nfo__expand"
-                            android:layout_toStartOf="@+id/btn_sect__ctrlr_nfo__expand"
-                            android:text="@string/ctrlr_info"/>
-                    </RelativeLayout>
-
-                    <View
-                        android:id="@+id/vw_sect_heading_underscore__ctrlr_nfo"
-                        style="@style/Section_Heading_Underscore"/>
-                </LinearLayout>
-                <!-- controller info section heading: END -->
-                <!-- controller nfo section content: BEGIN -->
-                <com.github.aakira.expandablelayout.ExpandableRelativeLayout
-                    android:id="@+id/sect_content__ctrlr_nfo"
-                    style="@style/Section_Content"
-                    app:ael_duration="200"
-                    app:ael_expanded="false"
-                    app:ael_interpolator="linear"
-                    app:ael_orientation="vertical">
-                    <!-- controller nfo section content - STATUS - BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect_content__item__ctrlr_status"
-                        style="@style/Section_Content_Item"
-                        android:layout_alignParentTop="true">
-
-                        <TextView
-                            android:id="@+id/tv_lbl_ctrlr_status"
-                            style="@style/Section_Content_Item_Label"
-                            android:text="@string/ctrlr_status"
-                            android:visibility="visible"/>
-
-                        <TextView
-                            android:id="@+id/tv_val_tegola_ctrlr_status"
-                            style="@style/Section_Content_Item_Content"
-                            android:text="@string/stopped"
-                            android:visibility="visible"/>
-                    </LinearLayout>
-                    <!-- controller nfo section content - STATUS - END -->
-                </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
-                <!-- controller nfo section content: END -->
-            </LinearLayout>
-            <!-- controller info section: END -->
-            <!-- srvr info section: BEGIN -->
-            <LinearLayout
-                android:id="@+id/sect__srvr_nfo"
-                style="@style/Section"
-                android:layout_height="match_parent">
-                <!-- srvr info section heading: BEGIN -->
-                <LinearLayout
-                    android:id="@+id/sect__srvr_info__heading"
-                    style="@style/Section_Heading">
-
-                    <RelativeLayout
-                        style="@style/Section_Heading_Content">
-
-                        <TextView
-                            android:id="@+id/tv_sect_heading_lb_l_srvr_info"
-                            style="@style/Section_Heading_Content_Label"
-                            android:text="@string/srvr_info"/>
-                    </RelativeLayout>
-
-                    <View
-                        android:id="@+id/vw_sect_heading_underscore__srvr_nfo"
-                        style="@style/Section_Heading_Underscore"/>
-                </LinearLayout>
-                <!-- srvr info section heading: END -->
-                <!-- srvr nfo section content: BEGIN -->
-                <LinearLayout
-                    android:id="@+id/sect_content__srvr_nfo"
-                    style="@style/Section_Content"
-                    android:layout_height="match_parent">
-                    <!-- srvr nfo section content - version - BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect_content__item__version"
-                        style="@style/Section_Content_Item">
-
-                        <TextView
-                            android:id="@+id/tv_lbl_bin_ver"
-                            style="@style/Section_Content_Item_Label"
-                            android:text="@string/srvr_ver"/>
-
-                        <TextView
-                            android:id="@+id/tv_val_bin_ver"
-                            style="@style/Section_Content_Item_Content"
-                            android:text="**placeholder__tegold_bin_ver**"
-                            android:visibility="visible"/>
-                    </LinearLayout>
-                    <!-- srvr nfo section content - version - END -->
-
-                    <!-- srvr nfo section content - PROVIDER type - BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect_content__item__provider_type"
-                        style="@style/Section_Content_Item">
-
-                        <TextView
-                            android:id="@+id/tv_lbl_provider_type"
-                            style="@style/Section_Content_Item_Label"
-                            android:text="@string/srvr_provider_type"
-                        />
-
-                        <RadioGroup
-                            android:id="@+id/rg_val_provider_type_sel"
-                            style="@style/Section_Content_Item_Content"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="start"
-                            android:orientation="horizontal">
-
-                            <RadioButton
-                                android:id="@+id/rb_val_provider_type_sel__postgis"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="10dp"
-                                android:layout_marginRight="10dp"
-                                android:button="@null"
-                                android:drawableLeft="@android:drawable/btn_radio"
-                                android:drawableStart="@android:drawable/btn_radio"
-                                android:inputType="textCapCharacters"
-                                android:text="@string/srvr_provider_type__postgis"
-                                android:textSize="14sp"/>
-
-                            <RadioButton
-                                android:id="@+id/rb_val_provider_type_sel__gpkg"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:button="@null"
-                                android:drawableLeft="@android:drawable/btn_radio"
-                                android:drawableStart="@android:drawable/btn_radio"
-                                android:inputType="textCapCharacters"
-                                android:text="@string/srvr_provider_type__gpkg"
-                                android:textSize="14sp"/>
+                            <Button
+                                android:id="@+id/btn_sect__andro_dev_nfo__expand"
+                                style="@style/Expandable_Section_Heading_Button"/>
 
                             <TextView
-                                android:id="@+id/tv_lbl_gpkg_provider_type_sel__manage_bundles"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="20dp"
-                                android:layout_marginLeft="20dp"
-                                android:layout_weight="1"
-                                android:clickable="true"
-                                android:editable="false"
-                                android:text="@string/srvr_provider_type__gpkg__manage_gpkg_bundles"/>
+                                android:id="@+id/tv_sect_heading_lbl__andro_device_info"
+                                style="@style/Section_Heading_Content_Label"
+                                android:layout_alignBottom="@+id/btn_sect__andro_dev_nfo__expand"
+                                android:layout_alignTop="@+id/btn_sect__andro_dev_nfo__expand"
+                                android:layout_centerVertical="false"
+                                android:layout_toLeftOf="@+id/btn_sect__andro_dev_nfo__expand"
+                                android:layout_toStartOf="@+id/btn_sect__andro_dev_nfo__expand"
+                                android:text="@string/android_device_info"/>
+                        </RelativeLayout>
 
-                        </RadioGroup>
-
+                        <View
+                            android:id="@+id/vw_sect_heading_underscore__andro_dev_nfo"
+                            style="@style/Section_Heading_Underscore"/>
                     </LinearLayout>
-                    <!-- srvr nfo section content - PROVIDER type - END -->
-
-                    <!-- srvr nfo section content - postgis provider spec container - BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect__postgis_provider_spec"
-                        style="@style/Section_Content_Item">
-                        <!-- srvr nfo section content - postgis provider CONFIG type - BEGIN -->
+                    <!-- device info section heading: END -->
+                    <!-- dev nfo section content: BEGIN -->
+                    <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                        android:id="@+id/sect_content__andro_dev_nfo"
+                        style="@style/Section_Content"
+                        app:ael_duration="200"
+                        app:ael_expanded="false"
+                        app:ael_interpolator="linear"
+                        app:ael_orientation="vertical">
+                        <!-- dev nfo section content item: CPU_ABI - BEGIN -->
                         <LinearLayout
-                            android:id="@+id/sect_content__item__postgis_provider_config_type"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:id="@+id/sect_content__item__CPU_ABI"
+                            style="@style/Section_Content_Item"
+                            android:layout_alignParentTop="true">
 
                             <TextView
-                                android:id="@+id/tv_lbl_postgis_provider_config_type"
+                                android:id="@+id/tv_lbl_CPU_ABI"
                                 style="@style/Section_Content_Item_Label"
-                                android:text="@string/srvr_postgis_provider_config_type"/>
+                                android:text="@string/cpu_abi"
+                                android:visibility="visible"/>
+
+                            <TextView
+                                android:id="@+id/tv_val_CPU_ABI"
+                                style="@style/Section_Content_Item_Content"
+                                android:text="**placeholder__cpu_abi**"
+                                android:visibility="visible"/>
+                        </LinearLayout>
+                        <!-- dev nfo section content item: CPU_ABI - END -->
+                        <!-- dev nfo section content item: API level - BEGIN -->
+                        <LinearLayout
+                            android:id="@+id/sect_content__item__API_level"
+                            style="@style/Section_Content_Item"
+                            android:layout_below="@+id/sect_content__item__CPU_ABI">
+
+                            <TextView
+                                android:id="@+id/tv_lbl_API_level"
+                                style="@style/Section_Content_Item_Label"
+                                android:text="@string/api_level"
+                                android:visibility="visible"/>
+
+                            <TextView
+                                android:id="@+id/tv_val_API_level"
+                                style="@style/Section_Content_Item_Content"
+                                android:text="**placeholder__api_level**"
+                                android:visibility="visible"/>
+                        </LinearLayout>
+                        <!-- dev nfo section content item: API level - BEGIN -->
+                    </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+                    <!-- dev nfo section content: END -->
+                </LinearLayout>
+                <!-- device info section: END -->
+                <!-- controller info section: BEGIN -->
+                <LinearLayout
+                    android:id="@+id/sect__ctrlr_nfo"
+                    style="@style/Section">
+                    <!-- controller info section heading: BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect__ctrlr_nfo__heading"
+                        style="@style/Section_Heading">
+
+                        <RelativeLayout
+                            style="@style/Section_Heading_Content">
+
+                            <Button
+                                android:id="@+id/btn_sect__ctrlr_nfo__expand"
+                                style="@style/Expandable_Section_Heading_Button"/>
+
+                            <TextView
+                                android:id="@+id/tv_sect_heading_lbl__ctrlr_nfo"
+                                style="@style/Section_Heading_Content_Label"
+                                android:layout_alignBottom="@+id/btn_sect__ctrlr_nfo__expand"
+                                android:layout_alignTop="@+id/btn_sect__ctrlr_nfo__expand"
+                                android:layout_toLeftOf="@+id/btn_sect__ctrlr_nfo__expand"
+                                android:layout_toStartOf="@+id/btn_sect__ctrlr_nfo__expand"
+                                android:text="@string/ctrlr_info"/>
+                        </RelativeLayout>
+
+                        <View
+                            android:id="@+id/vw_sect_heading_underscore__ctrlr_nfo"
+                            style="@style/Section_Heading_Underscore"/>
+                    </LinearLayout>
+                    <!-- controller info section heading: END -->
+                    <!-- controller nfo section content: BEGIN -->
+                    <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+                        android:id="@+id/sect_content__ctrlr_nfo"
+                        style="@style/Section_Content"
+                        app:ael_duration="200"
+                        app:ael_expanded="false"
+                        app:ael_interpolator="linear"
+                        app:ael_orientation="vertical">
+                        <!-- controller nfo section content - STATUS - BEGIN -->
+                        <LinearLayout
+                            android:id="@+id/sect_content__item__ctrlr_status"
+                            style="@style/Section_Content_Item"
+                            android:layout_alignParentTop="true">
+
+                            <TextView
+                                android:id="@+id/tv_lbl_ctrlr_status"
+                                style="@style/Section_Content_Item_Label"
+                                android:text="@string/ctrlr_status"
+                                android:visibility="visible"/>
+
+                            <TextView
+                                android:id="@+id/tv_val_tegola_ctrlr_status"
+                                style="@style/Section_Content_Item_Content"
+                                android:text="@string/stopped"
+                                android:visibility="visible"/>
+                        </LinearLayout>
+                        <!-- controller nfo section content - STATUS - END -->
+                    </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
+                    <!-- controller nfo section content: END -->
+                </LinearLayout>
+                <!-- controller info section: END -->
+                <!-- srvr info section: BEGIN -->
+                <LinearLayout
+                    android:id="@+id/sect__srvr_nfo"
+                    style="@style/Section"
+                    android:layout_height="match_parent">
+                    <!-- srvr info section heading: BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect__srvr_info__heading"
+                        style="@style/Section_Heading">
+
+                        <RelativeLayout
+                            style="@style/Section_Heading_Content">
+
+                            <TextView
+                                android:id="@+id/tv_sect_heading_lb_l_srvr_info"
+                                style="@style/Section_Heading_Content_Label"
+                                android:text="@string/srvr_info"/>
+                        </RelativeLayout>
+
+                        <View
+                            android:id="@+id/vw_sect_heading_underscore__srvr_nfo"
+                            style="@style/Section_Heading_Underscore"/>
+                    </LinearLayout>
+                    <!-- srvr info section heading: END -->
+                    <!-- srvr nfo section content: BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__srvr_nfo"
+                        style="@style/Section_Content"
+                        android:layout_height="match_parent">
+                        <!-- srvr nfo section content - version - BEGIN -->
+                        <LinearLayout
+                            android:id="@+id/sect_content__item__version"
+                            style="@style/Section_Content_Item">
+
+                            <TextView
+                                android:id="@+id/tv_lbl_bin_ver"
+                                style="@style/Section_Content_Item_Label"
+                                android:text="@string/srvr_ver"/>
+
+                            <TextView
+                                android:id="@+id/tv_val_bin_ver"
+                                style="@style/Section_Content_Item_Content"
+                                android:text="**placeholder__tegold_bin_ver**"
+                                android:visibility="visible"/>
+                        </LinearLayout>
+                        <!-- srvr nfo section content - version - END -->
+
+                        <!-- srvr nfo section content - PROVIDER type - BEGIN -->
+                        <LinearLayout
+                            android:id="@+id/sect_content__item__provider_type"
+                            style="@style/Section_Content_Item">
+
+                            <TextView
+                                android:id="@+id/tv_lbl_provider_type"
+                                style="@style/Section_Content_Item_Label"
+                                android:text="@string/srvr_provider_type"
+                                />
 
                             <RadioGroup
-                                android:id="@+id/rg_val_config_type_sel"
+                                android:id="@+id/rg_val_provider_type_sel"
                                 style="@style/Section_Content_Item_Content"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -297,7 +242,7 @@
                                 android:orientation="horizontal">
 
                                 <RadioButton
-                                    android:id="@+id/rb_val_config_type_sel__local"
+                                    android:id="@+id/rb_val_provider_type_sel__postgis"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginEnd="10dp"
@@ -306,291 +251,389 @@
                                     android:drawableLeft="@android:drawable/btn_radio"
                                     android:drawableStart="@android:drawable/btn_radio"
                                     android:inputType="textCapCharacters"
-                                    android:text="@string/srvr_postgis_provider_config_type__local"
-                                    android:textSize="14sp" />
+                                    android:text="@string/srvr_provider_type__postgis"
+                                    android:textSize="14sp"/>
 
                                 <RadioButton
-                                    android:id="@+id/rb_val_config_type_sel__remote"
+                                    android:id="@+id/rb_val_provider_type_sel__gpkg"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:button="@null"
                                     android:drawableLeft="@android:drawable/btn_radio"
                                     android:drawableStart="@android:drawable/btn_radio"
                                     android:inputType="textCapCharacters"
-                                    android:text="@string/srvr_postgis_provider_config_type__remote"
-                                    android:textSize="14sp" />
+                                    android:text="@string/srvr_provider_type__gpkg"
+                                    android:textSize="14sp"/>
+
+                                <TextView
+                                    android:id="@+id/tv_lbl_gpkg_provider_type_sel__manage_bundles"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="20dp"
+                                    android:layout_marginLeft="20dp"
+                                    android:layout_weight="1"
+                                    android:clickable="true"
+                                    android:editable="false"
+                                    android:text="@string/srvr_provider_type__gpkg__manage_gpkg_bundles"/>
 
                             </RadioGroup>
 
                         </LinearLayout>
-                        <!-- srvr nfo section content - postgis provider CONFIG type - END -->
-                        <!-- srvr nfo section content - postgis provider CONFIG selection - BEGIN -->
+                        <!-- srvr nfo section content - PROVIDER type - END -->
+
+                        <!-- srvr nfo section content - postgis provider spec container - BEGIN -->
                         <LinearLayout
-                            android:id="@+id/sect_content__item__postgis_provider_config_sel"
+                            android:id="@+id/sect__postgis_provider_spec"
                             style="@style/Section_Content_Item">
+                            <!-- srvr nfo section content - postgis provider CONFIG type - BEGIN -->
+                            <LinearLayout
+                                android:id="@+id/sect_content__item__postgis_provider_config_type"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
 
-                            <TextView
-                                android:id="@+id/tv_lbl_postgis_provider_config_sel"
-                                style="@style/Section_Content_Item_Label"
-                                android:text="@string/srvr_postgis_provider_config_sel"
-                                android:visibility="visible"/>
+                                <TextView
+                                    android:id="@+id/tv_lbl_postgis_provider_config_type"
+                                    style="@style/Section_Content_Item_Label"
+                                    android:text="@string/srvr_postgis_provider_config_type"/>
 
-                            <RelativeLayout
-                                android:id="@+id/postgis_provider_config_sel__local__container"
-                                style="@style/Section_Content_Item_Content"
-                                android:layout_marginBottom="5dp"
-                                android:orientation="horizontal">
+                                <RadioGroup
+                                    android:id="@+id/rg_val_config_type_sel"
+                                    style="@style/Section_Content_Item_Content"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="start"
+                                    android:orientation="horizontal">
+
+                                    <RadioButton
+                                        android:id="@+id/rb_val_config_type_sel__local"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="10dp"
+                                        android:layout_marginRight="10dp"
+                                        android:button="@null"
+                                        android:drawableLeft="@android:drawable/btn_radio"
+                                        android:drawableStart="@android:drawable/btn_radio"
+                                        android:inputType="textCapCharacters"
+                                        android:text="@string/srvr_postgis_provider_config_type__local"
+                                        android:textSize="14sp" />
+
+                                    <RadioButton
+                                        android:id="@+id/rb_val_config_type_sel__remote"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:button="@null"
+                                        android:drawableLeft="@android:drawable/btn_radio"
+                                        android:drawableStart="@android:drawable/btn_radio"
+                                        android:inputType="textCapCharacters"
+                                        android:text="@string/srvr_postgis_provider_config_type__remote"
+                                        android:textSize="14sp" />
+
+                                </RadioGroup>
+
+                            </LinearLayout>
+                            <!-- srvr nfo section content - postgis provider CONFIG type - END -->
+                            <!-- srvr nfo section content - postgis provider CONFIG selection - BEGIN -->
+                            <LinearLayout
+                                android:id="@+id/sect_content__item__postgis_provider_config_sel"
+                                style="@style/Section_Content_Item">
+
+                                <TextView
+                                    android:id="@+id/tv_lbl_postgis_provider_config_sel"
+                                    style="@style/Section_Content_Item_Label"
+                                    android:text="@string/srvr_postgis_provider_config_sel"
+                                    android:visibility="visible"/>
 
                                 <RelativeLayout
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content">
+                                    android:id="@+id/postgis_provider_config_sel__local__container"
+                                    style="@style/Section_Content_Item_Content"
+                                    android:layout_marginBottom="5dp"
+                                    android:orientation="horizontal">
 
-                                    <TextView
-                                        android:id="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                    <RelativeLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content">
+
+                                        <TextView
+                                            android:id="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_alignParentTop="true"
+                                            android:layout_marginBottom="3dp"
+                                            android:paddingRight="12dp"
+                                            android:text="Import"
+                                            android:textSize="12sp"/>
+
+                                        <!--
+                                        <ImageButton
+                                            android:id="@+id/btn_postgis_provider_config_sel_local_import__googledrive"
+                                            android:layout_width="25dp"
+                                            android:layout_height="25dp"
+                                            android:layout_alignEnd="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                            android:layout_alignRight="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                            android:layout_below="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                            android:background="@android:color/holo_red_dark"
+                                            android:src="@drawable/ic_cloud_off_black_24dp"/>
+
+                                        <View
+                                            android:id="@+id/vw_vert_div__postgis_provider_config_sel_local_import"
+                                            android:layout_width="1dp"
+                                            android:layout_height="25dp"
+                                            android:layout_alignBottom="@id/btn_postgis_provider_config_sel_local_import__googledrive"
+                                            android:layout_alignTop="@id/btn_postgis_provider_config_sel_local_import__googledrive"
+                                            android:layout_marginEnd="5dp"
+                                            android:layout_marginLeft="5dp"
+                                            android:layout_marginRight="5dp"
+                                            android:layout_marginStart="5dp"
+                                            android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_local_import__googledrive"
+                                            android:layout_toStartOf="@id/btn_postgis_provider_config_sel_local_import__googledrive"
+                                            android:background="@android:color/holo_blue_light"/>
+                                        -->
+
+                                        <ImageButton
+                                            android:id="@+id/btn_postgis_provider_config_sel_local_import__sdcard"
+                                            android:layout_width="25dp"
+                                            android:layout_height="25dp"
+                                            android:layout_alignEnd="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                            android:layout_alignRight="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                            android:layout_below="@+id/tv_lbl_postgis_provider_config_sel_local_import"
+                                            android:background="@android:color/holo_red_dark"
+                                            android:src="@drawable/ic_sd_card_black_24dp"
+                                            />
+
+                                        <ImageButton
+                                            android:id="@+id/btn_postgis_provider_config_sel_local__edit_file"
+                                            android:layout_width="25dp"
+                                            android:layout_height="25dp"
+                                            android:layout_alignBottom="@id/btn_postgis_provider_config_sel_local_import__sdcard"
+                                            android:layout_alignTop="@id/btn_postgis_provider_config_sel_local_import__sdcard"
+                                            android:layout_marginRight="20dp"
+                                            android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_local_import__sdcard"
+                                            android:layout_toStartOf="@id/btn_postgis_provider_config_sel_local_import__sdcard"
+                                            android:background="?attr/colorButtonNormal"
+                                            android:src="@drawable/ic_mode_edit_black_24dp"
+                                            android:visibility="gone"
+                                            />
+
+                                        <go_spatial.com.github.tegola.mobile.android.ux.CustomSpinner
+                                            android:id="@+id/spinner_val_postgis_provider_config_sel__local"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="25dp"
+                                            android:layout_alignBottom="@id/btn_postgis_provider_config_sel_local_import__sdcard"
+                                            android:layout_alignParentBottom="@id/btn_postgis_provider_config_sel_local__edit_file"
+                                            android:layout_alignParentLeft="true"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_alignTop="@id/btn_postgis_provider_config_sel_local__edit_file"
+                                            android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_local__edit_file"
+                                            android:layout_toStartOf="@id/btn_postgis_provider_config_sel_local__edit_file"/>
+
+                                    </RelativeLayout>
+                                </RelativeLayout>
+
+                                <RelativeLayout
+                                    android:id="@+id/postgis_provider_config_sel__remote__container"
+                                    style="@style/Section_Content_Item_Content"
+                                    android:orientation="horizontal">
+
+                                    <Button
+                                        android:id="@+id/btn_postgis_provider_config_sel_remote_apply_changes"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:layout_alignParentEnd="true"
                                         android:layout_alignParentRight="true"
-                                        android:layout_alignParentTop="true"
-                                        android:layout_marginBottom="3dp"
-                                        android:paddingRight="12dp"
-                                        android:text="Import"
-                                        android:textSize="12sp"/>
+                                        android:text="@string/apply"/>
 
-                                    <!--
-                                    <ImageButton
-                                        android:id="@+id/btn_postgis_provider_config_sel_local_import__googledrive"
-                                        android:layout_width="25dp"
-                                        android:layout_height="25dp"
-                                        android:layout_alignEnd="@+id/tv_lbl_postgis_provider_config_sel_local_import"
-                                        android:layout_alignRight="@+id/tv_lbl_postgis_provider_config_sel_local_import"
-                                        android:layout_below="@+id/tv_lbl_postgis_provider_config_sel_local_import"
-                                        android:background="@android:color/holo_red_dark"
-                                        android:src="@drawable/ic_cloud_off_black_24dp"/>
-
-                                    <View
-                                        android:id="@+id/vw_vert_div__postgis_provider_config_sel_local_import"
-                                        android:layout_width="1dp"
-                                        android:layout_height="25dp"
-                                        android:layout_alignBottom="@id/btn_postgis_provider_config_sel_local_import__googledrive"
-                                        android:layout_alignTop="@id/btn_postgis_provider_config_sel_local_import__googledrive"
-                                        android:layout_marginEnd="5dp"
-                                        android:layout_marginLeft="5dp"
-                                        android:layout_marginRight="5dp"
-                                        android:layout_marginStart="5dp"
-                                        android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_local_import__googledrive"
-                                        android:layout_toStartOf="@id/btn_postgis_provider_config_sel_local_import__googledrive"
-                                        android:background="@android:color/holo_blue_light"/>
-                                    -->
-
-                                    <ImageButton
-                                        android:id="@+id/btn_postgis_provider_config_sel_local_import__sdcard"
-                                        android:layout_width="25dp"
-                                        android:layout_height="25dp"
-                                        android:layout_alignEnd="@+id/tv_lbl_postgis_provider_config_sel_local_import"
-                                        android:layout_alignRight="@+id/tv_lbl_postgis_provider_config_sel_local_import"
-                                        android:layout_below="@+id/tv_lbl_postgis_provider_config_sel_local_import"
-                                        android:background="@android:color/holo_red_dark"
-                                        android:src="@drawable/ic_sd_card_black_24dp"
-                                    />
-
-                                    <ImageButton
-                                        android:id="@+id/btn_postgis_provider_config_sel_local__edit_file"
-                                        android:layout_width="25dp"
-                                        android:layout_height="25dp"
-                                        android:layout_alignBottom="@id/btn_postgis_provider_config_sel_local_import__sdcard"
-                                        android:layout_alignTop="@id/btn_postgis_provider_config_sel_local_import__sdcard"
-                                        android:layout_marginRight="20dp"
-                                        android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_local_import__sdcard"
-                                        android:layout_toStartOf="@id/btn_postgis_provider_config_sel_local_import__sdcard"
-                                        android:background="?attr/colorButtonNormal"
-                                        android:src="@drawable/ic_mode_edit_black_24dp"
-                                        android:visibility="gone"
-                                    />
-
-                                    <go_spatial.com.github.tegola.mobile.android.ux.CustomSpinner
-                                        android:id="@+id/spinner_val_postgis_provider_config_sel__local"
+                                    <TextView
+                                        android:id="@+id/tv_lbl_postgis_provider_config_sel__https_prefix"
                                         android:layout_width="wrap_content"
-                                        android:layout_height="25dp"
-                                        android:layout_alignBottom="@id/btn_postgis_provider_config_sel_local_import__sdcard"
-                                        android:layout_alignParentBottom="@id/btn_postgis_provider_config_sel_local__edit_file"
+                                        android:layout_height="wrap_content"
+                                        android:layout_alignBottom="@id/btn_postgis_provider_config_sel_remote_apply_changes"
                                         android:layout_alignParentLeft="true"
                                         android:layout_alignParentStart="true"
-                                        android:layout_alignTop="@id/btn_postgis_provider_config_sel_local__edit_file"
-                                        android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_local__edit_file"
-                                        android:layout_toStartOf="@id/btn_postgis_provider_config_sel_local__edit_file"/>
+                                        android:layout_alignTop="@id/btn_postgis_provider_config_sel_remote_apply_changes"
+                                        android:layout_centerVertical="false"
+                                        android:gravity="center_vertical"
+                                        android:text="https://"/>
 
+                                    <EditText
+                                        android:id="@+id/edt_val_postgis_provider_config_sel__remote"
+                                        style="@style/Widget.AppCompat.EditText"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_alignBottom="@id/btn_postgis_provider_config_sel_remote_apply_changes"
+                                        android:layout_alignTop="@id/btn_postgis_provider_config_sel_remote_apply_changes"
+                                        android:layout_toEndOf="@id/tv_lbl_postgis_provider_config_sel__https_prefix"
+                                        android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_remote_apply_changes"
+                                        android:layout_toRightOf="@id/tv_lbl_postgis_provider_config_sel__https_prefix"
+                                        android:layout_toStartOf="@id/btn_postgis_provider_config_sel_remote_apply_changes"
+                                        android:gravity="center_vertical"
+                                        android:inputType="textUri"
+                                        android:singleLine="true"
+                                        android:imeOptions="actionDone"
+                                        android:text=""/>
                                 </RelativeLayout>
-                            </RelativeLayout>
+                            </LinearLayout>
+                            <!-- srvr nfo section content - postgis provider CONFIG selection - END -->
+                        </LinearLayout>
+                        <!-- srvr nfo section content - postgis provider spec container - BEGIN -->
+
+                        <!-- srvr nfo section content - geopackage provider spec container - BEGIN -->
+                        <LinearLayout
+                            android:id="@+id/sect__gpkg_provider_spec"
+                            style="@style/Section_Content_Item">
+                            <!-- srvr nfo section content - geopackage provider BUNDLE selection - BEGIN -->
+                            <LinearLayout
+                                android:id="@+id/sect_content__item__geopckage_provider_bundle_sel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tv_lbl_gpkg_provider_bundle_sel"
+                                    style="@style/Section_Content_Item_Label"
+                                    android:text="@string/srvr_gpkg_provider_bundle_sel"
+                                    android:visibility="visible"/>
+
+                                <RelativeLayout
+                                    android:id="@+id/gpkg_provider_bundle_sel__container"
+                                    style="@style/Section_Content_Item_Content"
+                                    android:layout_marginBottom="5dp"
+                                    android:orientation="horizontal">
+
+                                    <RelativeLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content">
+
+                                        <go_spatial.com.github.tegola.mobile.android.ux.CustomSpinner
+                                            android:id="@+id/spinner_val_gpkg_provider_bundle_sel"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="25dp"
+                                            android:layout_alignParentLeft="true"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_alignParentEnd="true"
+                                            />
+
+                                    </RelativeLayout>
+                                </RelativeLayout>
+
+                            </LinearLayout>
+                            <!-- srvr nfo section content - geopackage provider BUNDLE selection - END -->
+                        </LinearLayout>
+                        <!-- srvr nfo section content - geopackage provider spec container - BEGIN -->
+
+                        <!-- srvr nfo section content - STATUS - BEGIN -->
+                        <LinearLayout
+                            android:id="@+id/sect_content__item__srvr_status"
+                            style="@style/Section_Content_Item">
+
+                            <TextView
+                                android:id="@+id/tv_lbl_srvr_status"
+                                style="@style/Section_Content_Item_Label"
+                                android:text="@string/srvr_status"
+                                android:visibility="visible"/>
 
                             <RelativeLayout
-                                android:id="@+id/postgis_provider_config_sel__remote__container"
                                 style="@style/Section_Content_Item_Content"
-                                android:orientation="horizontal">
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
 
                                 <Button
-                                    android:id="@+id/btn_postgis_provider_config_sel_remote_apply_changes"
+                                    android:id="@+id/btn_srvr_ctrl"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_alignParentEnd="true"
                                     android:layout_alignParentRight="true"
-                                    android:text="@string/apply"/>
+                                    android:text="@string/start"
+                                    android:visibility="visible"/>
 
                                 <TextView
-                                    android:id="@+id/tv_lbl_postgis_provider_config_sel__https_prefix"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignBottom="@id/btn_postgis_provider_config_sel_remote_apply_changes"
-                                    android:layout_alignParentLeft="true"
-                                    android:layout_alignParentStart="true"
-                                    android:layout_alignTop="@id/btn_postgis_provider_config_sel_remote_apply_changes"
-                                    android:layout_centerVertical="false"
+                                    android:id="@+id/tv_val_srvr_status"
+                                    style="@style/Section_Content_Item_Content_Text"
+                                    android:layout_alignBottom="@+id/btn_srvr_ctrl"
+                                    android:layout_alignTop="@+id/btn_srvr_ctrl"
+                                    android:layout_toLeftOf="@+id/btn_srvr_ctrl"
+                                    android:layout_toStartOf="@+id/btn_srvr_ctrl"
                                     android:gravity="center_vertical"
-                                    android:text="https://"/>
-
-                                <EditText
-                                    android:id="@+id/edt_val_postgis_provider_config_sel__remote"
-                                    style="@style/Widget.AppCompat.EditText"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignBottom="@id/btn_postgis_provider_config_sel_remote_apply_changes"
-                                    android:layout_alignTop="@id/btn_postgis_provider_config_sel_remote_apply_changes"
-                                    android:layout_toEndOf="@id/tv_lbl_postgis_provider_config_sel__https_prefix"
-                                    android:layout_toLeftOf="@id/btn_postgis_provider_config_sel_remote_apply_changes"
-                                    android:layout_toRightOf="@id/tv_lbl_postgis_provider_config_sel__https_prefix"
-                                    android:layout_toStartOf="@id/btn_postgis_provider_config_sel_remote_apply_changes"
-                                    android:gravity="center_vertical"
-                                    android:inputType="textUri"
-                                    android:singleLine="true"
-                                    android:imeOptions="actionDone"
-                                    android:text=""/>
+                                    android:text="@string/stopped"/>
                             </RelativeLayout>
                         </LinearLayout>
-                        <!-- srvr nfo section content - postgis provider CONFIG selection - END -->
-                    </LinearLayout>
-                    <!-- srvr nfo section content - postgis provider spec container - BEGIN -->
+                        <!-- srvr nfo section content - STATUS - END -->
 
-                    <!-- srvr nfo section content - geopackage provider spec container - BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect__gpkg_provider_spec"
-                        style="@style/Section_Content_Item">
-                        <!-- srvr nfo section content - geopackage provider BUNDLE selection - BEGIN -->
+                        <!-- srvr nfo section content - CONSOLE OUTPUT - BEGIN -->
                         <LinearLayout
-                            android:id="@+id/sect_content__item__geopckage_provider_bundle_sel"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:id="@+id/sect_content__item__srvr_console_output"
+                            style="@style/Section_Content_Item"
+                            android:layout_height="match_parent">
 
                             <TextView
-                                android:id="@+id/tv_lbl_gpkg_provider_bundle_sel"
+                                android:id="@+id/tv_lbl_srvr_console_output"
                                 style="@style/Section_Content_Item_Label"
-                                android:text="@string/srvr_gpkg_provider_bundle_sel"
+                                android:text="@string/srvr_console_ouput"
                                 android:visibility="visible"/>
 
-                            <RelativeLayout
-                                android:id="@+id/gpkg_provider_bundle_sel__container"
+                            <LinearLayout
+                                android:id="@+id/srvr_console_output_container"
                                 style="@style/Section_Content_Item_Content"
-                                android:layout_marginBottom="5dp"
-                                android:orientation="horizontal">
-
-                                <RelativeLayout
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content">
-
-                                    <go_spatial.com.github.tegola.mobile.android.ux.CustomSpinner
-                                        android:id="@+id/spinner_val_gpkg_provider_bundle_sel"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="25dp"
-                                        android:layout_alignParentLeft="true"
-                                        android:layout_alignParentStart="true"
-                                        android:layout_alignParentRight="true"
-                                        android:layout_alignParentEnd="true"
-                                    />
-
-                                </RelativeLayout>
-                            </RelativeLayout>
-
-                        </LinearLayout>
-                        <!-- srvr nfo section content - geopackage provider BUNDLE selection - END -->
-                    </LinearLayout>
-                    <!-- srvr nfo section content - geopackage provider spec container - BEGIN -->
-
-                    <!-- srvr nfo section content - STATUS - BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect_content__item__srvr_status"
-                        style="@style/Section_Content_Item">
-
-                        <TextView
-                            android:id="@+id/tv_lbl_srvr_status"
-                            style="@style/Section_Content_Item_Label"
-                            android:text="@string/srvr_status"
-                            android:visibility="visible"/>
-
-                        <RelativeLayout
-                            style="@style/Section_Content_Item_Content"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <Button
-                                android:id="@+id/btn_srvr_ctrl"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_alignParentRight="true"
-                                android:text="@string/start"
-                                android:visibility="visible"/>
-
-                            <TextView
-                                android:id="@+id/tv_val_srvr_status"
-                                style="@style/Section_Content_Item_Content_Text"
-                                android:layout_alignBottom="@+id/btn_srvr_ctrl"
-                                android:layout_alignTop="@+id/btn_srvr_ctrl"
-                                android:layout_toLeftOf="@+id/btn_srvr_ctrl"
-                                android:layout_toStartOf="@+id/btn_srvr_ctrl"
-                                android:gravity="center_vertical"
-                                android:text="@string/stopped"/>
-                        </RelativeLayout>
-                    </LinearLayout>
-                    <!-- srvr nfo section content - STATUS - END -->
-
-                    <!-- srvr nfo section content - CONSOLE OUTPUT - BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect_content__item__srvr_console_output"
-                        style="@style/Section_Content_Item"
-                        android:layout_height="match_parent">
-
-                        <TextView
-                            android:id="@+id/tv_lbl_srvr_console_output"
-                            style="@style/Section_Content_Item_Label"
-                            android:text="@string/srvr_console_ouput"
-                            android:visibility="visible"/>
-
-                        <LinearLayout
-                            android:id="@+id/srvr_console_output_container"
-                            style="@style/Section_Content_Item_Content"
-                            xmlns:android="http://schemas.android.com/apk/res/android"
-                            android:layout_width="fill_parent"
-                            android:layout_height="match_parent"
-                            android:layout_marginBottom="5dp"
-                            android:background="@android:color/background_dark"
-                            android:orientation="vertical"
-                            android:visibility="visible">
-
-                            <TextView
-                                android:id="@+id/tv_tegola_console_output"
+                                xmlns:android="http://schemas.android.com/apk/res/android"
                                 android:layout_width="fill_parent"
                                 android:layout_height="match_parent"
-                                android:layout_weight="1.0"
-                                android:maxLines = "10"
-                                android:scrollbars = "vertical"
-                            />
+                                android:layout_marginBottom="5dp"
+                                android:background="@android:color/background_dark"
+                                android:orientation="vertical"
+                                android:visibility="visible">
+
+                                <TextView
+                                    android:id="@+id/tv_tegola_console_output"
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1.0"
+                                    android:maxLines = "10"
+                                    android:scrollbars = "vertical"
+                                    />
+                            </LinearLayout>
                         </LinearLayout>
+                        <!-- srvr nfo section content - CONSOLE OUTPUT - END -->
                     </LinearLayout>
-                    <!-- srvr nfo section content - CONSOLE OUTPUT - END -->
+                    <!-- srvr nfo section content: END -->
                 </LinearLayout>
-                <!-- srvr nfo section content: END -->
+                <!-- srvr info section: END -->
             </LinearLayout>
-            <!-- srvr info section: END -->
-        </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+
+    <!--
+    <LinearLayout
+        android:id="@+id/drawerlayout_content__drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@android:color/transparent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <com.mapbox.mapboxsdk.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:mapbox_styleUrl="@string/mapbox_style_mapbox_streets"
+        />
+
+    </LinearLayout>
+    -->
+
+    <FrameLayout
+        android:id="@+id/drawerlayout_content__drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:background="@android:color/transparent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+    />
+
+</android.support.v4.widget.DrawerLayout>
