@@ -46,7 +46,4 @@
     <string name="srvr_console_ouput">Server Console Output:</string>
 
     <string name="gpkg_bundle__root_url__default">s3-us-west-2.amazonaws.com/tegola-mobile</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

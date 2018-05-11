@@ -20,6 +20,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 public class DrawerHandle implements DrawerLayout.DrawerListener {
     public static final String TAG = "DrawerHandle";
@@ -28,6 +29,8 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
     private DrawerLayout mDrawerLayout;
     private View mHandle;
     private View mDrawer;
+    private View m_img_drawer_closed;
+    private View m_img_drawer_opened;
 
     private float mVerticalOffset;
     private int mGravity;
@@ -66,7 +69,8 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
             }
             MotionEvent copy = MotionEvent.obtain(event);
             copy.setEdgeFlags(ViewDragHelper.EDGE_ALL);
-            copy.setLocation(event.getRawX() + (mGravity == Gravity.LEFT || mGravity == GravityCompat.START ? -mHandle.getWidth()/2 : mHandle.getWidth() / 2), event.getRawY());
+            copy.setLocation(event.getRawX() + (mGravity == Gravity.LEFT || mGravity == GravityCompat.START ? -mHandle.getWidth()/2 : mHandle.getWidth()/2), event.getRawY());
+            copy.setLocation(event.getRawX(), event.getRawY());
             mDrawerLayout.onTouchEvent(copy);
             copy.recycle();
             return true;
@@ -78,12 +82,13 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
         return GravityCompat.getAbsoluteGravity(gravity, ViewCompat.getLayoutDirection(drawerView));
     }
 
-    private float getTranslation(float slideOffset){
-        return (mGravity == GravityCompat.START || mGravity == Gravity.LEFT) ? slideOffset*mDrawer.getWidth() : -slideOffset*mDrawer.getWidth();
+    private float getTranslation(float slideOffset) {
+        return (mGravity == GravityCompat.START || mGravity == Gravity.LEFT)
+                    ? slideOffset * (mDrawer.getWidth())
+                    : -slideOffset * (mDrawer.getWidth());
     }
 
     private void updateScreenDimensions() {
-
         if (Build.VERSION.SDK_INT >= 13) {
             mDisplay.getSize(mScreenDimensions);
         } else {
@@ -104,6 +109,8 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
         Log.d(TAG, "ctor: got root view of drawerlayout: " + mDrawerLayout.getContext().getResources().getResourceName(mDrawerLayout.getId()));
         LayoutInflater inflater = (LayoutInflater)mDrawerLayout.getContext().getSystemService( Context.LAYOUT_INFLATER_SERVICE);
         mHandle = inflater.inflate(handleLayout, mRootView, false);
+        m_img_drawer_closed = mHandle.findViewById(R.id.img_drawer_closed);
+        m_img_drawer_opened = mHandle.findViewById(R.id.img_drawer_opened);
         m_handlelayout = handleLayout;
         Log.d(TAG, "ctor: inflated DrawerHandle layout: " + mHandle.getContext().getResources().getResourceName(handleLayout));
         mWM = (WindowManager)mDrawerLayout.getContext().getSystemService(Context.WINDOW_SERVICE);
@@ -114,8 +121,10 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
         Log.d(TAG, "ctor: set OnClickListener");
         mHandle.setOnTouchListener(mHandleTouchListener);
         Log.d(TAG, "ctor: set OnTouchListener");
+        Log.d(TAG, "ctor: mRootView.width: " + mRootView.getWidth() + "; mRootView.height: " + mRootView.getHeight());
+        Log.d(TAG, "ctor: mHandle.getLayoutParams().width: " + mHandle.getLayoutParams().width + "; mHandle.getLayoutParams().height: " + mHandle.getLayoutParams().height);
         mRootView.addView(mHandle, new FrameLayout.LayoutParams(mHandle.getLayoutParams().width, mHandle.getLayoutParams().height, mGravity));
-        Log.d(TAG, "ctor: added DrawerHandler view " + mHandle.getContext().getResources().getResourceName(handleLayout) + " to root view of drawerlayout" + mDrawerLayout.getContext().getResources().getResourceName(mDrawerLayout.getId()));
+        Log.d(TAG, "ctor: added DrawerHandle view " + mHandle.getContext().getResources().getResourceName(handleLayout) + " to root view of drawerlayout" + mDrawerLayout.getContext().getResources().getResourceName(mDrawerLayout.getId()));
         setVerticalOffset(handleVerticalOffset);
         mDrawerLayout.addDrawerListener(this);
         Log.d(TAG, "ctor: added *this* as DrawerListener to DrawerLayout: " + mDrawerLayout.getContext().getResources().getResourceName(mDrawerLayout.getId()));
@@ -142,11 +151,14 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
 
     @Override
     public void onDrawerClosed(View arg0) {
+        m_img_drawer_closed.setVisibility(View.VISIBLE);
+        m_img_drawer_opened.setVisibility(View.GONE);
     }
 
     @Override
     public void onDrawerOpened(View arg0) {
-
+        m_img_drawer_closed.setVisibility(View.GONE);
+        m_img_drawer_opened.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -157,7 +169,6 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
 
     @Override
     public void onDrawerStateChanged(int arg0) {
-
     }
 
     public View getView(){
@@ -171,6 +182,6 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
     public void setVerticalOffset(float offset) {
         updateScreenDimensions();
         mVerticalOffset = offset;
-        mHandle.setY(mVerticalOffset*mScreenDimensions.y);
+        mHandle.setY(mVerticalOffset * mScreenDimensions.y);
     }
 }

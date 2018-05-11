@@ -15,9 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/transparent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="vertical">
 
         <ScrollView
             android:id="@+id/sv_main"
@@ -606,34 +604,21 @@
     </LinearLayout>
 
 
-    <!--
     <LinearLayout
         android:id="@+id/drawerlayout_content__drawer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="@android:color/transparent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_gravity="right">
 
-        <com.mapbox.mapboxsdk.maps.MapView
-            android:id="@+id/mapView"
+        <FrameLayout
+            android:id="@+id/drawerlayout_content__drawer__frag_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:mapbox_styleUrl="@string/mapbox_style_mapbox_streets"
+            android:background="@android:color/transparent"
+            android:orientation="vertical"
         />
 
     </LinearLayout>
-    -->
-
-    <FrameLayout
-        android:id="@+id/drawerlayout_content__drawer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="right"
-        android:background="@android:color/transparent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-    />
 
 </android.support.v4.widget.DrawerLayout>

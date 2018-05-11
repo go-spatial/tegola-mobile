@@ -1,0 +1,247 @@
+{
+  "attribution": "Tegola GPKG",
+  "bounds": [
+    -180,
+    -85.0511,
+    180,
+    85.0511
+  ],
+  "center": [
+    23.7068,
+    37.8975,
+    12
+  ],
+  "format": "pbf",
+  "minzoom": 10,
+  "maxzoom": 22,
+  "name": "athens",
+  "description": null,
+  "scheme": "xyz",
+  "tilejson": "2.1.0",
+  "tiles": [
+    "http://localhost:8080/maps/athens/{z}/{x}/{y}.pbf"
+  ],
+  "grids": [],
+  "data": [],
+  "version": "1.0.0",
+  "template": null,
+  "legend": null,
+  "vector_layers": [
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "land_polygons",
+      "name": "land_polygons",
+      "geometry_type": "polygon",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/land_polygons/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "roads_lines",
+      "name": "roads_lines",
+      "geometry_type": "line",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/roads_lines/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "places_points",
+      "name": "places_points",
+      "geometry_type": "point",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/places_points/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "buildings_polygons",
+      "name": "buildings_polygons",
+      "geometry_type": "polygon",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/buildings_polygons/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "amenities_points",
+      "name": "amenities_points",
+      "geometry_type": "point",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/amenities_points/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "amenities_polygons",
+      "name": "amenities_polygons",
+      "geometry_type": "polygon",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/amenities_polygons/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "aviation_lines",
+      "name": "aviation_lines",
+      "geometry_type": "line",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/aviation_lines/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "aviation_points",
+      "name": "aviation_points",
+      "geometry_type": "point",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/aviation_points/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "aviation_polygons",
+      "name": "aviation_polygons",
+      "geometry_type": "polygon",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/aviation_polygons/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "harbours_points",
+      "name": "harbours_points",
+      "geometry_type": "point",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/harbours_points/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "landuse_polygons",
+      "name": "landuse_polygons",
+      "geometry_type": "polygon",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/landuse_polygons/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "leisure_polygons",
+      "name": "leisure_polygons",
+      "geometry_type": "polygon",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/leisure_polygons/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "natural_lines",
+      "name": "natural_lines",
+      "geometry_type": "line",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/natural_lines/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "natural_polygons",
+      "name": "natural_polygons",
+      "geometry_type": "polygon",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/natural_polygons/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "places_polygons",
+      "name": "places_polygons",
+      "geometry_type": "polygon",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/places_polygons/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "rail_lines",
+      "name": "rail_lines",
+      "geometry_type": "line",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/rail_lines/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "towers_antennas_points",
+      "name": "towers_antennas_points",
+      "geometry_type": "point",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/towers_antennas_points/{z}/{x}/{y}.pbf"
+      ]
+    },
+    {
+      "version": 2,
+      "extent": 4096,
+      "id": "waterways_lines",
+      "name": "waterways_lines",
+      "geometry_type": "line",
+      "minzoom": 10,
+      "maxzoom": 22,
+      "tiles": [
+        "http://localhost:8080/maps/athens/waterways_lines/{z}/{x}/{y}.pbf"
+      ]
+    }
+  ]
+}

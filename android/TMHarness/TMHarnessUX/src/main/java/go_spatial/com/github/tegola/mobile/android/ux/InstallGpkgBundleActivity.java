@@ -3,7 +3,6 @@ package go_spatial.com.github.tegola.mobile.android.ux;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -104,18 +103,15 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
     }
 
 
-    private String build_remote_gpkg_bundle_root_url_string() {
-        return new StringBuilder()
-                .append(m_tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix.getText())
-                .append(m_edt_remote_gpkg_bundle__root_url__base.getText())
-                .append(m_tv_lbl_remote_gpkg_bundle__root_url___canon_tail.getText())
-                .append("/")
-                .append(m_edt_remote_gpkg_bundle__name.getText())
-                .toString();
-    }
-
     private String build_remote_gpkg_bundle_file_url_string(String s_gremote_gpkg_fname) {
-        return new StringBuilder(build_remote_gpkg_bundle_root_url_string())
+        return new StringBuilder(
+                    Utils.GPKG.Remote.build_root_url_string(
+                            m_tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix.getText().toString(),
+                            m_edt_remote_gpkg_bundle__root_url__base.getText().toString(),
+                            m_tv_lbl_remote_gpkg_bundle__root_url___canon_tail.getText().toString(),
+                            m_edt_remote_gpkg_bundle__name.getText().toString()
+                        )
+                    )
                 .append("/")
                 .append(s_gremote_gpkg_fname)
                 .toString();
@@ -123,7 +119,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
     private String build_local_gpkg_bundle_path_string() throws PackageManager.NameNotFoundException, IOException {
         return new StringBuilder()
-                .append(Utils.Files.F_GPKG_DIR.getInstance(InstallGpkgBundleActivity.this.getApplicationContext()).getPath())
+                .append(Utils.GPKG.Local.F_GPKG_DIR.getInstance(InstallGpkgBundleActivity.this.getApplicationContext()).getPath())
                 .append(File.separator)
                 .append(m_edt_local_gpkg_bundle__name.getText())
                 .toString();
@@ -209,18 +205,18 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                 File localfile_version_props = new File(local_gpkg_bundle_path, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS__FNAME);
                 Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: localfile_version_props path ==" + localfile_version_props.getCanonicalPath());
                 m_asyncgetgpkgbundlefiles_bootstrapper.add(
-                        new Utils.HTTP.AsyncGetFileTaskExecuteQueueItem(
-                                new Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor(
+                        new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
+                                new Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor(
                                         new AsyncGetGpkgBundleFileTaskStageHandler()
                                         , m_asyncgetgpkgbundlefiles_bootstrapper
                                 )
-                                , new Utils.HTTP.HttpUrl_To_Local_File(httpurl_version_props, localfile_version_props))
+                                , new Utils.HTTP.AsyncGet.HttpUrl_To_Local_File(httpurl_version_props, localfile_version_props))
                 );
 
                 m_asyncgetgpkgbundlefiles_bootstrapper.execute();
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
-            } catch (Utils.HTTP.AsyncGetFileTaskExecuteQueueException e) {
+            } catch (Utils.HTTP.AsyncGet.TaskExecuteQueueException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -229,7 +225,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
     };
 
 
-    private class AsyncGetGpkgBundleFileTaskStageHandler extends Utils.HTTP.AsyncGetFileTaskStageHandler {
+    private class AsyncGetGpkgBundleFileTaskStageHandler extends Utils.HTTP.AsyncGet.TaskStageHandler {
         private final String TAG = AsyncGetGpkgBundleFileTaskStageHandler.class.getSimpleName();
         private boolean firstUpdate = true;
         private long content_length = 0;
@@ -270,7 +266,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                         s_url_remote_file = get_httpUrl_to_local_file().get_url().toString();
                         if (get_httpUrl_to_local_file().get_file().exists()) {
                             Log.d(TAG, "onChunkRead: local file " + get_httpUrl_to_local_file().get_file().getCanonicalPath() + " already exists");
-                            throw new Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException(get_httpUrl_to_local_file());
+                            throw new Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException(get_httpUrl_to_local_file());
                         } else {
                             Log.d(TAG, "onChunkRead: local file " + get_httpUrl_to_local_file().get_file().getCanonicalPath() + " does not exist");
                             if (!get_httpUrl_to_local_file().get_file().getParentFile().exists()) {
@@ -329,17 +325,17 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                     });
                 }
             }
-            catch (Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException e) {
+            catch (Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException e) {
                 this.exception = e;
                 throw e;
             }
             catch (FileNotFoundException e) {
-                Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileCreateException lfce = new Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileCreateException(get_httpUrl_to_local_file(), e.getMessage());
+                Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileCreateException lfce = new Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileCreateException(get_httpUrl_to_local_file(), e.getMessage());
                 this.exception = lfce;
                 throw lfce;
             }
             catch (IOException e) {
-                Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_GeneralIOException gioe = new Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_GeneralIOException(get_httpUrl_to_local_file(), e.getMessage());
+                Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_GeneralIOException gioe = new Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_GeneralIOException(get_httpUrl_to_local_file(), e.getMessage());
                 this.exception = gioe;
                 throw gioe;
             }
@@ -367,14 +363,14 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
         }
     }
 
-    private final Utils.HTTP.AsyncGetFileTaskExecuteQueue m_asyncgetgpkgbundlefiles_bootstrapper = new Utils.HTTP.AsyncGetFileTaskExecuteQueue(
-            new Utils.HTTP.AsyncGetFileTaskExecuteQueueListener() {
+    private final Utils.HTTP.AsyncGet.TaskExecuteQueue m_asyncgetgpkgbundlefiles_bootstrapper = new Utils.HTTP.AsyncGet.TaskExecuteQueue(
+            new Utils.HTTP.AsyncGet.TaskExecuteQueueListener() {
                 @Override
-                public void onItemExecutor_PostExecute(Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor executor) {
+                public void onItemExecutor_PostExecute(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
                 }
 
                 @Override
-                public void onItemExecutor_Cancelled(Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor executor) {
+                public void onItemExecutor_Cancelled(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
                 }
 
                 @Override
@@ -382,27 +378,27 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onPostExecute(LinkedHashMap<Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map) {
+                public void onPostExecute(LinkedHashMap<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map) {
                     AlertDialog alertDialog = null;
                     StringBuilder sb_alert_msg = null;
-                    Iterator<Utils.HTTP.AsyncGetFileTaskExecuteQueueItem> iterator_exec_queue_items = m_asyncgetgpkgbundlefiles_bootstrapper.iterator();
+                    Iterator<Utils.HTTP.AsyncGet.TaskExecuteQueueItem> iterator_exec_queue_items = m_asyncgetgpkgbundlefiles_bootstrapper.iterator();
                     if (iterator_exec_queue_items.hasNext()) {//validate there is at least one actual task that was placed in the queue
                         if (item_excutor_exception_map != null && item_excutor_exception_map.size() > 0) {//handle any exceptions that occurred, if any - note that if any have occurred this means that not all of the files that were wanted were successfully downloaded!
                             alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
                             sb_alert_msg = new StringBuilder();
                             alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                            Set<Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor> set_executors = item_excutor_exception_map.keySet();
-                            for (Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor executor : set_executors) {
+                            Set<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor> set_executors = item_excutor_exception_map.keySet();
+                            for (Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor : set_executors) {
                                 Exception exception = item_excutor_exception_map.get(executor);
-                                if (exception instanceof Utils.HTTP.AsyncGetFileTask_RemoteFileInvalidParameterException) {
-                                    Utils.HTTP.AsyncGetFileTask_RemoteFileInvalidParameterException typed_exception = (Utils.HTTP.AsyncGetFileTask_RemoteFileInvalidParameterException)exception;
+                                if (exception instanceof Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) {
+                                    Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException typed_exception = (Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException)exception;
                                     sb_alert_msg.append(typed_exception.getMessage());
-                                } else if (exception instanceof Utils.HTTP.AsyncGetFileTask_RemoteFile_SizeException) {
-                                    Utils.HTTP.AsyncGetFileTask_RemoteFile_SizeException typed_exception = (Utils.HTTP.AsyncGetFileTask_RemoteFile_SizeException)exception;
+                                } else if (exception instanceof Utils.HTTP.AsyncGet.RemoteFile_SizeException) {
+                                    Utils.HTTP.AsyncGet.RemoteFile_SizeException typed_exception = (Utils.HTTP.AsyncGet.RemoteFile_SizeException)exception;
                                     sb_alert_msg.append("Failed to retrieve file size of " + typed_exception.get_httpurl().uri().toString() + " - " + typed_exception.getMessage());
-                                } else if (exception instanceof Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException) {
+                                } else if (exception instanceof Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) {
                                     sb_alert_msg.append("Local geopackage-bundle file ");
-                                    Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException typed_exception = (Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException)exception;
+                                    Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException typed_exception = (Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException)exception;
                                     sb_alert_msg.append(File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + typed_exception.get_httpUrl_to_local_file().get_file().getName());
                                     sb_alert_msg.append(" already exists!\n\n");
                                     sb_alert_msg.append("If you wish to reinstall or update local geopackage-bundle \"" + m_edt_local_gpkg_bundle__name.getText().toString() + "\", please uninstall it first!");
@@ -424,8 +420,8 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                             int index = -1;
                             while (iterator_exec_queue_items.hasNext()) {
                                 index++;
-                                Utils.HTTP.AsyncGetFileTaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
-                                Utils.HTTP.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
+                                Utils.HTTP.AsyncGet.TaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
+                                Utils.HTTP.AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
                                 File file = httpUrl_to_local_file.get_file();
                                 HttpUrl httpUrl = httpUrl_to_local_file.get_url();
                                 String s_remote_gpkg_bundle = httpUrl.url().toString().substring(0, httpUrl.url().toString().lastIndexOf("/"));
@@ -464,12 +460,12 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                             String s_gpkg_bundle__toml = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE);
                                             f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_gpkg_bundle__toml);
                                             m_asyncgetgpkgbundlefileexecutequeue.add(
-                                                    new Utils.HTTP.AsyncGetFileTaskExecuteQueueItem(
-                                                            new Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor(
+                                                    new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
+                                                            new Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor(
                                                                     new AsyncGetGpkgBundleFileTaskStageHandler()
                                                                     , m_asyncgetgpkgbundlefileexecutequeue
                                                             )
-                                                            , new Utils.HTTP.HttpUrl_To_Local_File(HttpUrl.parse(s_remote_gpkg_bundle + "/" + s_gpkg_bundle__toml), f_gpkg_bundle__toml)
+                                                            , new Utils.HTTP.AsyncGet.HttpUrl_To_Local_File(HttpUrl.parse(s_remote_gpkg_bundle + "/" + s_gpkg_bundle__toml), f_gpkg_bundle__toml)
                                                     )
                                             );
 
@@ -480,12 +476,12 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                                     String s_gpkg_name = s_list_geopcackage_names[i];
                                                     f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_name);
                                                     m_asyncgetgpkgbundlefileexecutequeue.add(
-                                                            new Utils.HTTP.AsyncGetFileTaskExecuteQueueItem(
-                                                                    new Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor(
+                                                            new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
+                                                                    new Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor(
                                                                             new AsyncGetGpkgBundleFileTaskStageHandler()
                                                                             , m_asyncgetgpkgbundlefileexecutequeue
                                                                     )
-                                                                    , new Utils.HTTP.HttpUrl_To_Local_File(HttpUrl.parse(s_remote_gpkg_bundle + "/" + s_gpkg_name), f_gpkg_bundle__gpkg)
+                                                                    , new Utils.HTTP.AsyncGet.HttpUrl_To_Local_File(HttpUrl.parse(s_remote_gpkg_bundle + "/" + s_gpkg_name), f_gpkg_bundle__gpkg)
                                                             )
                                                     );
                                                 }
@@ -530,7 +526,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                                         }
                                                     });
                                             alertDialog.show();
-                                        } catch (Utils.HTTP.AsyncGetFileTaskExecuteQueueException e) {
+                                        } catch (Utils.HTTP.AsyncGet.TaskExecuteQueueException e) {
                                             e.printStackTrace();
                                             alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
                                             sb_alert_msg = new StringBuilder();
@@ -601,14 +597,14 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
             }
     );
 
-    private final Utils.HTTP.AsyncGetFileTaskExecuteQueue m_asyncgetgpkgbundlefileexecutequeue = new Utils.HTTP.AsyncGetFileTaskExecuteQueue(
-            new Utils.HTTP.AsyncGetFileTaskExecuteQueueListener() {
+    private final Utils.HTTP.AsyncGet.TaskExecuteQueue m_asyncgetgpkgbundlefileexecutequeue = new Utils.HTTP.AsyncGet.TaskExecuteQueue(
+            new Utils.HTTP.AsyncGet.TaskExecuteQueueListener() {
                 @Override
-                public void onItemExecutor_PostExecute(Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor executor) {
+                public void onItemExecutor_PostExecute(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
                 }
 
                 @Override
-                public void onItemExecutor_Cancelled(Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor executor) {
+                public void onItemExecutor_Cancelled(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
                 }
 
                 @Override
@@ -616,25 +612,25 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onPostExecute(final LinkedHashMap<Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map) {
+                public void onPostExecute(final LinkedHashMap<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map) {
                     AlertDialog alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
                     StringBuilder sb_alert_msg = new StringBuilder();
-                    Iterator<Utils.HTTP.AsyncGetFileTaskExecuteQueueItem> iterator_exec_queue_items = m_asyncgetgpkgbundlefileexecutequeue.iterator();
+                    Iterator<Utils.HTTP.AsyncGet.TaskExecuteQueueItem> iterator_exec_queue_items = m_asyncgetgpkgbundlefileexecutequeue.iterator();
                     if (iterator_exec_queue_items.hasNext()) {//validate there is at least one actual task that was placed in the queue
                         if (item_excutor_exception_map != null && item_excutor_exception_map.size() > 0) {//handle any exceptions that occurred, if any - note that if any have occurred this means that not all of the files that were wanted to successfully downloaded!
                             alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                            Set<Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor> set_executors = item_excutor_exception_map.keySet();
-                            for (Utils.HTTP.AsyncGetFileTaskExecuteQueueItemExecutor executor : set_executors) {
+                            Set<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor> set_executors = item_excutor_exception_map.keySet();
+                            for (Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor : set_executors) {
                                 Exception exception = item_excutor_exception_map.get(executor);
-                                if (exception instanceof Utils.HTTP.AsyncGetFileTask_RemoteFileInvalidParameterException) {
-                                    Utils.HTTP.AsyncGetFileTask_RemoteFileInvalidParameterException typed_exception = (Utils.HTTP.AsyncGetFileTask_RemoteFileInvalidParameterException)exception;
+                                if (exception instanceof Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) {
+                                    Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException typed_exception = (Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException)exception;
                                     sb_alert_msg.append(typed_exception.getMessage());
-                                } else if (exception instanceof Utils.HTTP.AsyncGetFileTask_RemoteFile_SizeException) {
-                                    Utils.HTTP.AsyncGetFileTask_RemoteFile_SizeException typed_exception = (Utils.HTTP.AsyncGetFileTask_RemoteFile_SizeException)exception;
+                                } else if (exception instanceof Utils.HTTP.AsyncGet.RemoteFile_SizeException) {
+                                    Utils.HTTP.AsyncGet.RemoteFile_SizeException typed_exception = (Utils.HTTP.AsyncGet.RemoteFile_SizeException)exception;
                                     sb_alert_msg.append("Failed to retrieve file size of " + typed_exception.get_httpurl().uri().toString() + " - " + typed_exception.getMessage());
-                                } else if (exception instanceof Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException) {
+                                } else if (exception instanceof Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) {
                                     sb_alert_msg.append("Local geopackage-bundle file ");
-                                    Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException typed_exception = (Utils.HTTP.AsyncGetFileTask_StageHandlerOnChunkRead_LocalFileAlreadyExistsException)exception;
+                                    Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException typed_exception = (Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException)exception;
                                     sb_alert_msg.append(File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + typed_exception.get_httpUrl_to_local_file().get_file().getName());
                                     sb_alert_msg.append(" already exists!\n\n");
                                     sb_alert_msg.append("If you wish to reinstall or update local geopackage-bundle \"" + m_edt_local_gpkg_bundle__name.getText().toString() + "\", please uninstall it first!");
@@ -654,8 +650,8 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                         } else {//then all tasks were successfully executed - i.e. all files were successfully downloaded
                             alertDialog.setTitle("GeoPackage-Bundle Installation SUCCESSFUL!");
                             while (iterator_exec_queue_items.hasNext()) {
-                                Utils.HTTP.AsyncGetFileTaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
-                                Utils.HTTP.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
+                                Utils.HTTP.AsyncGet.TaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
+                                Utils.HTTP.AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
                                 File file = httpUrl_to_local_file.get_file();
                                 sb_alert_msg
                                         .append("Remote geopackage-bundle file ")

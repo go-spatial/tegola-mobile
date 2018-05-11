@@ -9,40 +9,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.mapboxsdk.style.sources.VectorSource;
 
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link MapboxFragment.OnFragmentInteractionListener} interface
+ * {@link TegolaMBGLFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link MapboxFragment#newInstance} factory method to
+ * Use the {@link TegolaMBGLFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MapboxFragment extends android.support.v4.app.Fragment {
-    public static final String TAG = MapboxFragment.class.getName();
+public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
+    public static final String TAG = TegolaMBGLFragment.class.getName();
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_TILEJSON = "tilejson";
-    private static final String ARG_VECTOR_SOURCE_MATRIX = "mat_vector_source";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private static final String ARG__MBGL_STYLE_URL = "mbgl_style_url";
+    private String mbgl_style_url = "";
 
     private OnFragmentInteractionListener mListener;
-
     private MapView mapView = null;
-    private String m_tilejson = null;
-    private Bundle m_bundle_vector_source = null;
+    private MapboxMap m_mapboxMap = null;
 
-
-    public MapboxFragment() {
+    public TegolaMBGLFragment() {
         // Required empty public constructor
     }
 
@@ -50,40 +43,27 @@ public class MapboxFragment extends android.support.v4.app.Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param tilejson URL or assset://filename
-     * @return A new instance of fragment MapboxFragment.
+     * @param mbgl_style_url mbgl_style_url
+     * @return A new instance of fragment TegolaMBGLFragment.
      */
-    // TODO: Rename and change types and number of parameters
-    public static MapboxFragment newInstance(String tilejson) {
-        MapboxFragment fragment = new MapboxFragment();
-        if (tilejson != null) {
-            Bundle args = new Bundle();
-            args.putString(ARG_TILEJSON, tilejson);
-            fragment.setArguments(args);
-        }
+    public static TegolaMBGLFragment newInstance(final String mbgl_style_url) {
+        TegolaMBGLFragment fragment = new TegolaMBGLFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG__MBGL_STYLE_URL, mbgl_style_url);
+        fragment.setArguments(args);
         return fragment;
     }
-    public static MapboxFragment newInstance(String[][] mat_vector_source) {
-        MapboxFragment fragment = new MapboxFragment();
-        if (mat_vector_source != null) {
-            Bundle args = new Bundle();
-            Bundle bundle_vector_source = new Bundle();
-            for (int i = 0; i < mat_vector_source.length; i++) {
-                String[] vector_source = mat_vector_source[i];
-                bundle_vector_source.putString(vector_source[0], vector_source[1]);
-            }
-            args.putBundle(ARG_VECTOR_SOURCE_MATRIX, bundle_vector_source);
-            fragment.setArguments(args);
-        }
-        return fragment;
+    public static TegolaMBGLFragment newInstance() {
+        return new TegolaMBGLFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            m_tilejson = getArguments().getString(ARG_TILEJSON);
-            m_bundle_vector_source = getArguments().getBundle(ARG_VECTOR_SOURCE_MATRIX);
+            mbgl_style_url = getArguments().getString(ARG__MBGL_STYLE_URL);
+        } else {
+            //error! cannot start mbgl without style url from tegola
         }
     }
 
@@ -93,31 +73,55 @@ public class MapboxFragment extends android.support.v4.app.Fragment {
         View this_frag_layout_view = inflater.inflate(R.layout.fragment_mapbox, container, false);
 
         mapView = (MapView)this_frag_layout_view.findViewById(R.id.mapView);
+        mapView.getMapAsync(m_OnMapReadyCallback);
+
+        Log.d(TAG, "(fragment) onCreateView: mbglstyle url: " + mbgl_style_url);
+        mapView.setStyleUrl(mbgl_style_url);
+
         Log.d(TAG, "(fragment) onCreateView: calling mapView.onCreate()...");
-        if (m_tilejson != null) {
-            Log.d(TAG, "(fragment) onCreateView: setting mapview StyleUrl to " + m_tilejson);
-            mapView.setStyleUrl(m_tilejson);
-        }
-//        if (m_bundle_vector_source != null) {
-//            for (String  i < m_bundle_vector_source.size(); i++) {
-//                m_bundle_vector_source.keySet();
-//                String[] vector_source = mat_vector_source[i];
-//                bundle_vector_source.putString(vector_source[0], vector_source[1]);
-//                VectorSource vectorSource = new VectorSource();
-//            }
-//        }
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(MapboxMap mapboxMap) {
-
-                // Customize map with markers, polylines, etc.
-
-            }
-        });
 
         return this_frag_layout_view;
     }
+
+    final private OnMapReadyCallback m_OnMapReadyCallback = new OnMapReadyCallback() {
+        @Override
+        public void onMapReady(MapboxMap mapboxMap) {
+            m_mapboxMap = mapboxMap;
+            Log.d(TAG, "(fragment) onMapReady: map is ready - min zoom level: " + m_mapboxMap.getMinZoomLevel() + "; max zoom level: " + m_mapboxMap.getMaxZoomLevel());
+
+            CameraPosition camera_pos = null;
+//            camera_pos = new CameraPosition.Builder()
+//                    .target(new LatLng(37.9, 23.7, 10.0)) //center pos for athens gpkg
+//                    .zoom(1.0)
+//                    .build();
+//            m_mapboxMap.setCameraPosition(camera_pos);
+            camera_pos = m_mapboxMap.getCameraPosition();
+            Log.d(TAG, "(fragment) onMapReady: map is ready - "
+                    + "initial camera_pos.target.getLatitude(): " + camera_pos.target.getLatitude()
+                    + "; initial camera_pos.target.getLongitude(): " + camera_pos.target.getLongitude()
+                    + "; initial camera_pos.target.getAltitude(): " + camera_pos.target.getAltitude()
+            );
+            m_mapboxMap.setPrefetchesTiles(true);
+
+            //add listeners...
+            m_mapboxMap.addOnCameraMoveListener(m_OnCameraMoveListener);
+
+            m_mapboxMap.setDebugActive(true);
+        }
+    };
+
+    final private MapboxMap.OnCameraMoveListener m_OnCameraMoveListener = new MapboxMap.OnCameraMoveListener() {
+        @Override
+        public void onCameraMove() {
+            CameraPosition camera_pos = m_mapboxMap.getCameraPosition();
+            Log.d(TAG, "(fragment) onCameraMove: "
+                    + "camera_pos.target.getLatitude(): " + camera_pos.target.getLatitude()
+                    + "; camera_pos.target.getLongitude(): " + camera_pos.target.getLongitude()
+                    + "; camera_pos.target.getAltitude(): " + camera_pos.target.getAltitude()
+            );
+        }
+    };
 
     @Override
     public void onStart() {
@@ -220,5 +224,17 @@ public class MapboxFragment extends android.support.v4.app.Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+
+    private String get_mbgl_style_url(final int tegola_listen_port) {
+        Log.d(TAG, "get_mbgl_style_url: tegola listen port is: " + tegola_listen_port);
+        //String s_mbglstyle_url = "https://gist.githubusercontent.com/klokan/3eee87899644f5d82b3946bf0cd1e176/raw/4199669cc15c43817168f7eedf7d4f556e1a4f40/bright-v8-local.json";
+        //String s_mbglstyle_url = "https://osm.tegola.io/maps/osm/style.json";
+        //String s_mbglstyle_url = "asset://mbglstyle--gpkg-athens.json";
+        //String s_mbglstyle_url = "http://localhost:8080/maps/oceanside/style.json";
+        String s_mbglstyle_url = "http://localhost:" + Integer.toString(tegola_listen_port) + "/maps/athens/style.json";
+        Log.d(TAG, "get_mbgl_style_url: mapview mbgl StyleUrl is " + s_mbglstyle_url);
+        return s_mbglstyle_url;
     }
 }

@@ -1,0 +1,247 @@
+{
+  "version": 8,
+  "name": "athens",
+  "center": [
+    23.7068,
+    37.8975
+  ],
+  "zoom": 12,
+  "sources": {
+    "athens": {
+      "type": "vector",
+      "url": "http://localhost:8080/capabilities/athens.json"
+    }
+  },
+  "glyphs": "mapbox://fonts/openmaptiles/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "land_polygons",
+      "source": "athens",
+      "source-layer": "land_polygons",
+      "type": "fill",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "fill-color": "rgba(77,234,108,0.1)",
+        "fill-outline-color": "#4dea6c"
+      }
+    },
+    {
+      "id": "roads_lines",
+      "source": "athens",
+      "source-layer": "roads_lines",
+      "type": "line",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "line-color": "#138d3f"
+      }
+    },
+    {
+      "id": "places_points",
+      "source": "athens",
+      "source-layer": "places_points",
+      "type": "circle",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": "#366456"
+      }
+    },
+    {
+      "id": "buildings_polygons",
+      "source": "athens",
+      "source-layer": "buildings_polygons",
+      "type": "fill",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "fill-color": "rgba(121,150,120,0.1)",
+        "fill-outline-color": "#799678"
+      }
+    },
+    {
+      "id": "amenities_points",
+      "source": "athens",
+      "source-layer": "amenities_points",
+      "type": "circle",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": "#0b2d1f"
+      }
+    },
+    {
+      "id": "amenities_polygons",
+      "source": "athens",
+      "source-layer": "amenities_polygons",
+      "type": "fill",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "fill-color": "rgba(161,184,187,0.1)",
+        "fill-outline-color": "#a1b8bb"
+      }
+    },
+    {
+      "id": "aviation_lines",
+      "source": "athens",
+      "source-layer": "aviation_lines",
+      "type": "line",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "line-color": "#e1591b"
+      }
+    },
+    {
+      "id": "aviation_points",
+      "source": "athens",
+      "source-layer": "aviation_points",
+      "type": "circle",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": "#41ae75"
+      }
+    },
+    {
+      "id": "aviation_polygons",
+      "source": "athens",
+      "source-layer": "aviation_polygons",
+      "type": "fill",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "fill-color": "rgba(87,196,118,0.1)",
+        "fill-outline-color": "#57c476"
+      }
+    },
+    {
+      "id": "harbours_points",
+      "source": "athens",
+      "source-layer": "harbours_points",
+      "type": "circle",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": "#f2e8bd"
+      }
+    },
+    {
+      "id": "landuse_polygons",
+      "source": "athens",
+      "source-layer": "landuse_polygons",
+      "type": "fill",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "fill-color": "rgba(156,15,240,0.1)",
+        "fill-outline-color": "#9c0ff0"
+      }
+    },
+    {
+      "id": "leisure_polygons",
+      "source": "athens",
+      "source-layer": "leisure_polygons",
+      "type": "fill",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "fill-color": "rgba(83,119,209,0.1)",
+        "fill-outline-color": "#5377d1"
+      }
+    },
+    {
+      "id": "natural_lines",
+      "source": "athens",
+      "source-layer": "natural_lines",
+      "type": "line",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "line-color": "#6947fa"
+      }
+    },
+    {
+      "id": "natural_polygons",
+      "source": "athens",
+      "source-layer": "natural_polygons",
+      "type": "fill",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "fill-color": "rgba(207,137,210,0.1)",
+        "fill-outline-color": "#cf89d2"
+      }
+    },
+    {
+      "id": "places_polygons",
+      "source": "athens",
+      "source-layer": "places_polygons",
+      "type": "fill",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "fill-color": "rgba(12,209,1,0.1)",
+        "fill-outline-color": "#0cd101"
+      }
+    },
+    {
+      "id": "rail_lines",
+      "source": "athens",
+      "source-layer": "rail_lines",
+      "type": "line",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "line-color": "#12885e"
+      }
+    },
+    {
+      "id": "towers_antennas_points",
+      "source": "athens",
+      "source-layer": "towers_antennas_points",
+      "type": "circle",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "circle-radius": 3,
+        "circle-color": "#fd0d6f"
+      }
+    },
+    {
+      "id": "waterways_lines",
+      "source": "athens",
+      "source-layer": "waterways_lines",
+      "type": "line",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "line-color": "#bbbe80"
+      }
+    }
+  ]
+}

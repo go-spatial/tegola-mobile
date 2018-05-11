@@ -16,7 +16,6 @@ import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -62,12 +61,19 @@ import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.SearchableField;
 */
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.REQUEST_CODES;
@@ -76,12 +82,12 @@ import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.FGS;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
-public class MainActivity extends AppCompatActivity implements MapboxFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements TegolaMBGLFragment.OnFragmentInteractionListener {
     private static final String TAG = MainActivity.class.getName();
 
     private DrawerLayout m_drawerlayout = null;
     private LinearLayout m_drawerlayout_content__main = null;
-    private FrameLayout m_drawerlayout_content__drawer = null;
+    private LinearLayout m_drawerlayout_content__drawer = null;
     private DrawerHandle m_drawer_handle = null;
 
     private ScrollView m_scvw_main = null;
@@ -136,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
     private View m_sect_content__item__srvr_console_output = null;
     private TextView m_tv_tegola_console_output = null;
 
-    private final MapboxFragment mb_frag = new MapboxFragment();
+    private final TegolaMBGLFragment mb_frag = new TegolaMBGLFragment();
 
 
     private BroadcastReceiver m_br_ctrlr_notifications = null;
@@ -194,6 +200,19 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
 //    }
 //    private MyGoogleApiClientCallbacks m_google_api_callbacks = null;
 
+    //credit to: https://stackoverflow.com/questions/16754305/full-width-navigation-drawer?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+    private void fixMinDrawerMargin(DrawerLayout drawerLayout) {
+        try {
+            Field f = DrawerLayout.class.getDeclaredField("mMinDrawerMargin");
+            f.setAccessible(true);
+            f.set(drawerLayout, 0);
+
+            drawerLayout.requestLayout();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -202,8 +221,9 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
 
         //map UI objects to UI resources
         m_drawerlayout = (DrawerLayout)findViewById(R.id.drawerlayout);
+        fixMinDrawerMargin(m_drawerlayout);
         m_drawerlayout_content__main = (LinearLayout)findViewById(R.id.drawerlayout_content__main);
-        m_drawerlayout_content__drawer = (FrameLayout)findViewById(R.id.drawerlayout_content__drawer);
+        m_drawerlayout_content__drawer = findViewById(R.id.drawerlayout_content__drawer);
         m_drawerlayout_main__DrawerToggle = new ActionBarDrawerToggle(this, m_drawerlayout, R.string.open, R.string.close) {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
@@ -297,6 +317,7 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT);
@@ -341,6 +362,10 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
                                             intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION)
                                             , intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, -1)
                                     );
+                                    break;
+                                }
+                                case MVT_SERVER__LISTENING: {
+                                    OnMVTServerListening(intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, 8080));
                                     break;
                                 }
                                 case MVT_SERVER__OUTPUT__LOGCAT: {
@@ -392,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
         m_tv_val_API_level.setText(Build.VERSION.SDK);
 
         //getSupportFragmentManager().beginTransaction().add(R.id.drawerlayout_content__drawer, new BlankFragment(), FRAG_DRAWER_CONTENT).commit();
-        //Log.d(TAG, "onPostCreate: swapping drawer content to MapboxFragment");
+        //Log.d(TAG, "onPostCreate: swapping drawer content to TegolaMBGLFragment");
         //getSupportFragmentManager().beginTransaction().add(R.id.drawerlayout_content__drawer, mb_frag, FRAG_DRAWER_CONTENT).commit();
         m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
@@ -525,7 +550,7 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
         //1. enumerate geopackage-bundles and display results in spinner (drop-down)
         File f_gpkg_bundles_root_dir = null;
         try {
-            f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+            f_gpkg_bundles_root_dir = Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return;
@@ -861,7 +886,7 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
                 //now update UI based on existence of current local geopackage-bundle selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue())
                 File f_gpkg_bundles_root_dir = null;
                 try {
-                    f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+                    f_gpkg_bundles_root_dir = Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
                     File f_gpkg_bundle = new File(f_gpkg_bundles_root_dir, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
                     //and same MVT srvr control (start/stop) button
                     m_btn_srvr_ctrl.setEnabled(f_gpkg_bundle.exists());
@@ -894,7 +919,7 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
 //    };
     ActionBarDrawerToggle m_drawerlayout_main__DrawerToggle = null;
 
-    //MapboxFragment overrides
+    //TegolaMBGLFragment overrides
     @Override
     public void onFragmentInteraction(Uri uri) {
     }
@@ -1296,36 +1321,18 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
         //now disable edit-config button
         m_btn_config_sel_local__edit_file.setEnabled(false);
         m_tv_tegola_console_output.setText("");
-
-        Log.d(TAG, "OnMVTServerStarted: swapping drawer content to MapboxFragment");
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(
-                    R.id.drawerlayout_content__drawer,
-                    MapboxFragment.newInstance("asset://mbgl-tile-gpkg-athens.json"),
-                    FRAG_DRAWER_CONTENT
-                )
-                .commit();
-        Log.d(TAG, "OnMVTServerStarted: adding drawerlistener m_drawerlayout_main__DrawerToggle to m_drawerlayout");
-        m_drawerlayout.addDrawerListener(m_drawerlayout_main__DrawerToggle);
-        Log.d(TAG, "OnMVTServerStarted: attaching drawerhandle R.layout.drawer_handle to m_drawerlayout_content__drawer");
-        m_drawer_handle = DrawerHandle.attach(m_drawerlayout_content__drawer, R.layout.drawer_handle, 0.5f);
-        Log.d(TAG, "OnMVTServerStarted: unlocking drawer");
-        m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
+    //process stream-output (STDOUT/STDERR) and logcat-output helper functions associated w/ server-started state
     private void OnMVTServerOutputLogcat(final String logcat_line) {
         sv_append_mvt_server_console_output("LOGCAT> " + logcat_line);
     }
-
     private void OnMVTServerOutputStdErr(final String stderr_line) {
         sv_append_mvt_server_console_output("STDERR> " + stderr_line);
     }
-
     private void OnMVTServerOutputStdOut(final String stdout_line) {
         sv_append_mvt_server_console_output("STDOUT> " + stdout_line);
     }
-
     private void m_tv_tegola_console_output__scroll_max() {
         m_tv_tegola_console_output.postDelayed(new Runnable() {
             public void run() {
@@ -1340,29 +1347,139 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
             }
         }, 50);
     }
-
     private void sv_append_mvt_server_console_output(final String s) {
         m_tv_tegola_console_output.append(s + "\n");
         m_tv_tegola_console_output__scroll_max();
         m_scvw_main__scroll_max();
     }
 
+    private void OnMVTServerListening(final int port) {
+        Boolean srvr_started = (Boolean)m_btn_srvr_ctrl.getTag(R.id.TAG__SRVR_STARTED);
+        if (srvr_started != null && srvr_started == true) {
+            String s_srvr_status = m_tv_val_srvr_status.getText().toString() + "\nlistening on port " + port;
+            m_tv_val_srvr_status.setText(s_srvr_status);
+            map_start(port);
+        }
+    }
+
+    private void map_start(final int tegola_listen_port) {
+        //get default map from tegola "capabilities" endpoint, then construct url path to its mbgl style json url, and finally start mapbox using it
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String s_tegola_capabilities_json_url = "http://localhost:" + tegola_listen_port + "/capabilities";
+                StringBuilder sb_json = new StringBuilder();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Utils.HTTP.Get.exec(s_tegola_capabilities_json_url, new Utils.HTTP.Get.ContentHandler() {
+                    @Override
+                    public void onStartRead(long n_size) {
+                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onStartRead: read " + s_tegola_capabilities_json_url + ": content-length: " + n_size);
+                    }
+
+                    @Override
+                    public void onChunkRead(int n_bytes_read, byte[] bytes_1kb_chunk) {
+                        if (n_bytes_read > 0) {
+                            baos.write(bytes_1kb_chunk, 0, n_bytes_read);
+                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onChunkRead: read next " + n_bytes_read + " bytes from " + s_tegola_capabilities_json_url + " into byteoutputstream");
+                        } else {
+                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onChunkRead: skipped writing bytes from " + s_tegola_capabilities_json_url + " into byteoutputstream since n_bytes_read <= 0");
+                        }
+                    }
+
+                    @Override
+                    public void onReadError(long n_remaining, Exception e) {
+                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadError: n_remaining: " + n_remaining + "; error: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onReadComplete(long n_read, long n_remaining) {
+                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: n_read: " + n_read + "; n_remaining: " + n_remaining);
+                        JSONTokener jsonTokener = new JSONTokener(baos.toString());
+                        try {
+                            baos.close();
+                        } catch (IOException e) {
+                            //e.printStackTrace();
+                        }
+                        try {
+                            String s_default_map = "";
+                            String s_default_map_mbgl_style_url = "";
+                            JSONObject jsonObject = new JSONObject(jsonTokener);
+                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: " + s_tegola_capabilities_json_url + " content is:\n" + jsonObject.toString());
+                            JSONArray json_maps = jsonObject.getJSONArray("maps");
+                            if (json_maps != null) {
+                                Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: got \"maps\" JSONArray - contains " + json_maps.length() + " \"map\" JSON objects");
+                                for (int i = 0; i < json_maps.length(); i++) {
+                                    JSONObject json_map = json_maps.getJSONObject(i);
+                                    if (json_map != null) {
+                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: got JSONObject for \"maps\"[" + i + "]");
+                                        String s_map = json_map.getString("name");
+                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: \"maps\"[" + i + "].\"name\" == \"" + s_map + "\"");
+                                        if (i == 0) {
+                                            s_default_map = s_map;
+                                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default map to \"maps\"[" + i + "].\"name\" == \"" + s_map + "\"");
+                                        }
+                                        String s_mbgl_style_json_url = "http://localhost:" + tegola_listen_port + "/maps/" + s_map + "/style.json";
+                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: mbgl_style url for map \"" + s_map + "\" is " + s_mbgl_style_json_url);
+                                        if (i == 0) {
+                                            s_default_map_mbgl_style_url = s_mbgl_style_json_url;
+                                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default mbgl_style url to s_default_map_mbgl_style_url");
+                                        }
+                                    }
+                                }
+                            }
+                            if (!s_default_map_mbgl_style_url.isEmpty()) {
+                                final String final_s_default_map_mbgl_style_url = s_default_map_mbgl_style_url;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: starting mapbox map with mbgl style " + final_s_default_map_mbgl_style_url);
+                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: swapping drawer content to TegolaMBGLFragment for provider type == gpkg");
+                                        getSupportFragmentManager()
+                                                .beginTransaction()
+                                                .replace(
+                                                        R.id.drawerlayout_content__drawer__frag_container,
+                                                        TegolaMBGLFragment.newInstance(final_s_default_map_mbgl_style_url),
+                                                        FRAG_DRAWER_CONTENT
+                                                )
+                                                .commit();
+                                        Log.d(TAG, "map_start: adding drawerlistener m_drawerlayout_main__DrawerToggle to m_drawerlayout");
+                                        m_drawerlayout.addDrawerListener(m_drawerlayout_main__DrawerToggle);
+                                        Log.d(TAG, "map_start: attaching drawerhandle R.layout.drawer_handle to m_drawerlayout_content__drawer");
+                                        m_drawer_handle = DrawerHandle.attach(m_drawerlayout_content__drawer, R.layout.drawer_handle, 0.5f);
+                                        Log.d(TAG, "map_start: unlocking drawer");
+                                        m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                                    }
+                                });
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        }).start();
+    }
+
     private void OnMVTServerStopping() {
         m_tv_val_srvr_status.setText(getString(R.string.stopping));
+    }
 
-        Log.d(TAG, "OnMVTServerStopping: locking drawer closed");
+    private void map_stop() {
+        Log.d(TAG, "map_stop: locking drawer closed");
         m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         if (m_drawer_handle != null) {
-            Log.d(TAG, "OnMVTServerStopping: detaching drawer handle");
+            Log.d(TAG, "map_stop: detaching drawer handle");
             m_drawer_handle.detach();
+            m_drawer_handle = null;
         } else {
-            Log.d(TAG, "OnMVTServerStopping: no (null) drawerhandle to detach!");
+            Log.d(TAG, "map_stop: no (null) drawerhandle to detach!");
         }
-        Log.d(TAG, "OnMVTServerStopping: removing drawer listener: m_drawerlayout_main__DrawerToggle");
+        Log.d(TAG, "map_stop: removing drawer listener: m_drawerlayout_main__DrawerToggle");
         m_drawerlayout.removeDrawerListener(m_drawerlayout_main__DrawerToggle);
         Fragment frag_current = getSupportFragmentManager().findFragmentByTag(FRAG_DRAWER_CONTENT);
         if (frag_current != null) {
-            Log.d(TAG, "OnMVTServerStopping: removing MapFragment from drawer");
+            Log.d(TAG, "map_stop: removing MapFragment from drawer");
             getSupportFragmentManager()
                     .beginTransaction()
                     .remove(frag_current)
@@ -1371,6 +1488,8 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
     }
 
     private void OnMVTServerStopped() {
+        map_stop();
+
         Log.d(TAG, "OnMVTServerStopped: updating status-related UX");
         m_tv_val_srvr_status.setText(getString(R.string.stopped));
         m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
@@ -1423,6 +1542,7 @@ public class MainActivity extends AppCompatActivity implements MapboxFragment.On
     }
 
     private void stop_mvt_server() {
+        map_stop();
         Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
         sendBroadcast(intent_stop_mvt_server);
     }

@@ -165,7 +165,7 @@ public class FGS extends Service {
 
         //create geopackage bundle dir
         try {
-            File f_gpkg_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+            File f_gpkg_root_dir = Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
             if (!f_gpkg_root_dir.exists()) {
                 boolean created = f_gpkg_root_dir.mkdirs();
                 if (created) {
@@ -343,7 +343,7 @@ public class FGS extends Service {
                     , f_gpkg_bundle__toml = null
                     , f_gpkg_bundle__gpkg = null;
             try {
-                f_gpkg_bundles_root_dir = Utils.Files.F_GPKG_DIR.getInstance(getApplicationContext());
+                f_gpkg_bundles_root_dir = Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
                 throw new FileNotFoundException("geopcackage-bundle root directory not found");
@@ -368,7 +368,7 @@ public class FGS extends Service {
             als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
             als_cmd_line.add(f_gpkg_bundle__toml.getCanonicalPath());
 
-            //now get gpkg-bundle geopcackages spec from version.props, then confirm existence
+            //get gpkg-bundle geopcackages spec from version.props, then confirm existence
             String[] s_list_geopcackage_files = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES).split(",");
             String[] s_list_geopcackage_path_env_vars = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_PATH_ENV_VARS).split(",");
             if (s_list_geopcackage_files != null && s_list_geopcackage_files.length > 0) {
@@ -443,7 +443,7 @@ public class FGS extends Service {
         m_process_tegola_pid = getPid(m_process_tegola);
         Log.i(TAG, "start_tegola: tegola server process " + (m_process_tegola_pid != -1 ? "(pid " + m_process_tegola_pid + ") ": "") + "started");
 
-        //start tegola process logcat cat monitor and notify br receivers MVT_SERVER__STARTED
+        //notify br receivers MVT_SERVER__STARTED
         Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED);
         intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION, getString(R.string.srvr_ver));
         if (m_process_tegola_pid != -1)
@@ -451,7 +451,7 @@ public class FGS extends Service {
         fgs_asn__update(getString(R.string.started) + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid: ""));
         sendBroadcast(intent_notify_server_started);
 
-        //now start tegola logcat monitor specifc to tegola process (before stderr and stdout monitors since there is always the possibility tegola could segfault or trigger some other native signal)
+        //now start tegola logcat monitor specific to tegola process (before stderr and stdout monitors since there is always the possibility tegola could segfault or trigger some other native signal)
         if (m_process_tegola_pid != -1) {
             sb_cmdline = new StringBuilder();
             sb_cmdline.append("logcat");
@@ -493,7 +493,7 @@ public class FGS extends Service {
                                                         sendBroadcast(intent_notify_server_output_logcat);
                                                     }
                                                 }
-                                                Thread.sleep(100);
+                                                Thread.currentThread().sleep(100);
                                             } catch (InterruptedIOException e1) {
                                                 //e1.printStackTrace();
                                                 try {
@@ -570,7 +570,7 @@ public class FGS extends Service {
                                 intent_notify_server_output_stderr.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDERR__LINE, s_line);
                                 sendBroadcast(intent_notify_server_output_stderr);
                             }
-                            Thread.sleep(100);
+                            Thread.currentThread().sleep(100);
                         } catch (IOException e) {
 //                            e.printStackTrace();
                         } catch (InterruptedException e1) {
@@ -612,7 +612,7 @@ public class FGS extends Service {
                                 intent_notify_server_output_stdout.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDOUT__LINE, s_line);
                                 sendBroadcast(intent_notify_server_output_stdout);
                             }
-                            Thread.sleep(100);
+                            Thread.currentThread().sleep(100);
                         } catch (IOException e) {
 //                            e.printStackTrace();
                         } catch (InterruptedException e1) {
@@ -640,9 +640,41 @@ public class FGS extends Service {
             @Override
             public void run() {
                 try {
+                    if (m_process_tegola_pid != - 1) {//get port on which tegola process is listening and notify broaccast receivers
+                        Thread.currentThread().sleep(100);
+                        int i_port = -1;
+                        String[] s_ary_netstat_output = Utils.Shell.run("netstat -tlnpe", m_process_tegola_pid.toString());
+                        if (s_ary_netstat_output.length > 0) {
+                            String s_tegola_proc_netstat_ifo = s_ary_netstat_output[0];
+                            s_tegola_proc_netstat_ifo = s_tegola_proc_netstat_ifo.replaceAll("\\s+", ",");
+                            Log.i(TAG, "tegola_process_monitor_thread: got netstat ifo for tegola process (PID " + m_process_tegola_pid + "): \n'" + s_tegola_proc_netstat_ifo + "'");
+                            String[] s_netstat_cols = s_tegola_proc_netstat_ifo.split(",");
+                            Log.d(TAG, "tegola_process_monitor_thread: split netstat ifo for tegola process into " + s_netstat_cols.length + " cols, separated by commas");
+                            if (s_netstat_cols.length >= 3) {//we got the port on which tegola is listening and it's in col 3 (zero-based)
+                                String s_port = s_netstat_cols[3];
+                                int i_port_sep = s_port.lastIndexOf(":");
+                                if (i_port_sep > 0 && s_port.length() > (i_port_sep + 1)) {
+                                    s_port = s_port.substring(i_port_sep + 1);
+                                    i_port = Integer.valueOf(s_port);
+                                    Log.d(TAG, "tegola_process_monitor_thread: confirmed tegola process (PID " + m_process_tegola_pid+ ") is listening on localhost:" + i_port);
+                                }
+                            }
+                        }
+                        if (i_port == -1)
+                            i_port = 8080;  //punt to best known default listen port
+                        //notify br receivers MVT_SERVER__LISTENING
+                        Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
+                        intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, i_port);
+                        fgs_asn__update(
+                                getString(R.string.started)
+                                        + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid : "")
+                                        + ", listening on port " + i_port
+                        );
+                        sendBroadcast(intent_notify_server_listening);
+                    }
+
                     m_process_tegola.waitFor();
                     Log.i(TAG, "tegola_process_monitor_thread: tegola mvt server process stopped");
-                    //Thread.sleep(500); //give a little bit of time to allow any remaining output to be flushed - no synchronization but this should suffice for now
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
                 } finally {

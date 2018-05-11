@@ -26,6 +26,7 @@ public class Constants {
                 String EXTRA__KEY__MSG = "MSG";
                 String EXTRA__KEY__VERSION = "VERSION";
                 String EXTRA__KEY__PID = "PID";
+                String EXTRA__KEY__PORT = "PORT";
                 String EXTRA__KEY__REASON = "REASON";
                 String EXTRA__KEY__PROVIDER = "PROVIDER";
                 String EXTRA__KEY__REMOTE = "REMOTE";
@@ -58,6 +59,7 @@ public class Constants {
                     String MVT_SERVER__STARTING = PKG + ".MVT_SERVER__STARTING";
                     String MVT_SERVER__START_FAILED = ".MVT_SERVER__STARTING";
                     String MVT_SERVER__STARTED = PKG + ".MVT_SERVER__STARTED";
+                    String MVT_SERVER__LISTENING = PKG + ".MVT_SERVER__LISTENING";
                     String MVT_SERVER__OUTPUT__LOGCAT = PKG + ".MVT_SERVER__OUTPUT__LOGCAT";
                     String MVT_SERVER__OUTPUT__STDERR = PKG + ".MVT_SERVER__OUTPUT__STDERR";
                     String MVT_SERVER__OUTPUT__STDOUT = PKG + ".MVT_SERVER__OUTPUT__STDOUT";
@@ -71,6 +73,7 @@ public class Constants {
                         String MVT_SERVER__OUTPUT__LOGCAT__LINE = MVT_SERVER__OUTPUT__LOGCAT + "." + EXTRA__KEY__MSG;
                         String MVT_SERVER__OUTPUT__STDERR__LINE = MVT_SERVER__OUTPUT__STDERR + "." + EXTRA__KEY__MSG;
                         String MVT_SERVER__OUTPUT__STDOUT__LINE = MVT_SERVER__OUTPUT__STDOUT + "." + EXTRA__KEY__MSG;
+                        String MVT_SERVER__LISTENING__PORT = MVT_SERVER__LISTENING + "." + EXTRA__KEY__PORT;
                     }
                 }
             }
@@ -164,6 +167,7 @@ public class Constants {
             , MVT_SERVER__STARTING
             , MVT_SERVER__START_FAILED
             , MVT_SERVER__STARTED
+            , MVT_SERVER__LISTENING
             , MVT_SERVER__OUTPUT__LOGCAT
             , MVT_SERVER__OUTPUT__STDERR
             , MVT_SERVER__OUTPUT__STDOUT
@@ -180,6 +184,7 @@ public class Constants {
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING: return MVT_SERVER__STARTING;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED: return MVT_SERVER__START_FAILED;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED: return MVT_SERVER__STARTED;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING: return MVT_SERVER__LISTENING;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT: return MVT_SERVER__OUTPUT__LOGCAT;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR: return MVT_SERVER__OUTPUT__STDERR;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT: return MVT_SERVER__OUTPUT__STDOUT;
@@ -199,6 +204,7 @@ public class Constants {
                     case MVT_SERVER__STARTING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING;
                     case MVT_SERVER__START_FAILED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED;
                     case MVT_SERVER__STARTED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED;
+                    case MVT_SERVER__LISTENING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING;
                     case MVT_SERVER__OUTPUT__LOGCAT: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT;
                     case MVT_SERVER__OUTPUT__STDERR: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR;
                     case MVT_SERVER__OUTPUT__STDOUT: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT;
