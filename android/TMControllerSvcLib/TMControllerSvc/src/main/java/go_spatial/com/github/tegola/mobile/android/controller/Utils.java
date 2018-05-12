@@ -242,16 +242,16 @@ public class Utils {
                 }
                 final Call httpClient_call__get_request = httpClient.newCall(http_get_request);
                 Log.d(TAG, "exec: new OkHttpClient Call (for " + http_get_request.toString() + ") created: " + httpClient_call__get_request.toString() + "; executing...");
-                Response response = null;
+                Response htt_get_response = null;
                 long n_content_length = 0, n_bytes_remaining = 0;
                 try {
-                    response = httpClient_call__get_request.execute();
+                    htt_get_response = httpClient_call__get_request.execute();
                     Log.d(TAG, "exec: executed OkHttpClient Call (" + httpClient_call__get_request.toString() + "); handling response...");
-                    if (!response.isSuccessful())
-                        throw new IOException("Unexpected Response (to " + http_get_request.toString() + "): " + response.toString());
+                    if (!htt_get_response.isSuccessful())
+                        throw new IOException("Unexpected Response (to " + http_get_request.toString() + "): " + htt_get_response.toString());
                     else {
-                        Log.d(TAG, "exec: Response (to " + http_get_request.toString() + "): " + response.toString());
-                        Headers response_headers = response.headers();
+                        Log.d(TAG, "exec: Response (to " + http_get_request.toString() + "): " + htt_get_response.toString());
+                        Headers response_headers = htt_get_response.headers();
                         if (response_headers != null && response_headers.size() > 0) {
                             //DEBUG - remove for release (unnecessary iteration for release builds)
                             Log.d(TAG, "\tHeaders:");
@@ -262,7 +262,7 @@ public class Utils {
                             }
                         }
 
-                        n_content_length = n_bytes_remaining = response.body().contentLength();
+                        n_content_length = n_bytes_remaining = htt_get_response.body().contentLength();
                         content_handler.onStartRead(n_bytes_remaining);
                         if (n_content_length < 0) {
                             Log.w(TAG, "exec: response headers do not appear to contain Content-Length!");
@@ -274,7 +274,7 @@ public class Utils {
                         byte[] bytes = new byte[1024];
                         int n_bytes_read = 0;
                         Log.d(TAG, "exec: entering response.body().source().read() loop...");
-                        while ((n_bytes_read = response.body().source().read(bytes)) != -1) {
+                        while ((n_bytes_read = htt_get_response.body().source().read(bytes)) != -1) {
                             content_handler.onChunkRead(n_bytes_read, bytes);
                             n_bytes_remaining -= n_bytes_read;
                         }
@@ -294,11 +294,17 @@ public class Utils {
                                 : n_bytes_remaining
                             , e);
                 } finally {
-                    if (response != null) {
+                    if (htt_get_response != null) {
                         Log.d(TAG, "exec: closing response (to " + http_get_request.toString() + ")");
-                        response.close();
+                        htt_get_response.close();
                     } else {
                         Log.d(TAG, "exec: cannot close response (to " + http_get_request.toString() + ") as response is null");
+                    }
+                    if (httpClient_call__get_request != null)
+                        httpClient_call__get_request.cancel();
+                    if (httpClient != null) {
+                        Log.d(TAG, "exec: httpClient.dispatcher().cancelAll()");
+                        httpClient.dispatcher().cancelAll();
                     }
                 }
             }
@@ -647,6 +653,8 @@ public class Utils {
                         } else {
                             Log.d(TAG, "request_file_download: cannot close response (to " + http_request_file_download.toString() + ") as response is null");
                         }
+                        if (httpClient_call__request_file_download != null)
+                            httpClient_call__request_file_download.cancel();
                     }
                 }
 
@@ -654,6 +662,7 @@ public class Utils {
                 protected Exception doInBackground(final HttpUrl_To_Local_File[] httpUrl_to_local_file) {
                     Exception exception = null;
 
+                    OkHttpClient httpClient = null;
                     try {
                         if (httpUrl_to_local_file == null || httpUrl_to_local_file[0] == null)
                             throw new RemoteFileInvalidParameterException("HttpUrl_To_Local_File is null");
@@ -661,7 +670,7 @@ public class Utils {
                             throw new RemoteFileInvalidParameterException("HttpUrl_To_Local_File.url is null");
                         if (httpUrl_to_local_file[0].get_file() == null)
                             throw new RemoteFileInvalidParameterException("HttpUrl_To_Local_File.file is null");
-                        final OkHttpClient httpClient = new OkHttpClient.Builder()
+                        httpClient = new OkHttpClient.Builder()
                                 //network interceptor not currently needed - only application interceptor
     //                            .addNetworkInterceptor(new Interceptor() {
     //                                @Override public Response intercept(Chain chain) throws IOException {
@@ -688,6 +697,9 @@ public class Utils {
                         exception = e;
                     } catch (RemoteFileInvalidParameterException e) {
                         exception = e;
+                    } finally {
+                        if (httpClient != null)
+                            httpClient.dispatcher().cancelAll();
                     }
                     return exception;
                 }

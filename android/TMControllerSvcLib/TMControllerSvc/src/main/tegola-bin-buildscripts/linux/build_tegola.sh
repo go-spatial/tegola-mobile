@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Usage: build_tegola -t_platform android-arm|android-x86|android-arm64|android-x86_64|win-x86|win-x86_64 [-b_cgo_enabled_override_default 0|1] [-b_version <tegola version string>] [b_version_props_copy_path <path>] [b_normalized_fn_bin_output_path <path>]
+# Usage: build_tegola -t_platform android-arm|android-x86|android-arm64|android-x86_64|win-x86|win-x86_64|darwin-x86|darwin-x86_64 [-b_cgo_enabled_override_default 0|1] [-b_version <tegola version string>] [b_version_props_copy_path <path>] [b_normalized_fn_bin_output_path <path>]
 #
 #     -t_platform                         target build platform
 #                                           acceptable/supported target build platforms:

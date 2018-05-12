@@ -322,13 +322,17 @@ public class Constants {
             public static final TEGOLA_BIN get_for(final CPU_ABI for_cpu_abi) {
                 switch (for_cpu_abi) {
                     case armeabi:
-                    case armeabi_v7a: return tegola_bin__arm;
-                    case arm64_v8a: return tegola_bin__arm64;
-                    case x86: return tegola_bin__x86;
-                    case x86_64: return tegola_bin__x86_64;
-                    case mips:      //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
-                    case mips64:    //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
-                    default: return null;
+                    case armeabi_v7a:   return tegola_bin__arm;
+
+                    case arm64_v8a:     return tegola_bin__arm64;
+
+                    case x86:
+                    case x86_64:        return tegola_bin__x86;
+
+                    case mips:          //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
+                    case mips64:        //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
+
+                    default:            return null;
                 }
             }
 

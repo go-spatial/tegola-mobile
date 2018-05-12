@@ -3,6 +3,8 @@ package go_spatial.com.github.tegola.mobile.android.ux;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdate;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -108,6 +111,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             m_mapboxMap.addOnCameraMoveListener(m_OnCameraMoveListener);
 
             m_mapboxMap.setDebugActive(true);
+
+            mapView.callOnClick();
         }
     };
 
@@ -227,14 +232,14 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
     }
 
 
-    private String get_mbgl_style_url(final int tegola_listen_port) {
-        Log.d(TAG, "get_mbgl_style_url: tegola listen port is: " + tegola_listen_port);
-        //String s_mbglstyle_url = "https://gist.githubusercontent.com/klokan/3eee87899644f5d82b3946bf0cd1e176/raw/4199669cc15c43817168f7eedf7d4f556e1a4f40/bright-v8-local.json";
-        //String s_mbglstyle_url = "https://osm.tegola.io/maps/osm/style.json";
-        //String s_mbglstyle_url = "asset://mbglstyle--gpkg-athens.json";
-        //String s_mbglstyle_url = "http://localhost:8080/maps/oceanside/style.json";
-        String s_mbglstyle_url = "http://localhost:" + Integer.toString(tegola_listen_port) + "/maps/athens/style.json";
-        Log.d(TAG, "get_mbgl_style_url: mapview mbgl StyleUrl is " + s_mbglstyle_url);
-        return s_mbglstyle_url;
-    }
+//    private String get_mbgl_style_url(final int tegola_listen_port) {
+//        Log.d(TAG, "get_mbgl_style_url: tegola listen port is: " + tegola_listen_port);
+//        //String s_mbglstyle_url = "https://gist.githubusercontent.com/klokan/3eee87899644f5d82b3946bf0cd1e176/raw/4199669cc15c43817168f7eedf7d4f556e1a4f40/bright-v8-local.json";
+//        //String s_mbglstyle_url = "https://osm.tegola.io/maps/osm/style.json";
+//        //String s_mbglstyle_url = "asset://mbglstyle--gpkg-athens.json";
+//        //String s_mbglstyle_url = "http://localhost:8080/maps/oceanside/style.json";
+//        String s_mbglstyle_url = "http://localhost:" + Integer.toString(tegola_listen_port) + "/maps/athens/style.json";
+//        Log.d(TAG, "get_mbgl_style_url: mapview mbgl StyleUrl is " + s_mbglstyle_url);
+//        return s_mbglstyle_url;
+//    }
 }

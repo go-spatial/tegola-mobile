@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 public class ConfigFileEditorActivity extends AppCompatActivity {
     private static final String TAG = ConfigFileEditorActivity.class.getName();
@@ -97,6 +98,7 @@ public class ConfigFileEditorActivity extends AppCompatActivity {
             case R.id.menu_item__cfg_file_editor__commit_changes: {
                 try {
                     save_config_file_contents();
+                    load_config_file_contents();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -207,8 +209,31 @@ public class ConfigFileEditorActivity extends AppCompatActivity {
     }
 
     private void save_config_file_contents() throws FileNotFoundException, IOException {
-        //TODO: write implementation!
-        m_result = RESULT_OK;
+        final String filename = getIntent().getStringExtra(Constants.Strings.EDITOR_INTENT_EXTRAS.FILENAME);
+        Log.d(TAG, "load_config_file_contents: starting working thread...");
+        final Thread worker_thread = new Thread(new Runnable() {
+            private final String TAG = "save_cfgfile_cwrkr_thrd";
+            @Override
+            public void run() {
+                Log.d(TAG, "thread started");
+                File f_config_toml = new File(getFilesDir().getPath() + "/" + filename);
+                OutputStream outputstream_raw_config_toml = null;
+                try {
+                    Log.d(TAG, "opening " + f_config_toml.getPath() + " contents...");
+                    outputstream_raw_config_toml = openFileOutput(filename, MODE_PRIVATE);
+                    Log.d(TAG, f_config_toml.getPath() + "file outputstream opened");
+                    outputstream_raw_config_toml.write(m_editor.getText().toString().getBytes());
+                    outputstream_raw_config_toml.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    return;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Log.d(TAG, "done - exiting thread");
+            }
+        });
+        worker_thread.start();
     }
 
     private int compute_result() {
