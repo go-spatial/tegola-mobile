@@ -10,6 +10,6 @@ public class TMHarnessApp extends TMApp {
         super.onCreate();
 
         // Mapbox Access token
-        Mapbox.getInstance(getApplicationContext(), BuildConfig.mbgl_api_access_token);
+        Mapbox.getInstance(getApplicationContext(), BuildConfig.mbglapi_access_token);
     }
 }

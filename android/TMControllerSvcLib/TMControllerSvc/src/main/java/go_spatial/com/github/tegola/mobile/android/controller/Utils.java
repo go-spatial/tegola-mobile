@@ -205,6 +205,32 @@ public class Utils {
             }
             return length;
         }
+
+        private static void delete(File f, int n_level) throws IOException {
+            if (f == null)
+                throw new NullPointerException("File object is null!");
+            if (!f.exists())
+                throw new FileNotFoundException(f.getPath() + " does not exist!");
+            StringBuilder sb_lvl = new StringBuilder();
+            for (int i = 0; i < n_level; i++)
+                sb_lvl.append("\t");
+            if (!f.isFile()) {
+                File[] f_children = f.listFiles();
+                Log.d(TAG, "delete: " + sb_lvl + " directory \"" + f.getPath() + "\" contains " + f_children.length + " children");
+                for (File f_child : f_children)
+                    delete(f_child, n_level + 1);
+
+            }
+            boolean b_is_file = f.isFile();
+            boolean b_deleted = f.delete();
+            Log.d(TAG, "delete: " + sb_lvl + " "
+                    + (b_deleted ? "successfully deleted" : "FAILED TO DELETE")
+                    + " " + (b_is_file ? "file" : "directory")
+                    + " \"" + f.getPath() + "\"");
+        }
+        public static void delete(File f) throws IOException {
+            delete(f, 0);
+        }
     }
 
     public static class HTTP {
@@ -294,14 +320,15 @@ public class Utils {
                                 : n_bytes_remaining
                             , e);
                 } finally {
+                    if (httpClient_call__get_request != null)
+                        httpClient_call__get_request.cancel();
                     if (htt_get_response != null) {
                         Log.d(TAG, "exec: closing response (to " + http_get_request.toString() + ")");
+                        htt_get_response.body().close();
                         htt_get_response.close();
                     } else {
                         Log.d(TAG, "exec: cannot close response (to " + http_get_request.toString() + ") as response is null");
                     }
-                    if (httpClient_call__get_request != null)
-                        httpClient_call__get_request.cancel();
                     if (httpClient != null) {
                         Log.d(TAG, "exec: httpClient.dispatcher().cancelAll()");
                         httpClient.dispatcher().cancelAll();
@@ -534,8 +561,13 @@ public class Utils {
                             }
                         }
                     } finally {
-                        if (response != null)
+                        if (httpClient_call__request_file_size != null)
+                            httpClient_call__request_file_size.cancel();
+                        if (response != null) {
+                            response.body().source().buffer().close();
+                            response.body().close();
                             response.close();
+                        }
                     }
                     return l_file_size;
                 }
@@ -601,8 +633,12 @@ public class Utils {
                             Log.d(TAG, "request_file_download: Response (to " + http_request_file_download.toString() + ") body has " + response.body().byteStream().available() + " bytes available");
                         }
                     } finally {
+                        if (httpClient_call__request_file_download != null)
+                            httpClient_call__request_file_download.cancel();
                         if (response != null) {
                             Log.d(TAG, "request_file_download: closing response (to " + http_request_file_download.toString() + ")");
+                            response.body().source().buffer().close();
+                            response.body().close();
                             response.close();
                         } else {
                             Log.d(TAG, "request_file_download: cannot close response (to " + http_request_file_download.toString() + ") as response is null");
@@ -647,14 +683,16 @@ public class Utils {
                             download_file(response);
                         }
                     } finally {
+                        if (httpClient_call__request_file_download != null)
+                            httpClient_call__request_file_download.cancel();
                         if (response != null) {
                             Log.d(TAG, "request_file_download: closing response (to " + http_request_file_download.toString() + ")");
+                            response.body().source().buffer().close();
+                            response.body().close();
                             response.close();
                         } else {
                             Log.d(TAG, "request_file_download: cannot close response (to " + http_request_file_download.toString() + ") as response is null");
                         }
-                        if (httpClient_call__request_file_download != null)
-                            httpClient_call__request_file_download.cancel();
                     }
                 }
 
@@ -852,7 +890,7 @@ public class Utils {
                             )
                                 ? Files.F_PUBLIC_ROOT_DIR.getInstance(context)
                                 : context.getFilesDir()
-                            , Constants.Strings.GPKG_BUNDLE_SUBDIR
+                            , Constants.Strings.GPKG_BUNDLE.SUBDIR
                     );
                 }
                 public static F_GPKG_DIR getInstance(@NonNull final Context context) throws PackageManager.NameNotFoundException, IOException {

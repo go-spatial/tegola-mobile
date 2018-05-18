@@ -3,6 +3,7 @@ package go_spatial.com.github.tegola.mobile.android.ux;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -11,8 +12,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdate;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -33,6 +36,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG__MBGL_STYLE_URL = "mbgl_style_url";
     private String mbgl_style_url = "";
+    private static final String ARG__MBMAP_DEBUG_ACTIVE = "mbmap_debug_active";
+    private boolean mbmap_debug_active = false;
 
     private OnFragmentInteractionListener mListener;
     private MapView mapView = null;
@@ -49,15 +54,16 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
      * @param mbgl_style_url mbgl_style_url
      * @return A new instance of fragment TegolaMBGLFragment.
      */
-    public static TegolaMBGLFragment newInstance(final String mbgl_style_url) {
+    public static TegolaMBGLFragment newInstance(final String mbgl_style_url, final boolean mbmap_debug_active) {
         TegolaMBGLFragment fragment = new TegolaMBGLFragment();
         Bundle args = new Bundle();
         args.putString(ARG__MBGL_STYLE_URL, mbgl_style_url);
+        args.putBoolean(ARG__MBMAP_DEBUG_ACTIVE, mbmap_debug_active);
         fragment.setArguments(args);
         return fragment;
     }
-    public static TegolaMBGLFragment newInstance() {
-        return new TegolaMBGLFragment();
+    public static TegolaMBGLFragment newInstance(final String mbgl_style_url) {
+        return newInstance(mbgl_style_url, false);
     }
 
     @Override
@@ -65,8 +71,9 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mbgl_style_url = getArguments().getString(ARG__MBGL_STYLE_URL);
+            mbmap_debug_active = getArguments().getBoolean(ARG__MBMAP_DEBUG_ACTIVE);
         } else {
-            //error! cannot start mbgl without style url from tegola
+            Log.e(TAG, "(fragment) onCreate: cannot start mbgl mapview without mbgl style url!");
         }
     }
 
@@ -76,6 +83,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         View this_frag_layout_view = inflater.inflate(R.layout.fragment_mapbox, container, false);
 
         mapView = (MapView)this_frag_layout_view.findViewById(R.id.mapView);
+
         mapView.getMapAsync(m_OnMapReadyCallback);
 
         Log.d(TAG, "(fragment) onCreateView: mbglstyle url: " + mbgl_style_url);
@@ -93,26 +101,30 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             m_mapboxMap = mapboxMap;
             Log.d(TAG, "(fragment) onMapReady: map is ready - min zoom level: " + m_mapboxMap.getMinZoomLevel() + "; max zoom level: " + m_mapboxMap.getMaxZoomLevel());
 
-            CameraPosition camera_pos = null;
-//            camera_pos = new CameraPosition.Builder()
-//                    .target(new LatLng(37.9, 23.7, 10.0)) //center pos for athens gpkg
-//                    .zoom(1.0)
-//                    .build();
-//            m_mapboxMap.setCameraPosition(camera_pos);
-            camera_pos = m_mapboxMap.getCameraPosition();
+            CameraPosition camera_pos = m_mapboxMap.getCameraPosition();
             Log.d(TAG, "(fragment) onMapReady: map is ready - "
                     + "initial camera_pos.target.getLatitude(): " + camera_pos.target.getLatitude()
                     + "; initial camera_pos.target.getLongitude(): " + camera_pos.target.getLongitude()
                     + "; initial camera_pos.target.getAltitude(): " + camera_pos.target.getAltitude()
             );
-            m_mapboxMap.setPrefetchesTiles(true);
 
-            //add listeners...
             m_mapboxMap.addOnCameraMoveListener(m_OnCameraMoveListener);
 
-            m_mapboxMap.setDebugActive(true);
+            m_mapboxMap.setDebugActive(mbmap_debug_active);
 
-            mapView.callOnClick();
+            //now queue up initial automated camera actions
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    m_mapboxMap.setCameraPosition(
+                        new CameraPosition.Builder()
+                            .target(new LatLng(37.9, 23.7)) //center pos for athens gpkg
+                            .zoom(10.0)
+                            .build()
+                    );
+                    mapView.invalidate();
+                }
+            }, 50);
         }
     };
 
@@ -230,16 +242,4 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
-
-
-//    private String get_mbgl_style_url(final int tegola_listen_port) {
-//        Log.d(TAG, "get_mbgl_style_url: tegola listen port is: " + tegola_listen_port);
-//        //String s_mbglstyle_url = "https://gist.githubusercontent.com/klokan/3eee87899644f5d82b3946bf0cd1e176/raw/4199669cc15c43817168f7eedf7d4f556e1a4f40/bright-v8-local.json";
-//        //String s_mbglstyle_url = "https://osm.tegola.io/maps/osm/style.json";
-//        //String s_mbglstyle_url = "asset://mbglstyle--gpkg-athens.json";
-//        //String s_mbglstyle_url = "http://localhost:8080/maps/oceanside/style.json";
-//        String s_mbglstyle_url = "http://localhost:" + Integer.toString(tegola_listen_port) + "/maps/athens/style.json";
-//        Log.d(TAG, "get_mbgl_style_url: mapview mbgl StyleUrl is " + s_mbglstyle_url);
-//        return s_mbglstyle_url;
-//    }
 }

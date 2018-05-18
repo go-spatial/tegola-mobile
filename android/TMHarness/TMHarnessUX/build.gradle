@@ -73,25 +73,43 @@ android {
     } else {
         throw new GradleException("Could not read version.properties!")
     }
-    def mbglPropsFile = file('mbglapi.properties')
-    Properties mbglPropsProps = null
-    String access_token = null
+    def mbglPropsFile = file('mbgl.properties')
+    Properties mbglProps = null
+    String mbglapi_access_token = null
+    Boolean mbgl_test_style_json = false
+    String mbgl_test_style_json_url = ""
+    Boolean mbgl_debug_active = false
     if (mbglPropsFile.canRead()) {
-        mbglPropsProps = new Properties()
-        mbglPropsProps.load(new FileInputStream(mbglPropsFile))
-        access_token = mbglPropsProps['access_token']
-        if (access_token == null)
-            throw new GradleException("failed read: mbglapi.properties 'access_token' value is required")
+        mbglProps = new Properties()
+        mbglProps.load(new FileInputStream(mbglPropsFile))
+        mbglapi_access_token = mbglProps['api_access_token']
+        if (mbglapi_access_token == null)
+            throw new GradleException("failed read: mbgl.properties 'api_access_token' value is required")
+        String s_mbgl_test_style_json = mbglProps['test_style_json']
+        if (s_mbgl_test_style_json != null)
+            mbgl_test_style_json = Boolean.valueOf(s_mbgl_test_style_json)
+        mbgl_test_style_json_url = mbglProps['test_style_json_url']
+        if (mbgl_test_style_json_url == null)
+            mbgl_test_style_json_url = ""
+        String s_mbgl_debug_active = mbglProps['debug_active']
+        if (s_mbgl_debug_active != null)
+            mbgl_debug_active = Boolean.valueOf(s_mbgl_debug_active)
     } else
-        throw new GradleException("Could not read mbglapi.properties! mbglapi.properties containing 'access_token' value is required")
+        throw new GradleException("Could not read mbgl.properties!")
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            buildConfigField "String", "mbgl_api_access_token", "\"" + access_token + "\""
+            buildConfigField "String", "mbglapi_access_token", "\"" + mbglapi_access_token + "\""
+            buildConfigField "boolean", "mbgl_test_style_json", "false"
+            buildConfigField "String", "mbgl_test_style_json_url", "\"\""
+            buildConfigField "boolean", "mbgl_debug_active", "false"
         }
         debug {
-            buildConfigField "String", "mbgl_api_access_token", "\"" + access_token + "\""
+            buildConfigField "String", "mbglapi_access_token", "\"" + mbglapi_access_token + "\""
+            buildConfigField "boolean", "mbgl_test_style_json", mbgl_test_style_json.toString()
+            buildConfigField "String", "mbgl_test_style_json_url", "\"" + mbgl_test_style_json_url + "\""
+            buildConfigField "boolean", "mbgl_debug_active", mbgl_debug_active.toString()
         }
     }
     defaultConfig {

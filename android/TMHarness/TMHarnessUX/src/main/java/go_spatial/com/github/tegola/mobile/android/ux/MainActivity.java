@@ -37,7 +37,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -47,6 +46,7 @@ import android.widget.Toast;
 
 import com.github.aakira.expandablelayout.ExpandableRelativeLayout;
 import com.ipaulpro.afilechooser.utils.FileUtils;
+import com.mapbox.mapboxsdk.exceptions.MapboxConfigurationException;
 
 /*
 import com.google.android.gms.common.ConnectionResult;
@@ -416,9 +416,6 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_tv_val_CPU_ABI.setText(Constants.Enums.CPU_ABI.fromDevice().toString());
         m_tv_val_API_level.setText(Build.VERSION.SDK);
 
-        //getSupportFragmentManager().beginTransaction().add(R.id.drawerlayout_content__drawer, new BlankFragment(), FRAG_DRAWER_CONTENT).commit();
-        //Log.d(TAG, "onPostCreate: swapping drawer content to TegolaMBGLFragment");
-        //getSupportFragmentManager().beginTransaction().add(R.id.drawerlayout_content__drawer, mb_frag, FRAG_DRAWER_CONTENT).commit();
         m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         OnMVTServerStopped();
@@ -449,6 +446,16 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 m_scvw_main__scroll_max();
             }
         }, 50);
+
+        if (BuildConfig.mbgl_test_style_json) {
+            Log.d(TAG, "onPostCreate: BuildConfig.mbgl_test_style_json==true --> starting mbgl mapview with test mbgl_style_url " + BuildConfig.mbgl_test_style_json_url);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mbgl_map_start(BuildConfig.mbgl_test_style_json_url);
+                }
+            }, 50);
+        }
     }
 
     @Override
@@ -1358,43 +1365,74 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         if (srvr_started != null && srvr_started == true) {
             String s_srvr_status = m_tv_val_srvr_status.getText().toString() + "\nlistening on port " + port;
             m_tv_val_srvr_status.setText(s_srvr_status);
-            map_start(port);
+            String s_tegola_tile_server_url__root = "http://localhost:" + port;
+            mbgl_map_start__tegola(s_tegola_tile_server_url__root);
         }
     }
 
-    private void map_start(final int tegola_listen_port) {
+    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url) throws MapboxConfigurationException {
+        if (!s_map_mbgl_style_url.isEmpty()) {
+            mbgl_map_stop();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "mbgl_map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: starting mapbox map with mbgl style " + s_map_mbgl_style_url);
+                    Log.d(TAG, "mbgl_map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: swapping drawer content to TegolaMBGLFragment");
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(
+                                    R.id.drawerlayout_content__drawer__frag_container,
+                                    TegolaMBGLFragment.newInstance(s_map_mbgl_style_url, BuildConfig.mbgl_debug_active),
+                                    FRAG_DRAWER_CONTENT
+                            )
+                            .commit();
+                    Log.d(TAG, "mbgl_map_start: adding drawerlistener m_drawerlayout_main__DrawerToggle to m_drawerlayout");
+                    m_drawerlayout.addDrawerListener(m_drawerlayout_main__DrawerToggle);
+                    Log.d(TAG, "mbgl_map_start: attaching drawerhandle R.layout.drawer_handle to m_drawerlayout_content__drawer");
+                    m_drawer_handle = DrawerHandle.attach(m_drawerlayout_content__drawer, R.layout.drawer_handle, 0.45f);
+                    Log.d(TAG, "mbgl_map_start: unlocking drawer");
+                    m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                    m_drawer_handle.openDrawer();
+                }
+            });
+        } else {
+            throw new MapboxConfigurationException();
+        }
+    }
+
+    private void mbgl_map_start__tegola(final String s_tegola_tile_server_url__root) {
         //get default map from tegola "capabilities" endpoint, then construct url path to its mbgl style json url, and finally start mapbox using it
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String s_tegola_capabilities_json_url = "http://localhost:" + tegola_listen_port + "/capabilities";
                 StringBuilder sb_json = new StringBuilder();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                Utils.HTTP.Get.exec(s_tegola_capabilities_json_url, new Utils.HTTP.Get.ContentHandler() {
+                final String s_tegola_tile_server_url__capabilities_json_endpoint = s_tegola_tile_server_url__root + "/capabilities";
+                Utils.HTTP.Get.exec(s_tegola_tile_server_url__capabilities_json_endpoint, new Utils.HTTP.Get.ContentHandler() {
                     @Override
                     public void onStartRead(long n_size) {
-                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onStartRead: read " + s_tegola_capabilities_json_url + ": content-length: " + n_size);
+                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onStartRead: read " + s_tegola_tile_server_url__capabilities_json_endpoint + ": content-length: " + n_size);
                     }
 
                     @Override
                     public void onChunkRead(int n_bytes_read, byte[] bytes_1kb_chunk) {
                         if (n_bytes_read > 0) {
                             baos.write(bytes_1kb_chunk, 0, n_bytes_read);
-                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onChunkRead: read next " + n_bytes_read + " bytes from " + s_tegola_capabilities_json_url + " into byteoutputstream");
+                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onChunkRead: read next " + n_bytes_read + " bytes from " + s_tegola_tile_server_url__capabilities_json_endpoint + " into byteoutputstream");
                         } else {
-                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onChunkRead: skipped writing bytes from " + s_tegola_capabilities_json_url + " into byteoutputstream since n_bytes_read <= 0");
+                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onChunkRead: skipped writing bytes from " + s_tegola_tile_server_url__capabilities_json_endpoint + " into byteoutputstream since n_bytes_read <= 0");
                         }
                     }
 
                     @Override
                     public void onReadError(long n_remaining, Exception e) {
-                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadError: n_remaining: " + n_remaining + "; error: " + e.getMessage());
+                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadError: n_remaining: " + n_remaining + "; error: " + e.getMessage());
                         e.printStackTrace();
                     }
 
                     @Override
                     public void onReadComplete(long n_read, long n_remaining) {
-                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: n_read: " + n_read + "; n_remaining: " + n_remaining);
+                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: n_read: " + n_read + "; n_remaining: " + n_remaining);
                         JSONTokener jsonTokener = new JSONTokener(baos.toString());
                         try {
                             baos.close();
@@ -1405,53 +1443,30 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                             String s_default_map = "";
                             String s_default_map_mbgl_style_url = "";
                             JSONObject jsonObject = new JSONObject(jsonTokener);
-                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: " + s_tegola_capabilities_json_url + " content is:\n" + jsonObject.toString());
+                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: " + s_tegola_tile_server_url__capabilities_json_endpoint + " content is:\n" + jsonObject.toString());
                             JSONArray json_maps = jsonObject.getJSONArray("maps");
                             if (json_maps != null) {
-                                Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: got \"maps\" JSONArray - contains " + json_maps.length() + " \"map\" JSON objects");
+                                Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: got \"maps\" JSONArray - contains " + json_maps.length() + " \"map\" JSON objects");
                                 for (int i = 0; i < json_maps.length(); i++) {
                                     JSONObject json_map = json_maps.getJSONObject(i);
                                     if (json_map != null) {
-                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: got JSONObject for \"maps\"[" + i + "]");
+                                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: got JSONObject for \"maps\"[" + i + "]");
                                         String s_map = json_map.getString("name");
-                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: \"maps\"[" + i + "].\"name\" == \"" + s_map + "\"");
+                                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: \"maps\"[" + i + "].\"name\" == \"" + s_map + "\"");
                                         if (i == 0) {
                                             s_default_map = s_map;
-                                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default map to \"maps\"[" + i + "].\"name\" == \"" + s_map + "\"");
+                                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default map to \"maps\"[" + i + "].\"name\" == \"" + s_map + "\"");
                                         }
-                                        String s_mbgl_style_json_url = "http://localhost:" + tegola_listen_port + "/maps/" + s_map + "/style.json";
-                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: mbgl_style url for map \"" + s_map + "\" is " + s_mbgl_style_json_url);
+                                        String s_mbgl_style_json_url = s_tegola_tile_server_url__root + "/maps/" + s_map + "/style.json";
+                                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: mbgl_style url for map \"" + s_map + "\" is " + s_mbgl_style_json_url);
                                         if (i == 0) {
                                             s_default_map_mbgl_style_url = s_mbgl_style_json_url;
-                                            Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default mbgl_style url to s_default_map_mbgl_style_url");
+                                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default mbgl_style url to s_default_map_mbgl_style_url");
                                         }
                                     }
                                 }
                             }
-                            if (!s_default_map_mbgl_style_url.isEmpty()) {
-                                final String final_s_default_map_mbgl_style_url = s_default_map_mbgl_style_url;
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: starting mapbox map with mbgl style " + final_s_default_map_mbgl_style_url);
-                                        Log.d(TAG, "map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: swapping drawer content to TegolaMBGLFragment for provider type == gpkg");
-                                        getSupportFragmentManager()
-                                                .beginTransaction()
-                                                .replace(
-                                                        R.id.drawerlayout_content__drawer__frag_container,
-                                                        TegolaMBGLFragment.newInstance(final_s_default_map_mbgl_style_url),
-                                                        FRAG_DRAWER_CONTENT
-                                                )
-                                                .commit();
-                                        Log.d(TAG, "map_start: adding drawerlistener m_drawerlayout_main__DrawerToggle to m_drawerlayout");
-                                        m_drawerlayout.addDrawerListener(m_drawerlayout_main__DrawerToggle);
-                                        Log.d(TAG, "map_start: attaching drawerhandle R.layout.drawer_handle to m_drawerlayout_content__drawer");
-                                        m_drawer_handle = DrawerHandle.attach(m_drawerlayout_content__drawer, R.layout.drawer_handle, 0.5f);
-                                        Log.d(TAG, "map_start: unlocking drawer");
-                                        m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-                                    }
-                                });
-                            }
+                            mbgl_map_start(s_default_map_mbgl_style_url);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -1465,30 +1480,36 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_tv_val_srvr_status.setText(getString(R.string.stopping));
     }
 
-    private void map_stop() {
-        Log.d(TAG, "map_stop: locking drawer closed");
-        m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        if (m_drawer_handle != null) {
-            Log.d(TAG, "map_stop: detaching drawer handle");
-            m_drawer_handle.detach();
-            m_drawer_handle = null;
-        } else {
-            Log.d(TAG, "map_stop: no (null) drawerhandle to detach!");
-        }
-        Log.d(TAG, "map_stop: removing drawer listener: m_drawerlayout_main__DrawerToggle");
-        m_drawerlayout.removeDrawerListener(m_drawerlayout_main__DrawerToggle);
-        Fragment frag_current = getSupportFragmentManager().findFragmentByTag(FRAG_DRAWER_CONTENT);
-        if (frag_current != null) {
-            Log.d(TAG, "map_stop: removing MapFragment from drawer");
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .remove(frag_current)
-                    .commit();
-        }
+    private void mbgl_map_stop() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "mbgl_map_stop: locking drawer closed");
+                if (m_drawer_handle != null) {
+                    m_drawer_handle.closerDrawer();
+                    Log.d(TAG, "mbgl_map_stop: detaching drawer handle");
+                    m_drawer_handle.detach();
+                    m_drawer_handle = null;
+                } else {
+                    Log.d(TAG, "mbgl_map_stop: no (null) drawerhandle to detach!");
+                }
+                m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                Log.d(TAG, "mbgl_map_stop: removing drawer listener: m_drawerlayout_main__DrawerToggle");
+                m_drawerlayout.removeDrawerListener(m_drawerlayout_main__DrawerToggle);
+                Fragment frag_current = getSupportFragmentManager().findFragmentByTag(FRAG_DRAWER_CONTENT);
+                if (frag_current != null) {
+                    Log.d(TAG, "mbgl_map_stop: removing MapFragment from drawer");
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .remove(frag_current)
+                            .commit();
+                }
+            }
+        });
     }
 
     private void OnMVTServerStopped() {
-        map_stop();
+        mbgl_map_stop();
 
         Log.d(TAG, "OnMVTServerStopped: updating status-related UX");
         m_tv_val_srvr_status.setText(getString(R.string.stopped));
@@ -1542,7 +1563,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     }
 
     private void stop_mvt_server() {
-        map_stop();
+        mbgl_map_stop();
         Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
         sendBroadcast(intent_stop_mvt_server);
     }

@@ -84,6 +84,8 @@ public class FGS extends Service {
                     Log.d(TAG, "onStartCommand: ASN dispatched and FGS started - init'ing...");
                     init();
 
+                    get__tegola_version();
+
                     Log.d(TAG, "onStartCommand: start sequence complete - notifying harness...");
                     Intent intent_notify_service_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED);
                     sendBroadcast(intent_notify_service_started);
@@ -157,11 +159,6 @@ public class FGS extends Service {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-
-        //grab tegola bin version string from tegola_version.properties output from latest bin build
-        String s_version = Utils.getAssetProperty(getApplicationContext(), "tegola_version.properties", "TEGOLA_BIN_VER");
-        if (s_version != null)
-            Constants.Enums.TEGOLA_BIN.set_version_string(s_version);
 
         //create geopackage bundle dir
         try {
@@ -253,6 +250,59 @@ public class FGS extends Service {
         return pid;
     }
 
+    private String m_s_version = null;
+
+    private void get__tegola_version() {
+        try {
+            final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());   //this line just asserts tegola bin supports this device's ABI
+            final File
+                    f_filesDir = getFilesDir()
+                    , f_tegola_bin_executable = new File(f_filesDir.getPath() + File.separator + e_tegola_bin.name());
+            final String
+                    s_tegola_bin_executable_path = f_tegola_bin_executable.getCanonicalPath()
+                    ;
+            if (!f_tegola_bin_executable.exists())
+                throw new FileNotFoundException("tegola bin file " + s_tegola_bin_executable_path + " does not exist");
+            Log.d(TAG, "get__tegola_version: found/using tegola bin: " + s_tegola_bin_executable_path);
+            StringBuilder sb_cmd_line = new StringBuilder()
+                    .append(s_tegola_bin_executable_path)
+                    .append(" ")
+                    .append("version");
+            String s_cmdline = sb_cmd_line.toString();
+            Log.d(TAG, "get__tegola_version: starting tegola version process (cmdline: '" + s_cmdline + "')...");
+            Process process_tegola_version = Runtime.getRuntime().exec(s_cmdline);
+            if (process_tegola_version != null) {
+                final int pid = getPid(process_tegola_version);
+                Log.i(TAG, "get__tegola_version: tegola version process (" + pid + ") started");
+                InputStream inputstream_tegola_process = process_tegola_version.getInputStream();
+                if (inputstream_tegola_process != null) {
+                    Log.d(TAG, "get__tegola_version: got ref to tegola version process inputstream");
+                    BufferedReader reader_tegola_version_process_inputstream = new BufferedReader(new InputStreamReader(inputstream_tegola_process));
+                    try {
+                        m_s_version = reader_tegola_version_process_inputstream.readLine();
+                        Log.d(TAG, "get__tegola_version: tegola version process output: \"" + m_s_version + "\"");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (reader_tegola_version_process_inputstream != null) {
+                            try {
+                                reader_tegola_version_process_inputstream.close();
+                            } catch (Exception e2) {}
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "get__tegola_version: could not get ref to tegola version process inputstream!");
+                }
+                if (m_s_version == null)
+                    m_s_version = "unknown";
+                Constants.Enums.TEGOLA_BIN.set_version_string(m_s_version);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Constants.Enums.TEGOLA_BIN.set_version_string("unknown");
+        }
+    }
+
     private abstract class MVT_SERVER_START_SPEC {
         public final boolean provider__is_gpkg;
         public final boolean config_toml__is_remote;
@@ -334,6 +384,7 @@ public class FGS extends Service {
         als_cmd_line.add("serve");
         ProcessBuilder pb = new ProcessBuilder();
         pb = pb.directory(f_tegola_bin_executable.getParentFile());
+        Map<String, String> pb_env = pb.environment();
 
         if (server_start_spec instanceof MVT_SERVER_START_SPEC__GPKG_PROVIDER) {
             final MVT_SERVER_START_SPEC__GPKG_PROVIDER server_start_spec__gpkg_provider = (MVT_SERVER_START_SPEC__GPKG_PROVIDER)server_start_spec;
@@ -354,31 +405,35 @@ public class FGS extends Service {
             Log.d(TAG, "start_tegola: found/using gpkg-bundle: " + f_gpkg_bundle.getName());
 
             //process version.properties file for this gpk-bundle
-            File f_gpkg_bundle_ver_props = new File(f_gpkg_bundle.getPath(), Constants.Strings.GPKG_BUNDLE_VERSION_PROPS__FNAME);
+            File f_gpkg_bundle_ver_props = new File(f_gpkg_bundle.getPath(), Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME);
             if (!f_gpkg_bundle_ver_props.exists())
                 throw new FileNotFoundException("geopcackage-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath() + " not found");
             Log.d(TAG, "start_tegola: found/using gpkg-bundle version.properties: " + f_gpkg_bundle_ver_props.getCanonicalPath());
             //get gpkg-bundle toml file spec from version.props, confirm existence, then build "--config" arg for tegola commandline
-            String s_gpkg_bundle__toml = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE);
+            String s_gpkg_bundle__toml = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
             f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_gpkg_bundle__toml);
-            Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE + " == " + f_gpkg_bundle__toml.getCanonicalPath());
+            Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + " == " + f_gpkg_bundle__toml.getCanonicalPath());
             if (!f_gpkg_bundle__toml.exists())
                 throw new FileNotFoundException("geopcackage-bundle toml file " + f_gpkg_bundle__toml.getCanonicalPath() + " not found");
             Log.d(TAG, "start_tegola: \tfound/using gpkg-bundle toml file: " + f_gpkg_bundle__toml.getCanonicalPath());
             als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
             als_cmd_line.add(f_gpkg_bundle__toml.getCanonicalPath());
 
+            //set env var for tegola file cache base path
+            pb_env.put(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR, f_gpkg_bundle.getCanonicalPath() + File.separator + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.SUB_PATH);
+            Log.d(TAG, "start_tegola: \tset pb env " + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR + " to \"" + pb_env.get(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR) + "\"");
+
             //get gpkg-bundle geopcackages spec from version.props, then confirm existence
-            String[] s_list_geopcackage_files = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES).split(",");
-            String[] s_list_geopcackage_path_env_vars = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_PATH_ENV_VARS).split(",");
+            String[] s_list_geopcackage_files = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES).split(",");
+            String[] s_list_geopcackage_path_env_vars = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_PATH_ENV_VARS).split(",");
             if (s_list_geopcackage_files != null && s_list_geopcackage_files.length > 0) {
-                Map<String, String> pb_env = pb.environment();
                 for (int i = 0; i < s_list_geopcackage_files.length; i++) {
                     String s_gpkg_file = s_list_geopcackage_files[i];
                     f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_file);
-                    Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES + "[" + i + "] == " + f_gpkg_bundle__gpkg.getCanonicalPath());
+                    Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "] == " + f_gpkg_bundle__gpkg.getCanonicalPath());
                     if (!f_gpkg_bundle__gpkg.exists())
                         throw new FileNotFoundException("geopcackage-bundle gpkg file " + f_gpkg_bundle__gpkg.getCanonicalPath() + " not found");
+                    //set env var to store path to this particular gpkg
                     pb_env.put(s_list_geopcackage_path_env_vars[i], f_gpkg_bundle__gpkg.getCanonicalPath());
                     Log.d(TAG, "start_tegola: \tset pb env " + s_list_geopcackage_path_env_vars[i] + " to \"" + pb_env.get(s_list_geopcackage_path_env_vars[i]) + "\"");
                 }
@@ -399,6 +454,10 @@ public class FGS extends Service {
                 als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
                 als_cmd_line.add(f_postgis_config_toml.getCanonicalPath());
             }
+
+            //set env var for tegola file cache base path
+            pb_env.put(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR, pb.directory().getCanonicalPath() + File.separator + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.SUB_PATH);
+            Log.d(TAG, "start_tegola: \tset pb env " + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR + " to \"" + pb_env.get(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR) + "\"");
         } else
             throw new UnknownMVTServerStartSpecType(server_start_spec);
         pb = pb.command(als_cmd_line);
@@ -445,7 +504,7 @@ public class FGS extends Service {
 
         //notify br receivers MVT_SERVER__STARTED
         Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED);
-        intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION, getString(R.string.srvr_ver));
+        intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION, m_s_version);
         if (m_process_tegola_pid != -1)
             intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, m_process_tegola_pid.intValue());
         fgs_asn__update(getString(R.string.started) + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid: ""));
@@ -620,6 +679,8 @@ public class FGS extends Service {
         m_thread_tegola_process_stdout_monitor = new Thread(new Runnable() {
             @Override
             public void run() {
+                boolean found_listen_port = false;
+                String s_key_listen_port = "starting tegola server on port";
                 Log.d(TAG, "tegola_stdout_monitor_thread: thread started");
                 InputStream input_stream_tegola_process_stdout = m_process_tegola != null ? m_process_tegola.getInputStream() : null;
                 if (input_stream_tegola_process_stdout != null) {
@@ -633,6 +694,26 @@ public class FGS extends Service {
                                 Intent intent_notify_server_output_stdout = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT);
                                 intent_notify_server_output_stdout.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDOUT__LINE, s_line);
                                 sendBroadcast(intent_notify_server_output_stdout);
+
+                                if (!found_listen_port) {
+                                    if (s_line.contains(s_key_listen_port)) {
+                                        found_listen_port = true;
+                                        String s_port = s_line.substring(s_line.indexOf(s_key_listen_port) + s_key_listen_port.length());  //now contains only "starting tegola server on port :xxxx"
+                                        s_port = s_port.substring(s_port.indexOf(":") + 1).trim();
+                                        Log.d(TAG, "tegola_STDOUT_output: confirmed tegola process (PID " + m_process_tegola_pid+ ") is listening on localhost:" + s_port);
+
+                                        //notify br receivers MVT_SERVER__LISTENING
+                                        int i_port = Integer.valueOf(s_port);
+                                        Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
+                                        intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, i_port);
+                                        fgs_asn__update(
+                                                getString(R.string.started)
+                                                        + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid : "")
+                                                        + ", listening on port " + i_port
+                                        );
+                                        sendBroadcast(intent_notify_server_listening);
+                                    }
+                                }
                             }
                             Thread.currentThread().sleep(100);
                         } catch (IOException e) {

@@ -162,35 +162,10 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                                             String s_gpkg_bundle_name = f_gpkg_bundle.getName();
                                             if (m_lv_gpk_bundles__installed__dataadapter.getCheckedItems().contains(s_gpkg_bundle_name)) {
                                                 Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: removing geopackage-bundle \"" + s_gpkg_bundle_name + "\"...");
-                                                File[] f_gpkg_bundle_files = f_gpkg_bundle.listFiles();
-                                                if (f_gpkg_bundle_files.length > 0) {
-                                                    for (File f_gpkg_bundle_file : f_gpkg_bundle_files) {
-                                                        if (f_gpkg_bundle_file.isFile()) {
-                                                            Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: removing file \"" + f_gpkg_bundle_file.getName() + "\" from geopackage-bundle \"" + s_gpkg_bundle_name + "\"");
-                                                            if (f_gpkg_bundle_file.delete()) {
-                                                                Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: geopackage-bundle \"" + s_gpkg_bundle_name + "\" file \"" + f_gpkg_bundle_file.getName() + "\" has been successfully removed");
-                                                            } else {
-                                                                Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: failed to remove geopackage-bundle \"" + s_gpkg_bundle_name + "\" file \"" + f_gpkg_bundle_file.getName() + "\" - removal of geopackage-bundle will fail!");
-                                                            }
-                                                        }
-                                                    }
-                                                    f_gpkg_bundle_files = f_gpkg_bundle.listFiles();
-                                                }
-                                                if (f_gpkg_bundle_files.length == 0) {
-                                                    Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: geopackage-bundle \"" + s_gpkg_bundle_name + "\" contains no files; safe to delete");
-                                                    if (f_gpkg_bundle.delete()) {
-                                                        Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: geopackage-bundle \"" + s_gpkg_bundle_name + "\" has been successfully removed");
-                                                        //m_lv_gpk_bundles__installed__dataadapter.remove(s_gpkg_bundle_name);
-                                                    } else {
-                                                        Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: failed to remove geopackage-bundle \"" + s_gpkg_bundle_name + "\"");
-                                                    }
-                                                } else {
-                                                    Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: cannot remove geopackage-bundle \"" + s_gpkg_bundle_name + "\" since it still contains " + f_gpkg_bundle_files.length + " file(s)");
-                                                }
+                                                Utils.Files.delete(f_gpkg_bundle);
                                             }
                                         }
                                     }
-                                    //m_lv_gpk_bundles__installed__dataadapter.notifyDataSetChanged();
                                     new Handler().postDelayed(new RefeshList_Runnable(), 50);
                                 } catch (PackageManager.NameNotFoundException e) {
                                     e.printStackTrace();

@@ -12,7 +12,14 @@
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:mapbox_uiRotateGestures="false"
+        mapbox:mapbox_uiCompass="true"
+        mapbox:mapbox_uiZoomControls="true"
+        mapbox:mapbox_myLocation="false"
+        mapbox:mapbox_cameraBearing="0.0"
+        mapbox:mapbox_uiLogo="false"
+        mapbox:mapbox_uiAttribution="false"
+        mapbox:mapbox_renderTextureMode="true"
+        mapbox:mapbox_enableTilePrefetch="true"
     />
 
 </FrameLayout>

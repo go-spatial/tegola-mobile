@@ -128,6 +128,7 @@ done
 
 BASE_TEGOLA_SUBDIR=github.com/go-spatial/tegola
 TEGOLA_SRC_DIR=${GOPATH}/src/$BASE_TEGOLA_SUBDIR
+BUILD_WRK_DIR=${TEGOLA_SRC_DIR}/cmd/tegola
 echo build_tegola.sh: go build command: pre-exec: meta: source dir: $TEGOLA_SRC_DIR
 
 if [[ -z "${TEGOLA_VER_STRING}" ]]; then
@@ -136,9 +137,9 @@ if [[ -z "${TEGOLA_VER_STRING}" ]]; then
 	TEGOLA_VER_STRING__TAG="$(git describe --tags --always)"
 	TEGOLA_VER_STRING__SHORT_HASH="$(git rev-parse --short HEAD)"
 	TEGOLA_VER_STRING__BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-	TEGOLA_VER_STRING=${TEGOLA_VER_STRING__TAG}_${TEGOLA_VER_STRING__SHORT_HASH}_${TEGOLA_VER_STRING__BRANCH}
+	TEGOLA_VER_STRING=${TEGOLA_VER_STRING__TAG}.${TEGOLA_VER_STRING__SHORT_HASH}.${TEGOLA_VER_STRING__BRANCH}.${GOOS}.${arch_friendly}
 fi
-echo build_tegola.sh: go build command: pre-exec: meta: cmd.Version: $TEGOLA_VER_STRING
+echo build_tegola.sh: go build command: pre-exec: meta: TEGOLA_VER_STRING: $TEGOLA_VER_STRING
 
 case $GOOS in
     android)
@@ -174,12 +175,12 @@ case $GOOS in
         fi
 
         # set go build cmd "ldflags" arg val - set version string; also, android go builds require use of additional "extldflags" arg
-        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd/cmd.Version=${TEGOLA_VER_STRING} -linkmode=external '-extldflags=-pie'"
+        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${BASE_TEGOLA_SUBDIR}/cmd/tegola/cmd.Version=${TEGOLA_VER_STRING} -linkmode=external '-extldflags=-pie'"
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
 
         # set go build cmd "o" arg val - this specifies output path of go build explicitly
         OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/android/api-${ndk_apilevel}/$arch_friendly
-        OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}__android_${arch_friendly}.bin
+        OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}.bin
         OUTPUT_BIN_NORMALIZED_FN=tegola_bin__android_$arch_friendly
         OUTPUT_PATH=${OUTPUT_DIR}/${OUTPUT_BIN}
         GO_BLD_CMD_ARG_VAL__O=$OUTPUT_PATH
@@ -195,12 +196,12 @@ case $GOOS in
         echo build_tegola.sh: go build command: pre-exec: go build env: var: CGO_ENABLED="$(printenv CGO_ENABLED)"
 
         # set go build cmd "ldflags" arg val - set version string
-        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd/cmd.Version=${TEGOLA_VER_STRING}"
+        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${BASE_TEGOLA_SUBDIR}/cmd/tegola/cmd.Version=${TEGOLA_VER_STRING}"
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
 
         # set go build cmd "o" arg val - this specifies output path of go build explicitly
         OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/windows/$arch_friendly
-        OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}__windows_${arch_friendly}.bin
+        OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}.bin
         OUTPUT_BIN_NORMALIZED_FN=tegola_bin__windows_$arch_friendly
         OUTPUT_PATH=${OUTPUT_DIR}/${OUTPUT_BIN}
         GO_BLD_CMD_ARG_VAL__O=$OUTPUT_PATH
@@ -215,13 +216,13 @@ case $GOOS in
         fi
         echo build_tegola.sh: go build command: pre-exec: go build env: var: CGO_ENABLED="$(printenv CGO_ENABLED)"
 
-        # set go build cmd "ldflags" arg val - set version string
-        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${TEGOLA_SRC_DIR}/cmd/tegola/cmd/cmd.Version=${TEGOLA_VER_STRING}"
+        # set go build cmd "ldflags" arg val - set version string - note that this path is relative to BUILD_WRK_DIR
+        GO_BLD_CMD_ARG_VAL__LDFLAGS="-w -X ${BASE_TEGOLA_SUBDIR}/cmd/tegola/cmd.Version=${TEGOLA_VER_STRING}"
         echo build_tegola.sh: go build command: pre-exec: command string: build: arg: ldflags: $GO_BLD_CMD_ARG_VAL__LDFLAGS
 
         # set go build cmd "o" arg val - this specifies output path of go build explicitly
         OUTPUT_DIR=${GOPATH}/pkg/${BASE_TEGOLA_SUBDIR}/darwin/$arch_friendly
-        OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}__darwin_${arch_friendly}.bin
+        OUTPUT_BIN=tegola__${TEGOLA_VER_STRING}.bin
         OUTPUT_BIN_NORMALIZED_FN=tegola_bin__darwin_$arch_friendly
         OUTPUT_PATH=${OUTPUT_DIR}/${OUTPUT_BIN}
         GO_BLD_CMD_ARG_VAL__O=$OUTPUT_PATH
@@ -236,7 +237,7 @@ if [[ -n "${GO_BLD_CMD_ARG_VAL__PKGDIR}" ]]; then
 fi
 go_build_cmd="${go_build_cmd} -tags=\"\""
 if [[ -n "${GO_BLD_CMD_ARG_VAL__LDFLAGS}" ]]; then
-	go_build_cmd="${go_build_cmd} -ldflags=\"${GO_BLD_CMD_ARG_VAL__LDFLAGS}\""
+	go_build_cmd="${go_build_cmd} -ldflags \"${GO_BLD_CMD_ARG_VAL__LDFLAGS}\""
 fi
 if [[ -n "${GO_BLD_CMD_ARG_VAL__O}" ]]; then
 	go_build_cmd="${go_build_cmd} -o ${GO_BLD_CMD_ARG_VAL__O}"
@@ -267,7 +268,7 @@ else
     echo build_tegola.sh: go build command: pre-exec: $ver_props_fn file: create: result: FAILED to create ${OUTPUT_DIR}/${ver_props_fn}
 fi
 
-cd ${TEGOLA_SRC_DIR}/cmd/tegola/
+cd $BUILD_WRK_DIR
 build_output=${OUTPUT_DIR}/build_${OUTPUT_BIN}.txt
 echo build_tegola.sh: go build command: exec: running command in "$(pwd)"...
 (eval $go_build_cmd) > $build_output 2>&1

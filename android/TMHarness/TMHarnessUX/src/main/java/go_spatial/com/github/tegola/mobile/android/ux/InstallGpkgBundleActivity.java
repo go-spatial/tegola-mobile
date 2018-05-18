@@ -200,9 +200,9 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
                 //queue up task to get remote version.properties - this file contains the download-spec for the selected gpkg-bundle
                 // we need to process this first, to find out how many and which components to download that comprise this gpkg-bundle
-                HttpUrl httpurl_version_props = HttpUrl.parse(build_remote_gpkg_bundle_file_url_string(Constants.Strings.GPKG_BUNDLE_VERSION_PROPS__FNAME));
-                Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: GPKG_BUNDLE_VERSION_PROPS__FNAME ==" + httpurl_version_props.toString());
-                File localfile_version_props = new File(local_gpkg_bundle_path, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS__FNAME);
+                HttpUrl httpurl_version_props = HttpUrl.parse(build_remote_gpkg_bundle_file_url_string(Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME));
+                Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: FNAME ==" + httpurl_version_props.toString());
+                File localfile_version_props = new File(local_gpkg_bundle_path, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME);
                 Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: localfile_version_props path ==" + localfile_version_props.getCanonicalPath());
                 m_asyncgetgpkgbundlefiles_bootstrapper.add(
                         new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
@@ -428,11 +428,11 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
                                 //we expect one and only one version.properties download task!
                                 if (index == 0) {
-                                    if (file.getName().compareTo(Constants.Strings.GPKG_BUNDLE_VERSION_PROPS__FNAME) != 0) {
+                                    if (file.getName().compareTo(Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME) != 0) {
                                         alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
                                         sb_alert_msg = new StringBuilder();
                                         alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                        sb_alert_msg.append("Installation of geopckage-bundle " + s_remote_gpkg_bundle + " must be bootstrapped by first downloading its " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS__FNAME
+                                        sb_alert_msg.append("Installation of geopckage-bundle " + s_remote_gpkg_bundle + " must be bootstrapped by first downloading its " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME
                                                 + " file, but you have an encountered a bug wherein source-code is attempting to download " + httpUrl.url().toString() + " first!\n\n");
                                         sb_alert_msg.append("Please notify developer.\n\n");
                                         sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
@@ -446,7 +446,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                                     }
                                                 });
                                         alertDialog.show();
-                                    } else {//now process version.properties and proceed to download gpkg-bundle components based on its GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE and GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES values
+                                    } else {//now process version.properties and proceed to download gpkg-bundle components based on its TOML_FILE and GPKG_FILES values
                                         File
                                                 f_gpkg_bundle = new File(file.getParentFile().getPath())
                                                 , f_gpkg_bundle_ver_props = file
@@ -457,7 +457,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                         FileInputStream f_inputstream_gpkg_bundle_ver_props = null;
                                         try {
                                             //build gpkg-bundle toml file-download spec from version.props and queue it up
-                                            String s_gpkg_bundle__toml = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE);
+                                            String s_gpkg_bundle__toml = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
                                             f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_gpkg_bundle__toml);
                                             m_asyncgetgpkgbundlefileexecutequeue.add(
                                                     new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
@@ -470,7 +470,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                             );
 
                                             //build gpkg-bundle geopcackage file-download specs from version.props and queue them up
-                                            String[] s_list_geopcackage_names = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES).split(",");
+                                            String[] s_list_geopcackage_names = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES).split(",");
                                             if (s_list_geopcackage_names != null && s_list_geopcackage_names.length > 0) {
                                                 for (int i = 0; i < s_list_geopcackage_names.length; i++) {
                                                     String s_gpkg_name = s_list_geopcackage_names[i];
@@ -558,7 +558,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                     alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
                                     sb_alert_msg = new StringBuilder();
                                     alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                    sb_alert_msg.append("Installation of geopckage-bundle " + s_remote_gpkg_bundle + " must be bootstrapped by first downloading its " + Constants.Strings.GPKG_BUNDLE_VERSION_PROPS__FNAME
+                                    sb_alert_msg.append("Installation of geopckage-bundle " + s_remote_gpkg_bundle + " must be bootstrapped by first downloading its " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME
                                             + " file, but you have an encountered a bug wherein source-code is attempting to download " + httpUrl.url().toString() + " first!\n\n");
                                     sb_alert_msg.append("Please notify developer.\n\n");
                                     sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");

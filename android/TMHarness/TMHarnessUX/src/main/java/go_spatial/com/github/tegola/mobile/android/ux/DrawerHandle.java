@@ -39,15 +39,10 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
     private Point mScreenDimensions = new Point();
 
     private OnClickListener mHandleClickListener = new OnClickListener(){
-
         @Override
         public void onClick(View v) {
-            if (!mDrawerLayout.isDrawerOpen(mGravity))
-                mDrawerLayout.openDrawer(mGravity);
-            else
-                mDrawerLayout.closeDrawer(mGravity);
+            toggle();
         }
-
     };
 
     private OnTouchListener mHandleTouchListener = new OnTouchListener() {
@@ -183,5 +178,20 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
         updateScreenDimensions();
         mVerticalOffset = offset;
         mHandle.setY(mVerticalOffset * mScreenDimensions.y);
+    }
+
+    public void openDrawer() {
+        mDrawerLayout.openDrawer(mGravity);
+    }
+
+    public void closerDrawer() {
+        mDrawerLayout.closeDrawer(mGravity);
+    }
+
+    public void toggle() {
+        if (!mDrawerLayout.isDrawerOpen(mGravity))
+            mDrawerLayout.openDrawer(mGravity);
+        else
+            mDrawerLayout.closeDrawer(mGravity);
     }
 }

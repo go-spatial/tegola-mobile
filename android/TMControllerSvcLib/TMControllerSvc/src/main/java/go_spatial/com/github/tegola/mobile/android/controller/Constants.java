@@ -10,13 +10,29 @@ public class Constants {
     public interface Strings {
         String PKG = "go_spatial.com.github.tegola.mobile.android.controller";
 
-        String GPKG_BUNDLE_SUBDIR = "gpkg-bundle";
-        String GPKG_BUNDLE_VERSION_PROPS__FNAME = "version.properties";
-        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_FILE = "TOML_FILE";
-        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__TOML_VERSION = "TOML_VERSION";
-        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_FILES = "GPKG_FILES";
-        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_VERSIONS = "GPKG_VERSIONS";
-        String GPKG_BUNDLE_VERSION_PROPS_PROP_NAME__GPKG_PATH_ENV_VARS = "GPKG_PATH_ENV_VARS";
+        interface TEGOLA_PROCESS {
+            interface TILE_CACHE {
+                interface FILE {
+                    String SUB_PATH = "tile_cache";
+                    String BASE_PATH_ENV_VAR = "FILE_CACHE_BASE_PATH";
+                }
+            }
+        }
+
+        interface GPKG_BUNDLE {
+            String SUBDIR = "gpkg-bundle";
+            interface VERSION_PROPS {
+                String FNAME = "version.properties";
+                interface PROP {
+                    String TOML_FILE = "TOML_FILE";
+                    String TOML_VERSION = "TOML_VERSION";
+                    String GPKG_FILES = "GPKG_FILES";
+                    String GPKG_VERSIONS = "GPKG_VERSIONS";
+                    String GPKG_PATH_ENV_VARS = "GPKG_PATH_ENV_VARS";
+                }
+            }
+
+        }
 
         interface INTENT {
             interface ACTION {
@@ -326,7 +342,8 @@ public class Constants {
 
                     case arm64_v8a:     return tegola_bin__arm64;
 
-                    case x86:
+                    case x86:           return tegola_bin__x86;
+
                     case x86_64:        return tegola_bin__x86;
 
                     case mips:          //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
