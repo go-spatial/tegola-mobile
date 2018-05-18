@@ -25,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
+import okhttp3.Dispatcher;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
@@ -246,10 +247,16 @@ public class Utils {
                 void onReadComplete(long n_read, long n_remaining);
             }
 
+            private static Dispatcher getDispatcher() {
+                Dispatcher dispatcher = new Dispatcher();
+                dispatcher.setMaxRequestsPerHost(20);
+                return dispatcher;
+            }
+
             public static void exec(final String s_url, final ContentHandler content_handler) {
                 if (s_url == null)
                     throw new NullPointerException("s_url cannot be null");
-                final OkHttpClient httpClient = new OkHttpClient.Builder()
+                final OkHttpClient httpClient = new OkHttpClient.Builder().dispatcher(getDispatcher())
                         .readTimeout(10, TimeUnit.SECONDS)
                         .build();
                 final Request http_get_request = new Request.Builder()
@@ -696,6 +703,12 @@ public class Utils {
                     }
                 }
 
+                private static Dispatcher getDispatcher() {
+                    Dispatcher dispatcher = new Dispatcher();
+                    dispatcher.setMaxRequestsPerHost(20);
+                    return dispatcher;
+                }
+
                 @Override
                 protected Exception doInBackground(final HttpUrl_To_Local_File[] httpUrl_to_local_file) {
                     Exception exception = null;
@@ -708,7 +721,8 @@ public class Utils {
                             throw new RemoteFileInvalidParameterException("HttpUrl_To_Local_File.url is null");
                         if (httpUrl_to_local_file[0].get_file() == null)
                             throw new RemoteFileInvalidParameterException("HttpUrl_To_Local_File.file is null");
-                        httpClient = new OkHttpClient.Builder()
+                        httpClient = new OkHttpClient.Builder().dispatcher(getDispatcher())
+                                .readTimeout(10, TimeUnit.SECONDS)
                                 //network interceptor not currently needed - only application interceptor
     //                            .addNetworkInterceptor(new Interceptor() {
     //                                @Override public Response intercept(Chain chain) throws IOException {
