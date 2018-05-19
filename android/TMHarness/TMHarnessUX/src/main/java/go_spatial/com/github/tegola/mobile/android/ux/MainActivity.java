@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     private LinearLayout m_drawerlayout_content__main = null;
     private LinearLayout m_drawerlayout_content__drawer = null;
     private DrawerHandle m_drawer_handle = null;
+    private ActionBarDrawerToggle m_drawerlayout_main__DrawerToggle = null;
 
     private ScrollView m_scvw_main = null;
 
@@ -452,7 +453,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mbgl_map_start(BuildConfig.mbgl_test_style_json_url);
+                    mbgl_map_start(BuildConfig.mbgl_test_style_json_url, -1.0, -1.0, -1.0);
                 }
             }, 50);
         }
@@ -914,21 +915,19 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         }
     };
 
-//    ActionBarDrawerToggle m_drawerlayout_main__DrawerToggle = new ActionBarDrawerToggle(this, m_drawerlayout, R.string.open, R.string.close) {
-//        @Override
-//        public void onDrawerSlide(View drawerView, float slideOffset) {
-//            super.onDrawerSlide(drawerView, slideOffset);
-//            float slideX = drawerView.getWidth() * slideOffset;
-//            m_drawerlayout_content__main.setTranslationX(slideX);
-//            m_drawerlayout_content__main.setScaleX(1 - slideOffset);
-//            m_drawerlayout_content__main.setScaleY(1 - slideOffset);
-//        }
-//    };
-    ActionBarDrawerToggle m_drawerlayout_main__DrawerToggle = null;
-
     //TegolaMBGLFragment overrides
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    public void onFragmentInteraction(E_MBGL_FRAG_ACTION e_mbgl_frag_action) {
+        switch (e_mbgl_frag_action) {
+            case HIDE: {
+                if (m_drawer_handle != null)
+                    m_drawer_handle.closerDrawer();
+                break;
+            }
+            default: {
+                //no-op
+            }
+        }
     }
 
 
@@ -1370,7 +1369,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         }
     }
 
-    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url) throws MapboxConfigurationException {
+    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url, double latitude, double longitude, double zoom) throws MapboxConfigurationException {
         if (!s_map_mbgl_style_url.isEmpty()) {
             mbgl_map_stop();
             runOnUiThread(new Runnable() {
@@ -1382,7 +1381,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                             .beginTransaction()
                             .replace(
                                     R.id.drawerlayout_content__drawer__frag_container,
-                                    TegolaMBGLFragment.newInstance(s_map_mbgl_style_url, BuildConfig.mbgl_debug_active),
+                                    TegolaMBGLFragment.newInstance(s_map_mbgl_style_url, latitude, longitude, zoom, BuildConfig.mbgl_debug_active),
                                     FRAG_DRAWER_CONTENT
                             )
                             .commit();
@@ -1442,6 +1441,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                         try {
                             String s_default_map = "";
                             String s_default_map_mbgl_style_url = "";
+                            double def_latitude = 0.0, def_longitude = 0.0, def_zoom = 0.0;
                             JSONObject jsonObject = new JSONObject(jsonTokener);
                             Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: " + s_tegola_tile_server_url__capabilities_json_endpoint + " content is:\n" + jsonObject.toString());
                             JSONArray json_maps = jsonObject.getJSONArray("maps");
@@ -1463,10 +1463,22 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                                             s_default_map_mbgl_style_url = s_mbgl_style_json_url;
                                             Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default mbgl_style url to s_default_map_mbgl_style_url");
                                         }
+                                        JSONArray jsonarray_map_center = json_map.getJSONArray("center");
+                                        double latitude = 0.0, longitude = 0.0, zoom = 0.0;
+                                        if (jsonarray_map_center != null) {
+                                            latitude = jsonarray_map_center.getDouble(1);
+                                            longitude = jsonarray_map_center.getDouble(0);
+                                            zoom = jsonarray_map_center.getDouble(2);
+                                            if (i == 0) {
+                                                def_latitude = latitude;
+                                                def_longitude = longitude;
+                                                def_zoom = zoom;
+                                            }
+                                        }
                                     }
                                 }
                             }
-                            mbgl_map_start(s_default_map_mbgl_style_url);
+                            mbgl_map_start(s_default_map_mbgl_style_url, def_latitude, def_longitude, def_zoom);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }

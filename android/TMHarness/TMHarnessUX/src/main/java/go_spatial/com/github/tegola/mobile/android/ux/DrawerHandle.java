@@ -154,6 +154,7 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
     public void onDrawerOpened(View arg0) {
         m_img_drawer_closed.setVisibility(View.GONE);
         m_img_drawer_opened.setVisibility(View.VISIBLE);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
     }
 
     @Override
@@ -181,10 +182,12 @@ public class DrawerHandle implements DrawerLayout.DrawerListener {
     }
 
     public void openDrawer() {
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         mDrawerLayout.openDrawer(mGravity);
     }
 
     public void closerDrawer() {
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         mDrawerLayout.closeDrawer(mGravity);
     }
 

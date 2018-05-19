@@ -1,25 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/transparent"
     tools:context=".TegolaMBGLFragment">
 
-    <com.mapbox.mapboxsdk.maps.MapView
-        android:id="@+id/mapView"
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/cl_mv_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        mapbox:mapbox_uiCompass="true"
-        mapbox:mapbox_uiZoomControls="true"
-        mapbox:mapbox_myLocation="false"
-        mapbox:mapbox_cameraBearing="0.0"
-        mapbox:mapbox_uiLogo="false"
-        mapbox:mapbox_uiAttribution="false"
-        mapbox:mapbox_renderTextureMode="true"
-        mapbox:mapbox_enableTilePrefetch="true"
-    />
+        android:layout_height="match_parent">
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/cl_ibtn_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="@id/cl_mv_container">
+
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/ibtn_hide_mbgl_frag"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_apps_black_24dp"
+                android:tint="@color/mapbox_blue"
+                app:layout_constraintEnd_toEndOf="@id/cl_ibtn_container" />
+
+        </android.support.constraint.ConstraintLayout>
+
+        <!--
+        <com.mapbox.mapboxsdk.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/cl_ibtn_container"
+            app:layout_constraintTop_toTopOf="@id/cl_mv_container"
+
+            app:mapbox_renderTextureMode="true"
+            app:mapbox_myLocation="false"
+            app:mapbox_enableTilePrefetch="true"
+
+            app:mapbox_uiCompass="true"
+            app:mapbox_uiCompassGravity="top|right|end"
+            app:mapbox_uiZoomControls="true"
+            app:mapbox_uiLogo="false"
+            app:mapbox_uiAttribution="false"
+
+            app:mapbox_cameraZoomMin="10"
+            app:mapbox_cameraZoomMax="20"
+            app:mapbox_cameraZoom="12"
+            app:mapbox_cameraBearing="0.0"
+         />
+        -->
+        <com.mapbox.mapboxsdk.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/cl_ibtn_container"
+            app:layout_constraintTop_toTopOf="@id/cl_mv_container"
+
+            app:mapbox_renderTextureMode="true"
+
+            app:mapbox_uiCompass="true"
+            app:mapbox_uiCompassGravity="top|right|end"
+            app:mapbox_uiZoomControls="true"
+            app:mapbox_uiLogo="false"
+            app:mapbox_uiAttribution="false"
+
+            app:mapbox_myLocation="false"
+
+            app:mapbox_cameraZoomMin="10"
+            app:mapbox_cameraZoomMax="22"
+        />
+
+    </android.support.constraint.ConstraintLayout>
 
 </FrameLayout>
