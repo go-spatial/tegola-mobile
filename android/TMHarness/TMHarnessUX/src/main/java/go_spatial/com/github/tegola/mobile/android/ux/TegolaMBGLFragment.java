@@ -17,9 +17,15 @@ import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdate;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.http.HttpRequestUtil;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Dispatcher;
+import okhttp3.OkHttpClient;
 
 
 /**
@@ -113,10 +119,23 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         }
     }
 
+    private Dispatcher m_okhttp3_client_dispather = null;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View this_frag_layout_view = inflater.inflate(R.layout.fragment_mapbox, container, false);
+
+        HttpRequestUtil.setLogEnabled(true);
+        HttpRequestUtil.setPrintRequestUrlOnFailure(true);
+        m_okhttp3_client_dispather = new Dispatcher();
+        m_okhttp3_client_dispather.setMaxRequestsPerHost(20);
+        HttpRequestUtil.setOkHttpClient(
+            new OkHttpClient.Builder()
+                .dispatcher(m_okhttp3_client_dispather)
+                .readTimeout(20, TimeUnit.SECONDS)
+                .build()
+        );
 
         mapView = (MapView)this_frag_layout_view.findViewById(R.id.mapView);
         ibtn_hide_mbgl_frag = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_hide_mbgl_frag);
@@ -256,5 +275,6 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         Log.d(TAG, "(fragment) onDetach: entered");
         super.onDetach();
         mFragInteractionListener = null;
+        m_okhttp3_client_dispather.cancelAll();
     }
 }

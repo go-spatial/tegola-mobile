@@ -167,7 +167,8 @@
                     android:inputType="textUri"
                     android:singleLine="true"
                     android:text=""
-                    android:textSize="14sp"/>
+                    android:textSize="14sp"
+                />
 
             </RelativeLayout>
 
@@ -177,19 +178,6 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="20dp"
                 android:orientation="horizontal">
-
-                <!--
-                <Button
-                    android:id="@+id/btn_local_gpkg_bundle__name__get_list"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_marginRight="15dp"
-                    android:text="@string/get_list"
-                    android:visibility="gone"
-                />
-                -->
 
                 <TextView
                     android:id="@+id/tv_lbl__local_gpkg_bundle__name"
