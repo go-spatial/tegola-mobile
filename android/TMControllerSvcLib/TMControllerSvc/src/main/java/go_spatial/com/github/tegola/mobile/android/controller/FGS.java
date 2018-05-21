@@ -193,7 +193,8 @@ public class FGS extends Service {
                             MVT_SERVER_START_SPEC server_start_spec = null;
                             if (intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, false))
                                 server_start_spec = new MVT_SERVER_START_SPEC__GPKG_PROVIDER(
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE)
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS)
                                 );
                             else {
                                 server_start_spec = new MVT_SERVER_START_SPEC__POSTGIS_PROVIDER(
@@ -320,9 +321,11 @@ public class FGS extends Service {
     }
     private class MVT_SERVER_START_SPEC__GPKG_PROVIDER extends MVT_SERVER_START_SPEC {
         public final String gpkg_bundle;
-        public MVT_SERVER_START_SPEC__GPKG_PROVIDER(final String gpkg_bundle) {
+        public final String gpkg_bundle_props;
+        public MVT_SERVER_START_SPEC__GPKG_PROVIDER(final String gpkg_bundle, final String gpkg_bundle_props) {
             super(true, false);
             this.gpkg_bundle = gpkg_bundle;
+            this.gpkg_bundle_props = gpkg_bundle_props;
         }
     }
     public class UnknownMVTServerStartSpecType extends Exception {
@@ -404,8 +407,8 @@ public class FGS extends Service {
                 throw new FileNotFoundException("geopcackage-bundle " + f_gpkg_bundle.getCanonicalPath() + " not found");
             Log.d(TAG, "start_tegola: found/using gpkg-bundle: " + f_gpkg_bundle.getName());
 
-            //process version.properties file for this gpk-bundle
-            File f_gpkg_bundle_ver_props = new File(f_gpkg_bundle.getPath(), Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME);
+//            //process version.properties file for this gpk-bundle
+            File f_gpkg_bundle_ver_props = new File(f_gpkg_bundle.getPath(), server_start_spec__gpkg_provider.gpkg_bundle_props);
             if (!f_gpkg_bundle_ver_props.exists())
                 throw new FileNotFoundException("geopcackage-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath() + " not found");
             Log.d(TAG, "start_tegola: found/using gpkg-bundle version.properties: " + f_gpkg_bundle_ver_props.getCanonicalPath());

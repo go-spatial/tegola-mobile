@@ -512,13 +512,52 @@
                                             android:layout_alignParentStart="true"
                                             android:layout_alignParentRight="true"
                                             android:layout_alignParentEnd="true"
-                                            />
+                                        />
 
                                     </RelativeLayout>
                                 </RelativeLayout>
 
                             </LinearLayout>
                             <!-- srvr nfo section content - geopackage provider BUNDLE selection - END -->
+
+                            <!-- srvr nfo section content - geopackage provider BUNDLE config selection - BEGIN -->
+                            <LinearLayout
+                                android:id="@+id/sect_content__item__geopckage_provider_bundle_config_sel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tv_lbl_gpkg_provider_bundle_config_sel"
+                                    style="@style/Section_Content_Item_Label"
+                                    android:text="@string/srvr_gpkg_provider_bundle_config_sel"
+                                    android:visibility="visible"/>
+
+                                <RelativeLayout
+                                    android:id="@+id/gpkg_provider_bundle_config_sel__container"
+                                    style="@style/Section_Content_Item_Content"
+                                    android:layout_marginBottom="5dp"
+                                    android:orientation="horizontal">
+
+                                    <RelativeLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content">
+
+                                        <go_spatial.com.github.tegola.mobile.android.ux.CustomSpinner
+                                            android:id="@+id/spinner_val_gpkg_provider_bundle_props_sel"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="25dp"
+                                            android:layout_alignParentLeft="true"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_alignParentEnd="true"
+                                        />
+
+                                    </RelativeLayout>
+                                </RelativeLayout>
+
+                            </LinearLayout>
+                            <!-- srvr nfo section content - geopackage provider BUNDLE config selection - END -->
                         </LinearLayout>
                         <!-- srvr nfo section content - geopackage provider spec container - BEGIN -->
 

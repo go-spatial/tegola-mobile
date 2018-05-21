@@ -14,6 +14,7 @@
     <string name="srvr_postgis_provider_config_type__remote">REMOTE</string>
     <string name="srvr_postgis_provider_config_sel">PostGIS Provider - Config Selection</string>
     <string name="srvr_gpkg_provider_bundle_sel">GeoPackage Provider - Bundle Selection</string>
+    <string name="srvr_gpkg_provider_bundle_config_sel">GeoPackage Provider - Config Selection</string>
     <string name="srvr_status">Server Status</string>
 
     <string name="start">Start</string>

@@ -48,6 +48,7 @@ public class Constants {
                 String EXTRA__KEY__REMOTE = "REMOTE";
                 String EXTRA__KEY__GPKG = "GPKG";
                 String EXTRA__KEY__BUNDLE = "BUNDLE";
+                String EXTRA__KEY__PROPS = "PROPS";
 
                 interface FGS_CONTROL_REQUEST {
                     String FGS__START_FOREGROUND = PKG + "START_FOREGROUND";
@@ -63,6 +64,7 @@ public class Constants {
                     interface EXTRA__KEY {
                         String MVT_SERVER__START__PROVIDER__IS_GPKG = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG;     //boolean: true: use local gpkg provider, else use postgis provider
                         String MVT_SERVER__START__GPKG_PROVIDER__BUNDLE = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG + "." + EXTRA__KEY__BUNDLE;
+                        String MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG + "." + EXTRA__KEY__BUNDLE + "." + EXTRA__KEY__PROPS;
                         String MVT_SERVER__START__CONFIG__IS_REMOTE = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__REMOTE;     //boolean: true: config toml file is retreieved from a remote host, else config toml file exists on local device
                         String MVT_SERVER__START__CONFIG__PATH = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__PATH;         //string: the path to config toml file - note that if MVT_SERVER__START__CONFIG__IS_REMOTE is true, then MVT_SERVER__START__CONFIG__PATH should be a URL pointing to remote config toml file
                     }

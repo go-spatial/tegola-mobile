@@ -134,6 +134,9 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     private CustomSpinner m_spinner_val_gpkg_bundle_sel = null;
     private final ArrayList<String> m_spinner_val_gpkg_bundle_sel__items = new ArrayList<String>();
     private ArrayAdapter<String> m_spinner_val_gpkg_bundle_sel__dataadapter = null;
+    private CustomSpinner m_spinner_val_gpkg_bundle_props_sel = null;
+    private final ArrayList<String> m_spinner_val_gpkg_bundle_props_sel__items = new ArrayList<String>();
+    private ArrayAdapter<String> m_spinner_val_gpkg_bundle_props_sel__dataadapter = null;
 
     //srvr info - status - UI objects
     private TextView m_tv_val_srvr_status = null;
@@ -267,6 +270,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
         m_sect__gpkg_provider_spec = (View)findViewById(R.id.sect__gpkg_provider_spec);
         m_spinner_val_gpkg_bundle_sel = (CustomSpinner)findViewById(R.id.spinner_val_gpkg_provider_bundle_sel);
+        m_spinner_val_gpkg_bundle_props_sel = (CustomSpinner)findViewById(R.id.spinner_val_gpkg_provider_bundle_props_sel);
 
         m_tv_val_srvr_status = (TextView)findViewById(R.id.tv_val_srvr_status);
         m_btn_srvr_ctrl = (Button)findViewById(R.id.btn_srvr_ctrl);
@@ -274,12 +278,16 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_tv_tegola_console_output = (TextView)findViewById(R.id.tv_tegola_console_output);
 
         //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
-        m_spinner_val_gpkg_bundle_sel__dataadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, m_spinner_val_gpkg_bundle_sel__items);
-        m_spinner_val_gpkg_bundle_sel__dataadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        m_spinner_val_gpkg_bundle_sel.setAdapter(m_spinner_val_gpkg_bundle_sel__dataadapter);
         m_spinner_val_config_sel_local__dataadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, m_spinner_val_config_sel_local__items);
         m_spinner_val_config_sel_local__dataadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         m_spinner_val_config_sel_local.setAdapter(m_spinner_val_config_sel_local__dataadapter);
+        m_spinner_val_gpkg_bundle_sel__dataadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, m_spinner_val_gpkg_bundle_sel__items);
+        m_spinner_val_gpkg_bundle_sel__dataadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        m_spinner_val_gpkg_bundle_sel.setAdapter(m_spinner_val_gpkg_bundle_sel__dataadapter);
+        m_spinner_val_gpkg_bundle_props_sel__dataadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, m_spinner_val_gpkg_bundle_props_sel__items);
+        m_spinner_val_gpkg_bundle_props_sel__dataadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        m_spinner_val_gpkg_bundle_props_sel.setAdapter(m_spinner_val_gpkg_bundle_props_sel__dataadapter);
+
         m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
 
         //associate listeners for user-UI-interaction
@@ -300,6 +308,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_edt_val_config_sel__remote.setOnFocusChangeListener(OnFocusChangeListener__m_edt_val_config_sel__remote);
         m_btn_config_sel_remote_apply_changes.setOnClickListener(OnClickListener__m_btn_config_sel_remote_apply_changes);
         m_spinner_val_gpkg_bundle_sel.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel);
+        m_spinner_val_gpkg_bundle_props_sel.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel);
         m_btn_srvr_ctrl.setOnClickListener(OnClickListener__m_btn_srvr_ctrl);
 
 
@@ -550,6 +559,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 m_sect__gpkg_provider_spec.setVisibility(View.VISIBLE);
                 SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.setValue(true);
                 synchronize_spinner_val_gpkg_bundle_sel();
+                synchronize_spinner_val_gpkg_bundle_props_sel();
             }
         }
     };
@@ -571,7 +581,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_sel: clearing spinner items");
         m_spinner_val_gpkg_bundle_sel__items.clear();
 
-        if (f_gpkg_bundles_root_dir_files.length > 0) {//found local config.toml files
+        if (f_gpkg_bundles_root_dir_files.length > 0) {//found gpkg bundles
             //2.2 add found geopackage bundle names into m_spinner_val_gpkg_bundle_sel dataAdapter
             for (int i = 0; i < f_gpkg_bundles_root_dir_files.length; i++) {
                 File f_gpkg_bundle_candidate = f_gpkg_bundles_root_dir_files[i];
@@ -605,6 +615,68 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         //4. commit changes to spinner to allow for listener to react
         m_spinner_val_gpkg_bundle_sel.setSelection(i_sel_pos);
         m_spinner_val_gpkg_bundle_sel__dataadapter.notifyDataSetChanged();
+    }
+
+    private void synchronize_spinner_val_gpkg_bundle_props_sel() {
+        //1. enumerate geopackage-bundle config files and display results in spinner (drop-down)
+        File f_gpkg_bundle_dir = null;
+        try {
+            f_gpkg_bundle_dir = new File(Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext()).getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (!f_gpkg_bundle_dir.exists()) {
+            Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_props_sel: gpkg-bundle does not exist - exiting");
+            return;
+        }
+        File[] f_gpkg_bundle_props_files = f_gpkg_bundle_dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".properties");
+            }
+        });
+
+        //2.1 remove current entries from synchronize_spinner_val_gpkg_bundle_props_sel dataAdapter
+        Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_props_sel: clearing spinner items");
+        m_spinner_val_gpkg_bundle_props_sel__items.clear();
+
+        if (f_gpkg_bundle_props_files.length > 0) {//found props files
+            //2.2 add found geopackage bundle config file names into synchronize_spinner_val_gpkg_bundle_props_sel dataAdapter
+            for (int i = 0; i < f_gpkg_bundle_props_files.length; i++) {
+                File f_gpkg_bundle_config_candidate = f_gpkg_bundle_props_files[i];
+                final String name = f_gpkg_bundle_config_candidate.getName();
+                if (!f_gpkg_bundle_config_candidate.isDirectory()) {
+                    Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_props_sel: found geopackage-bundle config file \"" + name + "\" - adding it to spinner items");
+                    m_spinner_val_gpkg_bundle_props_sel__items.add(name);
+                } else {
+                    Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_props_sel: \"" + name + "\" is a directory");
+                }
+            }
+        } else {//no geopacklage bundle config files found
+            //2.2 add "not found" item @ position 0
+            String s_no_geopackage_bundle_props_files_installed = getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundle_props_installed);
+            Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_props_sel: no geopackage bundle configs installed! adding \"" + s_no_geopackage_bundle_props_files_installed + "\" to spinner items");
+            m_spinner_val_gpkg_bundle_props_sel__items.add(s_no_geopackage_bundle_props_files_installed);
+        }
+
+        //3. reconcile ConfigSettings.STRING_CONFIG_SETTING.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION setting with m_spinner_val_gpkg_bundle_props_sel__items selection and update selection as necessary
+        int i_sel_pos = m_spinner_val_gpkg_bundle_props_sel__dataadapter.getPosition(SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue());
+        if (i_sel_pos != -1) {
+            Log.d(TAG, "synchronize_spinner_val_gpkg_bundle_props_sel: synchronizing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue() + "\" spinner item selection to existing item position " + i_sel_pos);
+        } else {
+            //note that we must reset i_sel_pos to 0 here since it will be assigned -1 if we are here
+            i_sel_pos = 0;
+            Log.d(TAG,
+                    "synchronize_spinner_val_gpkg_bundle_props_sel: cannot synchronize shared prefs setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " current value \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue()
+                            + "\" to spinner item selection since spinner does not currently have a selectable item with that value; setting spinner selected item position to " + i_sel_pos + " for value \"" + m_spinner_val_gpkg_bundle_sel__items.get(i_sel_pos) + "\"");
+        }
+
+        //4. commit changes to spinner to allow for listener to react
+        m_spinner_val_gpkg_bundle_props_sel.setSelection(i_sel_pos);
+        m_spinner_val_gpkg_bundle_props_sel__dataadapter.notifyDataSetChanged();
     }
 
     //reaction to local config-type selection - display all local config selection UI and update shared prefs to reflect selection
@@ -898,6 +970,91 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                     File f_gpkg_bundle = new File(f_gpkg_bundles_root_dir, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
                     //and same MVT srvr control (start/stop) button
                     m_btn_srvr_ctrl.setEnabled(f_gpkg_bundle.exists());
+                    if (f_gpkg_bundle.exists())
+                        synchronize_spinner_val_gpkg_bundle_props_sel();
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapter) {
+            Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_LONG).show();
+            //disable/hide m_btn_config_sel_local__edit_file
+            m_btn_config_sel_local__edit_file.setVisibility(View.GONE);
+            m_btn_config_sel_local__edit_file.setEnabled(false);
+        }
+    };
+
+    //user selects a geopackage-bundle config from spinner - synchronizes selection with shared prefs
+    private final AdapterView.OnItemSelectedListener OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> adapter, View view, int position, long id) {
+            String s_sel_val = adapter.getItemAtPosition(position).toString();
+            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: triggered item selection @ position " + position + " with value " + (s_sel_val == null ? "null" : "\"" + s_sel_val + "\""));
+
+            String s_cached_gpkg_bundle_config_val = SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue();
+            Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " current value is \"" + s_cached_gpkg_bundle_config_val + "\"");
+
+            boolean no_gpkg_bundle_cfg = (s_sel_val == null);
+            if (no_gpkg_bundle_cfg) {
+                Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: no-gpkg-no_gpkg_bundle_cfg condition!");
+                if (!s_cached_gpkg_bundle_config_val.isEmpty()) {
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " value (currently \"" + s_cached_gpkg_bundle_config_val + "\")");
+                    Toast.makeText(getApplicationContext(), "Clearing setting value for geopackage-bundle config selection since there are none installed", Toast.LENGTH_LONG).show();
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.setValue("");
+                } else {
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " since it is already cleared (value is \"" + s_cached_gpkg_bundle_config_val + "\")");
+                }
+
+                m_btn_srvr_ctrl.setEnabled(false);
+
+                //finally display alertdialog notifying user that tegola cannot be used until a gpkg-bundle is installed
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.alert_dialog));
+                alertDialogBuilder.setTitle(getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundle_props_installed));
+                alertDialogBuilder
+                        .setMessage(getString(R.string.srvr_provider_type__gpkg__no_geopackage_bundle_configs_installed__alert_msg))
+                        .setCancelable(false)
+                        .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                startActivityForResult(new Intent(MainActivity.this, InstallGpkgBundleActivity.class), REQUEST_CODES.REQUEST_CODE__INSTALL_GPKG_BUNDLE);
+                                dialog.dismiss();
+                            }
+                        });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            } else {
+                //first, update shared pref val as necessary - does sel value differ from cached?
+                if (s_cached_gpkg_bundle_config_val.compareTo(s_sel_val) != 0) {
+                    Toast.makeText(getApplicationContext(), "Saving new setting value for geopackage-bundle config \"" + s_sel_val + "\" selection", Toast.LENGTH_LONG).show();
+                    //now update shared pref
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.setValue(s_sel_val);
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " value from \"" + s_cached_gpkg_bundle_config_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue() + "\"");
+                } else {
+                    //no change to shared pref val
+                    Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " value (\"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue() + "\") since new value (\"" + s_sel_val + "\") is no different");
+                }
+
+                //now update UI based on existence of current local geopackage-bundle config selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue())
+                File f_gpkg_bundle_dir = null;
+                try {
+                    f_gpkg_bundle_dir = new File(Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext()), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
+                    File[] f_gpkg_bundle_props = f_gpkg_bundle_dir.listFiles(new FilenameFilter() {
+                        @Override
+                        public boolean accept(File dir, String name) {
+                            return name.endsWith(".properties");
+                        }
+                    });
+                    //and same MVT srvr control (start/stop) button
+                    m_btn_srvr_ctrl.setEnabled(f_gpkg_bundle_props.length > 0);
                 } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -1170,6 +1327,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                     case ManageGpkgBundlesActivity.MNG_GPKG_BUNDLES_RESULT__CHANGED: {
                         Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__MANAGE_GPKG_BUNDLES | resultCode: MNG_GPKG_BUNDLES_RESULT__CHANGED");
                         synchronize_spinner_val_gpkg_bundle_sel();
+                        synchronize_spinner_val_gpkg_bundle_props_sel();
                         break;
                     }
                     case ManageGpkgBundlesActivity.MNG_GPKG_BUNDLES_RESULT__UNCHANGED: {
@@ -1190,6 +1348,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                     case InstallGpkgBundleActivity.INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL: {
                         Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__INSTALL_GPKG_BUNDLE | resultCode: INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL");
                         synchronize_spinner_val_gpkg_bundle_sel();
+                        synchronize_spinner_val_gpkg_bundle_props_sel();
                         break;
                     }
                     case InstallGpkgBundleActivity.INSTALL_GPKG_BUNDLE_RESULT__CANCELLED: {
@@ -1553,8 +1712,8 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         boolean gpkg_provider = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue();
         intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, gpkg_provider);
         if (gpkg_provider) {
-            String s_gpkg_bundle = SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue();
             intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
+            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue());
         } else {
             boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue();
             intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__IS_REMOTE, remote_config);

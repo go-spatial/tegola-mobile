@@ -33,6 +33,7 @@ public class SharedPrefsManager {
     public interface Strings {
         String TM_PROVIDER__IS_GEOPACKAGE = "TM_PROVIDER__IS_GEOPACKAGE";
         String TM_PROVIDER__GPKG_BUNDLE__SELECTION = "TM_PROVIDER__GPKG_BUNDLE__SELECTION";
+        String TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION = "TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION";
         String TM_CONFIG_TOML__IS_REMOTE = "TM_CONFIG_TOML__IS_REMOTE";
         String TM_CONFIG_TOML__LOCAL__SELECTION = "TM_CONFIG_TOML__LOCAL__SELECTION";
         String TM_CONFIG_TOML__REMOTE__SELECTION = "TM_CONFIG_TOML__REMOTE__SELECTION";
@@ -106,6 +107,7 @@ public class SharedPrefsManager {
 
     public enum STRING_SHARED_PREF {
         TM_PROVIDER__GPKG_BUNDLE__SELECTION
+        , TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION
         , TM_CONFIG_TOML__LOCAL__SELECTION
         , TM_CONFIG_TOML__REMOTE__SELECTION
         ;
@@ -114,6 +116,7 @@ public class SharedPrefsManager {
         public String toString() {
             switch (this) {
                 case TM_PROVIDER__GPKG_BUNDLE__SELECTION: return Strings.TM_PROVIDER__GPKG_BUNDLE__SELECTION;
+                case TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION: return Strings.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION;
                 case TM_CONFIG_TOML__LOCAL__SELECTION: return Strings.TM_CONFIG_TOML__LOCAL__SELECTION;
                 case TM_CONFIG_TOML__REMOTE__SELECTION: return Strings.TM_CONFIG_TOML__REMOTE__SELECTION;
                 default: return null;

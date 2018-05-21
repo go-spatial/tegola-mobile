@@ -30,10 +30,12 @@
     <string name="lbl__remote_gpkg_bundle__ver_props">GPKG Bundle - Version Properties File</string>
     <string name="lbl__local_gpkg_bundle__name">Local (Destination) - Name</string>
     <string name="lbl__install_gpkg_bundle__file_progress">geopackage-bundle file:</string>
+    <string name="srvr_provider_type__gpkg__no_geopackage_bundle_props_installed">**NO GEOPACKAGE BUNDLE PROPS INSTALLED**</string>
 
     <string name="srvr_config_type__local__no_config_files_found">**NO LOCAL CONFIG .toml FILES FOUND**</string>
     <string name="srvr_config_type__local__no_config_files_found__alert_msg">Tegola MVT server cannot be started without selecting a config TOML file.\n\nPlease import a config TOML file from the sdcard or your Google Drive, or alternatively change config type to \"remote\".</string>
     <string name="srvr_config_type__local__select_config">**PLEASE SELECT LOCAL CONFIG .toml FILE**</string>
+    <string name="srvr_provider_type__gpkg__no_geopackage_bundle_configs_installed__alert_msg">Tegola MVT server cannot be started without installing and selecting a geopackage-bundle and config.\n\nPlease install a geopackage-bundle/config now.</string>
 
     <!-- this is the title of the FileChooser activity - for selecting a TOML file from SD card -->
     <string name="choose_file">Select Tegola config TOML file</string>

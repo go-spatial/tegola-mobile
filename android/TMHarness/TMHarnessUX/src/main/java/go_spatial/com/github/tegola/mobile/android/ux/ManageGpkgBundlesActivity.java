@@ -35,7 +35,7 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
     private Button m_btn_gpkg_bundle__install = null;
     private ListView m_lv_gpk_bundles__installed = null;
     private final ArrayList<String> m_lv_gpkg_bundles__installed__items = new ArrayList<String>();
-    private Integer m_hashcode__first__lv_gpkg_bundles__installed__items = null;
+    private Long m_hashcode__first__installed__items = null;
     private TextView m_tv_gpkg_bundles__none_installed = null;
     private Button m_btn_gpkg_bundle__uninstall = null;
 
@@ -271,17 +271,17 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                                 //now compute size of corresponding files
                             }
                         }
-                        int hashcode__m_lv_gpkg_bundles__installed__items = m_lv_gpkg_bundles__installed__items.hashCode();
-                        Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() == " + hashcode__m_lv_gpkg_bundles__installed__items);
-                        if (m_hashcode__first__lv_gpkg_bundles__installed__items == null) {
-                            m_hashcode__first__lv_gpkg_bundles__installed__items = hashcode__m_lv_gpkg_bundles__installed__items;
-                            Log.d(TAG, "RefeshList_Runnable.run: set m_hashcode__first__lv_gpkg_bundles__installed__items := " + m_hashcode__first__lv_gpkg_bundles__installed__items);
+                        long hashcode__installed__items = hash_gpkgs();
+                        Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() == " + hashcode__installed__items);
+                        if (m_hashcode__first__installed__items == null) {
+                            m_hashcode__first__installed__items = hashcode__installed__items;
+                            Log.d(TAG, "RefeshList_Runnable.run: set m_hashcode__first__installed__items := " + m_hashcode__first__installed__items);
                         }
-                        if (hashcode__m_lv_gpkg_bundles__installed__items != m_hashcode__first__lv_gpkg_bundles__installed__items) {
-                            Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() value (" + hashcode__m_lv_gpkg_bundles__installed__items + ") differs from original value (" + m_hashcode__first__lv_gpkg_bundles__installed__items + "); updating m_result=MNG_GPKG_BUNDLES_RESULT__CHANGED;");
+                        if (hashcode__installed__items != m_hashcode__first__installed__items) {
+                            Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() value (" + hashcode__installed__items + ") differs from original value (" + m_hashcode__first__installed__items + "); updating m_result=MNG_GPKG_BUNDLES_RESULT__CHANGED;");
                             m_result = MNG_GPKG_BUNDLES_RESULT__CHANGED;
                         } else {
-                            Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() value (" + hashcode__m_lv_gpkg_bundles__installed__items + ") does not differ from original value (" + m_hashcode__first__lv_gpkg_bundles__installed__items + "); updating m_result=MNG_GPKG_BUNDLES_RESULT__UNCHANGED;");
+                            Log.d(TAG, "RefeshList_Runnable.run: current m_lv_gpkg_bundles__installed__items.hashCode() value (" + hashcode__installed__items + ") does not differ from original value (" + m_hashcode__first__installed__items + "); updating m_result=MNG_GPKG_BUNDLES_RESULT__UNCHANGED;");
                             m_result = MNG_GPKG_BUNDLES_RESULT__UNCHANGED;
                         }
 
@@ -294,6 +294,34 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private long hash_gpkgs() {
+        long hash = 0;
+        File f_gpkg_root_dir = null;
+        try {
+            f_gpkg_root_dir = new File(Utils.GPKG.Local.F_GPKG_DIR.getInstance(ManageGpkgBundlesActivity.this.getApplicationContext()).getPath());
+            File[] f_gpkg_bundles = f_gpkg_root_dir.listFiles();
+            Log.d(TAG, "hash_gpkgs: " + f_gpkg_root_dir.getPath() + " contains " + f_gpkg_bundles.length + " geopackage-bundles");
+            for (File f_gpkg_bundle : f_gpkg_bundles) {
+                if (f_gpkg_bundle.isDirectory()) {
+                    File[] f_fpkg_files = f_gpkg_bundle.listFiles();
+                    for (int i = 0; i < f_fpkg_files.length; i++) {
+                        File f_gpkg_bundle_file = f_fpkg_files[i];
+                        if (f_gpkg_bundle_file.isFile()) {
+                            int fhc = f_gpkg_bundle_file.hashCode();
+                            hash += fhc;
+                            Log.d(TAG, "hash_gpkgs: gpkg-bundle " + f_gpkg_bundle.getName() + " contains file " + f_gpkg_bundle_file.getName() + ", w/ hash " + fhc + "; updated hash to: " + hash);
+                        }
+                    }
+                }
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return hash;
     }
 
     @Override
