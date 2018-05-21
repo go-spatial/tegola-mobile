@@ -25,9 +25,9 @@
     <string name="srvr_provider_type__gpkg__no_geopackage_bundles_installed">**NO GEOPACKAGE BUNDLES INSTALLED**</string>
     <string name="srvr_provider_type__gpkg__no_geopackage_bundles_installed__alert_msg">Tegola MVT server cannot be started without installing and selecting a geopackage-bundle.\n\nPlease install a geopackage-bundle now.</string>
     <string name="activity_title__install_remote_gpkg_bundle">Install Remote Geopackage Bundle</string>
-    <string name="lbl__remote_gpkg_bundle__root_url">Remote - Root URL</string>
-    <string name="fixed__remote_gpkg_bundle__root_url__tail">/geopackage-bundle/android</string>
-    <string name="lbl__remote_gpkg_bundle__name">Remote - Name</string>
+    <string name="lbl__remote_gpkg_bundle__root_url">Root URL</string>
+    <string name="lbl__remote_gpkg_bundle__name">GPKG Bundle - Name</string>
+    <string name="lbl__remote_gpkg_bundle__ver_props">GPKG Bundle - Version Properties File</string>
     <string name="lbl__local_gpkg_bundle__name">Local (Destination) - Name</string>
     <string name="lbl__install_gpkg_bundle__file_progress">geopackage-bundle file:</string>
 
@@ -46,4 +46,5 @@
     <string name="srvr_console_ouput">Server Console Output:</string>
 
     <string name="gpkg_bundle__root_url__default">s3-us-west-2.amazonaws.com/tegola-mobile</string>
+    <string name="fixed__remote_gpkg_bundle__root_url__tail">/geopackage-bundle/android</string>
 </resources>

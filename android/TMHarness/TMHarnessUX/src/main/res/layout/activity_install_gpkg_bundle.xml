@@ -77,31 +77,17 @@
                     android:text="https://"
                 />
 
-                <TextView
-                    android:id="@+id/tv_lbl_remote_gpkg_bundle__root_url___canon_tail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignTop="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
-                    android:layout_centerVertical="false"
-                    android:paddingBottom="10dp"
-                    android:paddingTop="10dp"
-                    android:text="@string/fixed__remote_gpkg_bundle__root_url__tail"
-                    />
-
                 <EditText
-                    android:id="@+id/edt_remote_gpkg_bundle__root_url__base"
+                    android:id="@+id/edt_remote_gpkg_bundle__root_url"
                     style="@style/Widget.AppCompat.EditText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignBottom="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
                     android:layout_alignTop="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
                     android:layout_toEndOf="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
-                    android:layout_toLeftOf="@id/tv_lbl_remote_gpkg_bundle__root_url___canon_tail"
                     android:layout_toRightOf="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
-                    android:layout_toStartOf="@id/tv_lbl_remote_gpkg_bundle__root_url___canon_tail"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
                     android:imeOptions="actionDone"
                     android:inputType="textUri"
                     android:singleLine="true"
@@ -148,7 +134,6 @@
                 />
 
             </RelativeLayout>
-
             <RelativeLayout
                 android:id="@+id/remote_gpkg_bundle__name__container"
                 style="@style/Section_Content_Item_Content"
@@ -173,6 +158,44 @@
             </RelativeLayout>
 
             <RelativeLayout
+                android:id="@+id/remote_gpkg_bundle__ver_props__heading__container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="20dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_lbl__remote_gpkg_bundle__ver_props"
+                    style="@style/Section_Content_Item_Label"
+                    android:gravity="center_vertical"
+                    android:text="@string/lbl__remote_gpkg_bundle__ver_props"
+                    android:visibility="visible"
+                    />
+
+            </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/remote_gpkg_bundle__ver_props__container"
+                style="@style/Section_Content_Item_Content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/edt_remote_gpkg_bundle__ver_props"
+                    style="@style/Widget.AppCompat.EditText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentStart="true"
+                    android:imeOptions="actionDone"
+                    android:inputType="textUri"
+                    android:singleLine="true"
+                    android:text=""
+                    android:textSize="14sp"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
                 android:id="@+id/local_gpkg_bundle__name__heading__container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -188,7 +211,6 @@
                 />
 
             </RelativeLayout>
-
             <RelativeLayout
                 android:id="@+id/local_gpkg_bundle__name__container"
                 style="@style/Section_Content_Item_Content"

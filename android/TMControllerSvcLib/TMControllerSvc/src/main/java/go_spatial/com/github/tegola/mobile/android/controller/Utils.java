@@ -456,6 +456,9 @@ public class Utils {
 
                 private final TaskStageHandler m_asyncgetfiletask_stage_handler;
 
+                private Call call__http_get = null;
+                public Call get_http_get_call() {return call__http_get;}
+
                 public Task(@NonNull final TaskStageHandler asyncgetfiletask_stage_handler) {
                     m_asyncgetfiletask_stage_handler = asyncgetfiletask_stage_handler;
                     asyncgetfiletask_stage_handler.set_asyncgetfiletask(this);
@@ -533,12 +536,12 @@ public class Utils {
                             Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
                         }
                     }
-                    final Call httpClient_call__request_file_size = httpClient.newCall(http_request_file_size);
+                    call__http_get = httpClient.newCall(http_request_file_size);
                     Log.d(TAG, "request_file_size: new OkHttpClient Call (for " + http_request_file_size.toString() + ") created: " + http_request_file_size.toString() + "; executing...");
                     Response response = null;
                     try {
-                        response = httpClient_call__request_file_size.execute();
-                        Log.d(TAG, "request_file_size: executed OkHttpClient Call (" + httpClient_call__request_file_size.toString() + "); handling response...");
+                        response = call__http_get.execute();
+                        Log.d(TAG, "request_file_size: executed OkHttpClient Call (" + call__http_get.toString() + "); handling response...");
                         if (!response.isSuccessful())
                             throw new IOException("Unexpected Response (to " + http_request_file_size.toString() + "): " + response.toString());
                         else {
@@ -568,8 +571,8 @@ public class Utils {
                             }
                         }
                     } finally {
-                        if (httpClient_call__request_file_size != null)
-                            httpClient_call__request_file_size.cancel();
+                        if (call__http_get != null)
+                            call__http_get.cancel();
                         if (response != null) {
                             response.body().source().buffer().close();
                             response.body().close();
@@ -617,12 +620,12 @@ public class Utils {
                             Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
                         }
                     }
-                    final Call httpClient_call__request_file_download = httpClient.newCall(http_request_file_download);
+                    call__http_get = httpClient.newCall(http_request_file_download);
                     Log.d(TAG, "request_file_download: new OkHttpClient Call (for " + http_request_file_download.toString() + ") created: " + http_request_file_download.toString() + "; executing...");
                     Response response = null;
                     try {
-                        response = httpClient_call__request_file_download.execute();
-                        Log.d(TAG, "request_file_download: executed OkHttpClient Call (" + httpClient_call__request_file_download.toString() + "); handling response...");
+                        response = call__http_get.execute();
+                        Log.d(TAG, "request_file_download: executed OkHttpClient Call (" + call__http_get.toString() + "); handling response...");
                         if (!response.isSuccessful())
                             throw new IOException("Unexpected Response (to " + http_request_file_download.toString() + "): " + response.toString());
                         else {
@@ -640,8 +643,8 @@ public class Utils {
                             Log.d(TAG, "request_file_download: Response (to " + http_request_file_download.toString() + ") body has " + response.body().byteStream().available() + " bytes available");
                         }
                     } finally {
-                        if (httpClient_call__request_file_download != null)
-                            httpClient_call__request_file_download.cancel();
+                        if (call__http_get != null)
+                            call__http_get.cancel();
                         if (response != null) {
                             Log.d(TAG, "request_file_download: closing response (to " + http_request_file_download.toString() + ")");
                             response.body().source().buffer().close();
@@ -667,12 +670,12 @@ public class Utils {
                             Log.d(TAG, "\t\t" + s_hdr_name + ": " + s_hdr_val);
                         }
                     }
-                    final Call httpClient_call__request_file_download = httpClient.newCall(http_request_file_download);
+                    call__http_get = httpClient.newCall(http_request_file_download);
                     Log.d(TAG, "request_file_download: new OkHttpClient Call (for " + http_request_file_download.toString() + ") created: " + http_request_file_download.toString() + "; executing...");
                     Response response = null;
                     try {
-                        response = httpClient_call__request_file_download.execute();
-                        Log.d(TAG, "request_file_download: executed OkHttpClient Call (" + httpClient_call__request_file_download.toString() + "); handling response...");
+                        response = call__http_get.execute();
+                        Log.d(TAG, "request_file_download: executed OkHttpClient Call (" + call__http_get.toString() + "); handling response...");
                         if (!response.isSuccessful())
                             throw new IOException("Unexpected Response (to " + http_request_file_download.toString() + "): " + response.toString());
                         else {
@@ -690,8 +693,8 @@ public class Utils {
                             download_file(response);
                         }
                     } finally {
-                        if (httpClient_call__request_file_download != null)
-                            httpClient_call__request_file_download.cancel();
+                        if (call__http_get != null)
+                            call__http_get.cancel();
                         if (response != null) {
                             Log.d(TAG, "request_file_download: closing response (to " + http_request_file_download.toString() + ")");
                             response.body().source().buffer().close();
@@ -851,6 +854,8 @@ public class Utils {
                             Log.d(TAG, "onCancelled: adding " + exception.getClass().getName() + " for this executor to m_queue.m_listener.item_excutor_exception_map...");
                             m_queue.m_listener.item_excutor_exception_map.put(this, exception);
                         }
+                        Log.d(TAG, "onCancelled: canceling http get request (" + get_http_get_call().request().toString() + ")");
+                        get_http_get_call().cancel();
                         m_queue.m_listener.onItemExecutor_Cancelled(this);
                     }
                     if (m_queue.m_n_pending == 0) {
@@ -873,6 +878,8 @@ public class Utils {
                             Log.d(TAG, "onPostExecute: adding " + exception.getClass().getName() + " for this executor to m_queue.m_listener.item_excutor_exception_map...");
                             m_queue.m_listener.item_excutor_exception_map.put(this, exception);
                         }
+                        Log.d(TAG, "onPostExecute: canceling http get request (" + get_http_get_call().request().toString() + ")");
+                        get_http_get_call().cancel();
                         m_queue.m_listener.onItemExecutor_PostExecute(this);
                     }
                     if (m_queue.m_n_pending == 0) {
@@ -916,11 +923,10 @@ public class Utils {
         }
 
         public static class Remote {
-            public static String build_root_url_string(final String s_http_proto_prefix, final String s_gpkg_bundle__root_url__base, final String s_gpkg_bundle__root_url___canon_tail, final String s_gpkg_bundle__name) {
+            public static String build_root_url_string(final String s_http_proto_prefix, final String s_gpkg_bundle__root_url, final String s_gpkg_bundle__name) {
                 return new StringBuilder()
                         .append(s_http_proto_prefix)
-                        .append(s_gpkg_bundle__root_url__base)
-                        .append(s_gpkg_bundle__root_url___canon_tail)
+                        .append(s_gpkg_bundle__root_url)
                         .append("/")
                         .append(s_gpkg_bundle__name)
                         .toString();

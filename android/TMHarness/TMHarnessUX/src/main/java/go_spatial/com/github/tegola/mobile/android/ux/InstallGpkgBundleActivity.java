@@ -37,9 +37,9 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
     private ImageButton m_btn_install_remote_gpkg_bundle__cancel = null;
     private TextView m_tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix = null;
-    private EditText m_edt_remote_gpkg_bundle__root_url__base = null;
-    private TextView m_tv_lbl_remote_gpkg_bundle__root_url___canon_tail = null;
+    private EditText m_edt_remote_gpkg_bundle__root_url = null;
     private EditText m_edt_remote_gpkg_bundle__name = null;
+    private EditText m_edt_remote_gpkg_bundle__ver_props = null;
     private EditText m_edt_local_gpkg_bundle__name = null;
     private Button m_btn_install_remote_gpkg_bundle = null;
     private View m_vw_progress = null;
@@ -71,14 +71,23 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
         m_btn_install_remote_gpkg_bundle__cancel = (ImageButton)findViewById(R.id.btn_install_remote_geopackage_bundle__cancel);
         m_tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix = (TextView)findViewById(R.id.tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix);
-        m_edt_remote_gpkg_bundle__root_url__base = (EditText)findViewById(R.id.edt_remote_gpkg_bundle__root_url__base);
-        m_tv_lbl_remote_gpkg_bundle__root_url___canon_tail = (TextView)findViewById(R.id.tv_lbl_remote_gpkg_bundle__root_url___canon_tail);
+        m_edt_remote_gpkg_bundle__root_url = (EditText)findViewById(R.id.edt_remote_gpkg_bundle__root_url);
+
         m_edt_remote_gpkg_bundle__name = (EditText)findViewById(R.id.edt_remote_gpkg_bundle__name);
-        m_edt_remote_gpkg_bundle__name.setOnEditorActionListener(OnEditorActionListener__m_edt_remote_gpkg_bundle__name);
-        m_edt_remote_gpkg_bundle__name.setOnFocusChangeListener(OnFocusChangeListener__m_edt_remote_gpkg_bundle__name);
+        m_edt_remote_gpkg_bundle__name.setOnKeyListener(OnKeyListener__disable_install);
+        m_edt_remote_gpkg_bundle__name.setOnEditorActionListener(OnEditorActionListener__validate_enable_install);
+        m_edt_remote_gpkg_bundle__name.setOnFocusChangeListener(OnFocusChangeListener__validate_enable_install);
+
+        m_edt_remote_gpkg_bundle__ver_props = (EditText)findViewById(R.id.edt_remote_gpkg_bundle__ver_props);
+        m_edt_remote_gpkg_bundle__ver_props.setOnKeyListener(OnKeyListener__disable_install);
+        m_edt_remote_gpkg_bundle__ver_props.setOnEditorActionListener(OnEditorActionListener__validate_enable_install);
+        m_edt_remote_gpkg_bundle__ver_props.setOnFocusChangeListener(OnFocusChangeListener__validate_enable_install);
+
         m_edt_local_gpkg_bundle__name = (EditText)findViewById(R.id.edt_local_gpkg_bundle__name);
-        m_edt_local_gpkg_bundle__name.setOnEditorActionListener(OnEditorActionListener__m_edt_local_gpkg_bundle__name);
-        m_edt_local_gpkg_bundle__name.setOnFocusChangeListener(OnFocusChangeListener__m_edt_local_gpkg_bundle__name);
+        m_edt_local_gpkg_bundle__name.setOnKeyListener(OnKeyListener__disable_install);
+        m_edt_local_gpkg_bundle__name.setOnEditorActionListener(OnEditorActionListener__validate_enable_install);
+        m_edt_local_gpkg_bundle__name.setOnFocusChangeListener(OnFocusChangeListener__validate_enable_install);
+
         m_btn_install_remote_gpkg_bundle = (Button)findViewById(R.id.btn_install_remote_gpkg_bundle);
         m_vw_progress = findViewById(R.id.sect_content__item__install_remote_gpkg_bundle__progress);
         m_tv_val__install_gpkg_bundle__file_download_progress = (TextView)findViewById(R.id.tv_val__install_gpkg_bundle__file_download_progress);
@@ -93,7 +102,12 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
-        m_edt_remote_gpkg_bundle__root_url__base.setText(getString(R.string.gpkg_bundle__root_url__default));
+        m_edt_remote_gpkg_bundle__root_url.setText(
+            new StringBuffer()
+                .append(getString(R.string.gpkg_bundle__root_url__default))
+                .append(getString(R.string.fixed__remote_gpkg_bundle__root_url__tail))
+                .toString()
+        );
 
         m_edt_local_gpkg_bundle__name.setEnabled(false);
         m_btn_install_remote_gpkg_bundle.setEnabled(false);
@@ -107,8 +121,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
         return new StringBuilder(
                     Utils.GPKG.Remote.build_root_url_string(
                             m_tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix.getText().toString(),
-                            m_edt_remote_gpkg_bundle__root_url__base.getText().toString(),
-                            m_tv_lbl_remote_gpkg_bundle__root_url___canon_tail.getText().toString(),
+                            m_edt_remote_gpkg_bundle__root_url.getText().toString(),
                             m_edt_remote_gpkg_bundle__name.getText().toString()
                         )
                     )
@@ -133,58 +146,54 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
         }
     };
 
-    private void check_enable_install_button() {
-        String s_remote_gpkg_bundle__name = m_edt_remote_gpkg_bundle__name.getText().toString().trim();
-        String s_local_gpkg_bundle__name = m_edt_local_gpkg_bundle__name.getText().toString().trim();
-        m_btn_install_remote_gpkg_bundle.setEnabled(!(s_remote_gpkg_bundle__name.isEmpty() || s_local_gpkg_bundle__name.isEmpty()));
+    private TextView.OnKeyListener OnKeyListener__disable_install = new TextView.OnKeyListener() {
+        @Override
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+            m_edt_local_gpkg_bundle__name.setText("");
+            m_btn_install_remote_gpkg_bundle.setEnabled(false);
+            return false;
+        }
+    };
+
+    private String parse_default_local_gpkg_name(final String gpkg_name, final String gpkg_props_file_name) {
+        return gpkg_name + "-" + gpkg_props_file_name.replace(".properties", "");
+    }
+
+    private void validate_enable_install_button() {
+        String s_remote_gpkg_bundle__name = m_edt_remote_gpkg_bundle__name.getText().toString().trim().replace("/", "");
+        String s_remote_gpkg_bundle__ver_props = m_edt_remote_gpkg_bundle__ver_props.getText().toString().trim().replace("/", "");
+
+        m_btn_install_remote_gpkg_bundle.setEnabled(
+            !(
+                s_remote_gpkg_bundle__name.isEmpty()
+                || s_remote_gpkg_bundle__ver_props.isEmpty()
+            )
+        );
+        if (m_btn_install_remote_gpkg_bundle.isEnabled()) {
+            m_edt_local_gpkg_bundle__name.setText(parse_default_local_gpkg_name(s_remote_gpkg_bundle__name, s_remote_gpkg_bundle__ver_props));
+        }
     }
 
     //reaction to changing remote gpkg bundle name - user must press enter in editor or switch focus to another control to register to app that a pending change has occurred
-    private final TextView.OnEditorActionListener OnEditorActionListener__m_edt_remote_gpkg_bundle__name = new TextView.OnEditorActionListener() {
+    private final TextView.OnEditorActionListener OnEditorActionListener__validate_enable_install = new TextView.OnEditorActionListener() {
         @Override
         public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
             if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
-                m_edt_local_gpkg_bundle__name.setText(m_edt_remote_gpkg_bundle__name.getText());
-                check_enable_install_button();
+                validate_enable_install_button();
                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(m_edt_remote_gpkg_bundle__name.getWindowToken(), 0);
+                imm.hideSoftInputFromWindow(textView.getWindowToken(), 0);
                 return true;
             } else
                 return false;
         }
     };
-    private final TextView.OnFocusChangeListener OnFocusChangeListener__m_edt_remote_gpkg_bundle__name = new View.OnFocusChangeListener() {
+    private final TextView.OnFocusChangeListener OnFocusChangeListener__validate_enable_install = new View.OnFocusChangeListener() {
         @Override
         public void onFocusChange(View v, boolean hasFocus) {
             if (!hasFocus) {
-                m_edt_local_gpkg_bundle__name.setText(m_edt_remote_gpkg_bundle__name.getText());
-                check_enable_install_button();
+                validate_enable_install_button();
                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(m_edt_remote_gpkg_bundle__name.getWindowToken(), 0);
-            }
-        }
-    };
-
-    //reaction to changing local gpkg bundle name - user must press enter in editor or switch focus to another control to register to app that a pending change has occurred
-    private final TextView.OnEditorActionListener OnEditorActionListener__m_edt_local_gpkg_bundle__name = new TextView.OnEditorActionListener() {
-        @Override
-        public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
-                check_enable_install_button();
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(m_edt_local_gpkg_bundle__name.getWindowToken(), 0);
-                return true;
-            } else
-                return false;
-        }
-    };
-    private final TextView.OnFocusChangeListener OnFocusChangeListener__m_edt_local_gpkg_bundle__name = new View.OnFocusChangeListener() {
-        @Override
-        public void onFocusChange(View v, boolean hasFocus) {
-            if (!hasFocus) {
-                check_enable_install_button();
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(m_edt_local_gpkg_bundle__name.getWindowToken(), 0);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
             }
         }
     };
@@ -200,7 +209,8 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
                 //queue up task to get remote version.properties - this file contains the download-spec for the selected gpkg-bundle
                 // we need to process this first, to find out how many and which components to download that comprise this gpkg-bundle
-                HttpUrl httpurl_version_props = HttpUrl.parse(build_remote_gpkg_bundle_file_url_string(Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME));
+                String s_gpkg_version_props_fname = m_edt_remote_gpkg_bundle__ver_props.getText().toString();
+                HttpUrl httpurl_version_props = HttpUrl.parse(build_remote_gpkg_bundle_file_url_string(s_gpkg_version_props_fname));
                 Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: FNAME ==" + httpurl_version_props.toString());
                 File localfile_version_props = new File(local_gpkg_bundle_path, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME);
                 Log.d(TAG, "OnClickListener__m_btn_install_remote_gpkg_bundle.onClick: localfile_version_props path ==" + localfile_version_props.getCanonicalPath());
@@ -428,7 +438,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
                                 //we expect one and only one version.properties download task!
                                 if (index == 0) {
-                                    if (file.getName().compareTo(Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME) != 0) {
+                                    if (/*file.getName().compareTo(Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME) != 0*/ false) {
                                         alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
                                         sb_alert_msg = new StringBuilder();
                                         alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
