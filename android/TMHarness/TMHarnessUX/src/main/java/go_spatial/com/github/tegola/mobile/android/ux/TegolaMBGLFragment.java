@@ -283,6 +283,10 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
 
         Log.d(TAG, "(fragment) onDestroyView: calling mapView.onDestroy()...");
         mapView.onDestroy();
+
+        m_okhttp3_client.dispatcher().cancelAll();
+        m_okhttp3_client = null;
+        m_okhttp3_client_dispather = null;
     }
 
     @Override
@@ -308,6 +312,5 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         Log.d(TAG, "(fragment) onDetach: entered");
         super.onDetach();
         mFragInteractionListener = null;
-        m_okhttp3_client_dispather.cancelAll();
     }
 }

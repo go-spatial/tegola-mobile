@@ -54,38 +54,46 @@ public class Constants {
                 String EXTRA__KEY__JSON_ENDPOINT = "JSON_ENDPOINT";
                 String EXTRA__KEY__JSON = "JSON";
 
-                interface FGS_CONTROL_REQUEST {
-                    String FGS__START_FOREGROUND = PKG + "START_FOREGROUND";
-                    String FGS__STOP_FOREGROUND = PKG + "STOP_FOREGROUND";
+                interface FGS_COMMAND_REQUEST {
+                    String START = PKG + ".FGS_COMMAND_REQUEST__START";
+                    String STOP = PKG + ".FGS_COMMAND_REQUEST__STOP";
 
                     interface EXTRA__KEY {
-                        String FGS__START_FOREGROUND__HARNESS = FGS__START_FOREGROUND + "." + EXTRA__KEY__HARNESS;
+                        String FGS__START_FOREGROUND__HARNESS = START + "." + EXTRA__KEY__HARNESS;
                     }
                 }
                 interface MVT_SERVER_CONTROL_REQUEST {
-                    String MVT_SERVER__START = PKG + ".MVT_SERVER__START";
-                    String MVT_SERVER__READ_JSON = PKG + ".MVT_SERVER__READ_JSON";
-                    String MVT_SERVER__STOP = PKG + ".MVT_SERVER__STOP";
+                    String START = PKG + ".MVT_SERVER_CONTROL_REQUEST__START";
+                    String STOP = PKG + ".MVT_SERVER_CONTROL_REQUEST__STOP";
                     interface EXTRA__KEY {
-                        String MVT_SERVER__START__PROVIDER__IS_GPKG = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG;     //boolean: true: use local gpkg provider, else use postgis provider
-                        String MVT_SERVER__START__GPKG_PROVIDER__BUNDLE = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG + "." + EXTRA__KEY__BUNDLE;
-                        String MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG + "." + EXTRA__KEY__BUNDLE + "." + EXTRA__KEY__PROPS;
-                        String MVT_SERVER__START__CONFIG__IS_REMOTE = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__REMOTE;     //boolean: true: config toml file is retreieved from a remote host, else config toml file exists on local device
-                        String MVT_SERVER__START__CONFIG__PATH = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__PATH;         //string: the path to config toml file - note that if MVT_SERVER__START__CONFIG__IS_REMOTE is true, then MVT_SERVER__START__CONFIG__PATH should be a URL pointing to remote config toml file
-                        String MVT_SERVER__READ_JSON__PURPOSE = MVT_SERVER__READ_JSON + "." + EXTRA__KEY__PURPOSE;
+                        String MVT_SERVER__START__PROVIDER__IS_GPKG = START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG;     //boolean: true: use local gpkg provider, else use postgis provider
+                        String MVT_SERVER__START__GPKG_PROVIDER__BUNDLE = START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG + "." + EXTRA__KEY__BUNDLE;
+                        String MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS = START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG + "." + EXTRA__KEY__BUNDLE + "." + EXTRA__KEY__PROPS;
+                        String MVT_SERVER__START__CONFIG__IS_REMOTE = START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__REMOTE;     //boolean: true: config toml file is retreieved from a remote host, else config toml file exists on local device
+                        String MVT_SERVER__START__CONFIG__PATH = START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__PATH;         //string: the path to config toml file - note that if MVT_SERVER__START__CONFIG__IS_REMOTE is true, then MVT_SERVER__START__CONFIG__PATH should be a URL pointing to remote config toml file
+                    }
+                }
+                interface MVT_SERVER_STATE_QUERY {
+                    String IS_RUNNING = PKG + ".MVT_SERVER_STATE_QUERY__IS_RUNNING";
+                    String LISTEN_PORT = PKG + ".MVT_SERVER_STATE_QUERY__LISTEN_PORT";
+                }
+                interface MVT_SERVER_HTTP_URL_API {
+                    String READ_JSON = PKG + ".MVT_SERVER_HTTP_URL_API__READ_JSON";
+                    interface EXTRA_KEY {
+                        String MVT_SERVER__READ_JSON__PURPOSE = READ_JSON + "." + EXTRA__KEY__PURPOSE;
                         interface READ_JSON__PURPOSE__VALUE {
                             String LOAD_MAP = MVT_SERVER__READ_JSON__PURPOSE + ".VALUE.LOAD_MAP";
                         }
                     }
                 }
                 interface CTRLR_NOTIFICATION {
-                    String CONTROLLER__FOREGROUND_STARTING = PKG + "FOREGROUND_STARTING";
-                    String CONTROLLER__FOREGROUND_STARTED = PKG + "FOREGROUND_STARTED";
-                    String CONTROLLER__FOREGROUND_STOPPING = PKG + "FOREGROUND_STOPPING";
-                    String CONTROLLER__FOREGROUND_STOPPED = PKG + "FOREGROUND_STOPPED";
+                    String CONTROLLER__FOREGROUND_STARTING = PKG + ".FOREGROUND_STARTING";
+                    String CONTROLLER__FOREGROUND_RUNNING = PKG + ".FOREGROUND_RUNNING";
+                    String CONTROLLER__FOREGROUND_STOPPING = PKG + ".FOREGROUND_STOPPING";
+                    String CONTROLLER__FOREGROUND_STOPPED = PKG + ".FOREGROUND_STOPPED";
                     String MVT_SERVER__STARTING = PKG + ".MVT_SERVER__STARTING";
                     String MVT_SERVER__START_FAILED = ".MVT_SERVER__STARTING";
-                    String MVT_SERVER__STARTED = PKG + ".MVT_SERVER__STARTED";
+                    String MVT_SERVER__RUNNING = PKG + ".MVT_SERVER__RUNNING";
                     String MVT_SERVER__LISTENING = PKG + ".MVT_SERVER__LISTENING";
                     String MVT_SERVER__OUTPUT__LOGCAT = PKG + ".MVT_SERVER__OUTPUT__LOGCAT";
                     String MVT_SERVER__OUTPUT__STDERR = PKG + ".MVT_SERVER__OUTPUT__STDERR";
@@ -96,7 +104,7 @@ public class Constants {
 
                     interface EXTRA__KEY {
                         String MVT_SERVER__START_FAILED__REASON = MVT_SERVER__START_FAILED + "." + EXTRA__KEY__REASON;
-                        String MVT_SERVER__STARTED__PID = MVT_SERVER__STARTED + "." + EXTRA__KEY__PID;
+                        String MVT_SERVER__STARTED__PID = MVT_SERVER__RUNNING + "." + EXTRA__KEY__PID;
                         String MVT_SERVER__OUTPUT__LOGCAT__LINE = MVT_SERVER__OUTPUT__LOGCAT + "." + EXTRA__KEY__MSG;
                         String MVT_SERVER__OUTPUT__STDERR__LINE = MVT_SERVER__OUTPUT__STDERR + "." + EXTRA__KEY__MSG;
                         String MVT_SERVER__OUTPUT__STDOUT__LINE = MVT_SERVER__OUTPUT__STDOUT + "." + EXTRA__KEY__MSG;
@@ -148,14 +156,14 @@ public class Constants {
 
     public interface Enums {
         enum E_INTENT_ACTION__FGS_CONTROL_REQUEST {
-            FGS__STOP_FOREGROUND
-            , FGS__START_FOREGROUND
+            FGS__STOP
+            , FGS__START
             ;
 
             public static final E_INTENT_ACTION__FGS_CONTROL_REQUEST fromString(final String s) {
                 switch (s) {
-                    case Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND: return FGS__START_FOREGROUND;
-                    case Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__STOP_FOREGROUND: return FGS__STOP_FOREGROUND;
+                    case Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.START: return FGS__START;
+                    case Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.STOP: return FGS__STOP;
                     default: return null;
                 }
             }
@@ -163,34 +171,8 @@ public class Constants {
             @Override
             public String toString() {
                 switch (this) {
-                    case FGS__START_FOREGROUND: return Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND;
-                    case FGS__STOP_FOREGROUND: return Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__STOP_FOREGROUND;
-                    default: return null;
-                }
-            }
-        }
-
-        enum E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST {
-            MVT_SERVER__START
-            , MVT_SERVER__STOP
-            , MVT_SERVER__READ_JSON
-            ;
-
-            public static final E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST fromString(final String s) {
-                switch (s) {
-                    case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START: return MVT_SERVER__START;
-                    case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP: return MVT_SERVER__STOP;
-                    case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__READ_JSON: return MVT_SERVER__READ_JSON;
-                    default: return null;
-                }
-            }
-
-            @Override
-            public String toString() {
-                switch (this) {
-                    case MVT_SERVER__START: return Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START;
-                    case MVT_SERVER__STOP: return Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP;
-                    case MVT_SERVER__READ_JSON: return Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__READ_JSON;
+                    case FGS__START: return Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.START;
+                    case FGS__STOP: return Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.STOP;
                     default: return null;
                 }
             }
@@ -203,7 +185,7 @@ public class Constants {
             , CONTROLLER_FOREGROUND_STOPPED
             , MVT_SERVER__STARTING
             , MVT_SERVER__START_FAILED
-            , MVT_SERVER__STARTED
+            , MVT_SERVER__RUNNING
             , MVT_SERVER__LISTENING
             , MVT_SERVER__OUTPUT__LOGCAT
             , MVT_SERVER__OUTPUT__STDERR
@@ -216,12 +198,12 @@ public class Constants {
             public static final E_INTENT_ACTION__CTRLR_NOTIFICATION fromString(final String s) {
                 switch (s) {
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING: return CONTROLLER_FOREGROUND_STARTING;
-                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED: return CONTROLLER_FOREGROUND_STARTED;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_RUNNING: return CONTROLLER_FOREGROUND_STARTED;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPING: return CONTROLLER_FOREGROUND_STOPPING;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPED: return CONTROLLER_FOREGROUND_STOPPED;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING: return MVT_SERVER__STARTING;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED: return MVT_SERVER__START_FAILED;
-                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED: return MVT_SERVER__STARTED;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__RUNNING: return MVT_SERVER__RUNNING;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING: return MVT_SERVER__LISTENING;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT: return MVT_SERVER__OUTPUT__LOGCAT;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR: return MVT_SERVER__OUTPUT__STDERR;
@@ -237,12 +219,12 @@ public class Constants {
             public String toString() {
                 switch (this) {
                     case CONTROLLER_FOREGROUND_STARTING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING;
-                    case CONTROLLER_FOREGROUND_STARTED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED;
+                    case CONTROLLER_FOREGROUND_STARTED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_RUNNING;
                     case CONTROLLER_FOREGROUND_STOPPING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPING;
                     case CONTROLLER_FOREGROUND_STOPPED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPED;
                     case MVT_SERVER__STARTING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING;
                     case MVT_SERVER__START_FAILED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED;
-                    case MVT_SERVER__STARTED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED;
+                    case MVT_SERVER__RUNNING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__RUNNING;
                     case MVT_SERVER__LISTENING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING;
                     case MVT_SERVER__OUTPUT__LOGCAT: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT;
                     case MVT_SERVER__OUTPUT__STDERR: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR;

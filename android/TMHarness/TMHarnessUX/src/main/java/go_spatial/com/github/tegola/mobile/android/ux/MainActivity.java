@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     private BroadcastReceiver m_br_ctrlr_notifications = null;
     private IntentFilter m_br_ctrlr_notifications_filter = null;
+    private boolean m_controller_running = false;
 
 //    private DriveId m_google_drive_id;
 //    private final class MyGoogleApiClientCallbacks implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -206,8 +207,11 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 //    private MyGoogleApiClientCallbacks m_google_api_callbacks = null;
 
 
+    private final String SAVE_INSTANCE_ARG__CTRLR_RUNNING = "SAVE_INSTANCE_ARG__CTRLR_RUNNING";
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "onSaveInstanceState: outState.putBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, " + m_controller_running + ")");
+        outState.putBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, m_controller_running);
         super.onSaveInstanceState(outState);
     }
 
@@ -226,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate: entered");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -328,12 +333,12 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         //set up BR to listen to notifications from ControllerLib
         m_br_ctrlr_notifications_filter = new IntentFilter();
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_RUNNING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPED);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__RUNNING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR);
@@ -356,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                                     break;
                                 }
                                 case CONTROLLER_FOREGROUND_STARTED: {
-                                    OnControllerStarted();
+                                    OnControllerRunning();
                                     break;
                                 }
                                 case CONTROLLER_FOREGROUND_STOPPING: {
@@ -375,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                                     OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON));
                                     break;
                                 }
-                                case MVT_SERVER__STARTED: {
+                                case MVT_SERVER__RUNNING: {
                                     OnMVTServerRunning(intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, -1));
                                     break;
                                 }
@@ -427,11 +432,21 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         registerReceiver(m_br_ctrlr_notifications, m_br_ctrlr_notifications_filter, null, new Handler(getMainLooper()));
     }
 
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "onDestroy: unregisterReceiver(m_br_ctrlr_notifications)");
+        unregisterReceiver(m_br_ctrlr_notifications);
+        super.onDestroy();
+    }
+
     final String FRAG_DRAWER_CONTENT = "FRAG_DRAWER_CONTENT";
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
+        Log.d(TAG, "onPostCreate: entered - savedInstanceState is " + (savedInstanceState != null ? "NOT " : "") + "null");
+        if (savedInstanceState != null) {
+            Log.d(TAG, "onPostCreate: savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false)==" + savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false));
+        }
 
         //set title to build version
         setTitle(getString(R.string.app_name) + " - build " + BuildConfig.VERSION_NAME);
@@ -458,7 +473,12 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                start_controller_fgs();
+                if (savedInstanceState == null || !savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false))
+                    start_controller_fgs();
+                Intent intent_query_mvt_server_is_running = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.IS_RUNNING);
+                sendBroadcast(intent_query_mvt_server_is_running);
+                Intent intent_query_mvt_server_listen_port = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.LISTEN_PORT);
+                sendBroadcast(intent_query_mvt_server_listen_port);
 
                 //reconcile expandable sections UI with initial "expanded" state
                 m_vw_sect_content__andro_dev_nfo.callOnClick();
@@ -471,19 +491,22 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             }
         }, 50);
 
-        if (BuildConfig.mbgl_test_style_json) {
-            Log.d(TAG, "onPostCreate: BuildConfig.mbgl_test_style_json==true --> starting mbgl mapview with test mbgl_style_url " + BuildConfig.mbgl_test_style_json_url);
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mbgl_map_start(BuildConfig.mbgl_test_style_json_url);
-                }
-            }, 50);
-        }
+//        if (BuildConfig.mbgl_test_style_json) {
+//            Log.d(TAG, "onPostCreate: BuildConfig.mbgl_test_style_json==true --> starting mbgl mapview with test mbgl_style_url " + BuildConfig.mbgl_test_style_json_url);
+//            new Handler().postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mbgl_map_start(BuildConfig.mbgl_test_style_json_url);
+//                }
+//            }, 50);
+//        }
+
+        super.onPostCreate(savedInstanceState);
     }
 
     @Override
     protected void onResume() {
+        Log.e(TAG, "onResume: entered");
         //now queue up initial automated UI actions
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -514,9 +537,10 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     @Override
     protected void onStop() {
+        Log.e(TAG, "onStop: entered");
         super.onStop();
 //        GoogleDriveFileDownloadManager.getInstance().disconnect_api_client();
-        super.onPause();
+        //super.onPause();
     }
 
 
@@ -1467,7 +1491,9 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_tv_val_ctrlr_status.setText(getString(R.string.starting));
     }
 
-    private void OnControllerStarted() {
+    private void OnControllerRunning() {
+        m_controller_running = true;
+        Log.d(TAG, "OnControllerRunning: set m_controller_running == " + m_controller_running);
         m_tv_val_ctrlr_status.setText(getString(R.string.running));
         m_tv_val_bin_ver.setText(Constants.Enums.TEGOLA_BIN.get_version_string());
     }
@@ -1549,8 +1575,8 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     }
 
     private void mbgl_map_start__tegola() {
-        Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__READ_JSON);
-        intent_mvt_server_read_json.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__READ_JSON__PURPOSE, Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP);
+        Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.READ_JSON);
+        intent_mvt_server_read_json.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.MVT_SERVER__READ_JSON__PURPOSE, Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP);
         sendBroadcast(intent_mvt_server_read_json);
     }
 
@@ -1783,20 +1809,20 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     private void start_controller_fgs() {
         m_tv_val_ctrlr_status.setText(getString(R.string.starting));
         Intent intent_start_controller_fgs = new Intent(MainActivity.this, FGS.class);
-        intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__START_FOREGROUND);
-        intent_start_controller_fgs.putExtra(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS, MainActivity.class.getName());
+        intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.START);
+        intent_start_controller_fgs.putExtra(Constants.Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS, MainActivity.class.getName());
         startService(intent_start_controller_fgs);
     }
 
     private void stop_controller_fgs() {
         m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
         Intent intent_stop_controller_fgs = new Intent(MainActivity.this, FGS.class);
-        intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.FGS__STOP_FOREGROUND);
+        intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.STOP);
         stopService(intent_stop_controller_fgs);
     }
 
     private void start_mvt_server() {
-        Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
+        Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.START);
         String s_config_toml = null;
         boolean gpkg_provider = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue();
         intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, gpkg_provider);
@@ -1830,7 +1856,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     private void stop_mvt_server() {
         mbgl_map_stop();
-        Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
+        Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.STOP);
         sendBroadcast(intent_stop_mvt_server);
     }
 }

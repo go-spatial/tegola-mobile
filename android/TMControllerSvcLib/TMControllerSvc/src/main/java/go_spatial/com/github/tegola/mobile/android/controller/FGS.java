@@ -58,45 +58,50 @@ public class FGS extends Service {
 
 
     private Class<?> m_class_harness = null;
+    private boolean m_is_running = false;
 
     @Override
     public int onStartCommand(Intent intent, /*@IntDef(value = {Service.START_FLAG_REDELIVERY, Service.START_FLAG_RETRY}, flag = true)*/ int flags, int startId) {
         Constants.Enums.E_INTENT_ACTION__FGS_CONTROL_REQUEST e_fgs_ctrl_request = Constants.Enums.E_INTENT_ACTION__FGS_CONTROL_REQUEST.fromString(intent != null ? intent.getAction() : null);
         if (e_fgs_ctrl_request != null) {
             switch (e_fgs_ctrl_request) {
-                case FGS__START_FOREGROUND: {
-                    String s_class_harness = intent.getStringExtra(Constants.Strings.INTENT.ACTION.FGS_CONTROL_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS);
-                    Log.i(TAG, "onStartCommand: Received FGS__START_FOREGROUND request from harness " + s_class_harness);
+                case FGS__START: {
+                    String s_class_harness = intent.getStringExtra(Constants.Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS);
+                    Log.i(TAG, "onStartCommand: Received START request from harness " + s_class_harness);
 
-                    Intent intent_notify_service_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING);
-                    sendBroadcast(intent_notify_service_starting);
+                    if (!m_is_running) {
+                        Intent intent_notify_service_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING);
+                        sendBroadcast(intent_notify_service_starting);
 
-                    try {
-                        m_class_harness = Class.forName(s_class_harness);
-                        Log.d(TAG, "onStartCommand: mapped class for harness " + s_class_harness);
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
+                        try {
+                            m_class_harness = Class.forName(s_class_harness);
+                            Log.d(TAG, "onStartCommand: mapped class for harness " + s_class_harness);
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        Log.d(TAG, "onStartCommand: setting up ASN for FGS...");
+
+                        Log.d(TAG, "onStartCommand: starting FGS...");
+                        startForeground(Constants.ASNB_NOTIFICATIONS.NOTIFICATION_ID__CONTROLLER_SERVICE, fgs_asn__prepare(getString(R.string.fgs_asn_title), getString(R.string.stopped)));
+                        m_is_running = true;
+
+                        Log.d(TAG, "onStartCommand: ASN dispatched and FGS started - init'ing...");
+                        init();
+                    } else {
+                        Log.d(TAG, "onStartCommand: FGS is already running/init'ed - skipping startup sequence");
                     }
-                    Log.d(TAG, "onStartCommand: setting up ASN for FGS...");
-
-                    Log.d(TAG, "onStartCommand: starting FGS...");
-                    startForeground(Constants.ASNB_NOTIFICATIONS.NOTIFICATION_ID__CONTROLLER_SERVICE, fgs_asn__prepare(getString(R.string.fgs_asn_title), getString(R.string.stopped)));
-
-                    Log.d(TAG, "onStartCommand: ASN dispatched and FGS started - init'ing...");
-                    init();
-
-                    get__tegola_version();
 
                     Log.d(TAG, "onStartCommand: start sequence complete - notifying harness...");
-                    Intent intent_notify_service_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTED);
+                    Intent intent_notify_service_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_RUNNING);
                     sendBroadcast(intent_notify_service_started);
                     break;
                 }
-                case FGS__STOP_FOREGROUND: {
-                    Log.i(TAG, "Received FGS__STOP_FOREGROUND request");
+                case FGS__STOP: {
+                    Log.i(TAG, "Received STOP request");
                     stop_tegola();
                     stopForeground(true);
                     stopSelf();
+                    m_is_running = false;
                 }
                 default: {
                     break;
@@ -151,6 +156,8 @@ public class FGS extends Service {
                     throw new Exceptions.TegolaBinaryNotExecutableException(e_tegola_bin.name());
             }
             Log.d(TAG, "init: " + e_tegola_bin.name() + " " + (f_tegola_bin_executable.exists() ? "exists" : "transfer to files dir failed!"));
+            if (f_tegola_bin_executable.exists())
+                get__tegola_version();
         } catch (Exceptions.UnsupportedCPUABIException e) {
             e.printStackTrace();
         } catch (Exceptions.TegolaBinaryNotExecutableException e) {
@@ -181,17 +188,18 @@ public class FGS extends Service {
 
         //set BR to listen for client mvt-server-control-request
         m_filter_br_client_control_request = new IntentFilter();
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START);
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP);
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__READ_JSON);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.START);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.STOP);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.READ_JSON);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.IS_RUNNING);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.LISTEN_PORT);
         m_br_client_control_request = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent != null) {
                     Log.d(TAG, "m_br_client_control_request received: " + intent.getAction());
-                    Constants.Enums.E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST e_mvt_srvr_ctrl_request = Constants.Enums.E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST.fromString(intent != null ? intent.getAction() : null);
-                    switch (e_mvt_srvr_ctrl_request) {
-                        case MVT_SERVER__START: {
+                    switch (intent.getAction()) {
+                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.START: {
                             MVT_SERVER_START_SPEC server_start_spec = null;
                             if (intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, false))
                                 server_start_spec = new MVT_SERVER_START_SPEC__GPKG_PROVIDER(
@@ -207,11 +215,11 @@ public class FGS extends Service {
                             handle_mvt_server_control_request__start(server_start_spec);
                             break;
                         }
-                        case MVT_SERVER__READ_JSON: {
-                            String s_purpose = intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__READ_JSON__PURPOSE);
+                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.READ_JSON: {
+                            String s_purpose = intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.MVT_SERVER__READ_JSON__PURPOSE);
                             switch (s_purpose) {
-                                case Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP: {
-                                    read_tegola_json("/capabilities", Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP);
+                                case Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP: {
+                                    read_tegola_json("/capabilities", Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP);
                                     break;
                                 }
                                 default: {
@@ -220,8 +228,36 @@ public class FGS extends Service {
                             }
                             break;
                         }
-                        case MVT_SERVER__STOP: {
-                            handle_mvt_server_control_request__stop();
+                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.STOP: {
+                            stop_tegola();
+                            break;
+                        }
+                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.IS_RUNNING: {
+                            if (m_process_tegola != null && m_thread_tegola_process_monitor != null && m_thread_tegola_process_monitor.isAlive()) {
+                                //notify br receivers MVT_SERVER__RUNNING
+                                Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__RUNNING);
+                                if (m_process_tegola_pid != -1)
+                                    intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, m_process_tegola_pid.intValue());
+                                fgs_asn__update(getString(R.string.running) + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid: ""));
+                                sendBroadcast(intent_notify_server_started);
+                            } else {
+                                Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
+                                fgs_asn__update(getString(R.string.stopped));
+                                sendBroadcast(intent_notify_server_stopped);
+                            }
+                            break;
+                        }
+                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.LISTEN_PORT: {
+                            if (m_process_tegola != null && m_thread_tegola_process_monitor != null && m_thread_tegola_process_monitor.isAlive() && m_i_tegola_listen_port != null) {
+                                Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
+                                intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, m_i_tegola_listen_port.intValue());
+                                fgs_asn__update(
+                            getString(R.string.running)
+                                    + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid : "")
+                                    + ", listening on port " + m_i_tegola_listen_port.intValue()
+                                );
+                                sendBroadcast(intent_notify_server_listening);
+                            }
                             break;
                         }
                         default: {
@@ -353,7 +389,7 @@ public class FGS extends Service {
     private void handle_mvt_server_control_request__start(@NonNull final MVT_SERVER_START_SPEC server_start_spec) {
         try {
             final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());   //this line just asserts tegola bin supports this device's ABI
-            start_tegola(server_start_spec);  //note that this function internally handles sending the MVT_SERVER__STARTING and MVT_SERVER__STARTED notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
+            start_tegola(server_start_spec);  //note that this function internally handles sending the MVT_SERVER__STARTING and MVT_SERVER__RUNNING notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
         } catch (IOException e) {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
@@ -379,10 +415,6 @@ public class FGS extends Service {
             fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         }
-    }
-
-    private void handle_mvt_server_control_request__stop() {
-        stop_tegola();
     }
 
     private Process m_logcat_process = null;
@@ -482,7 +514,7 @@ public class FGS extends Service {
             throw new UnknownMVTServerStartSpecType(server_start_spec);
         pb = pb.command(als_cmd_line);
 
-        stop_tegola();
+        //stop_tegola();
 
         Log.i(TAG, "start_tegola: starting new tegola server process...");
         //notify br_receivers (if any) server starting
@@ -522,8 +554,8 @@ public class FGS extends Service {
         m_process_tegola_pid = getPid(m_process_tegola);
         Log.i(TAG, "start_tegola: tegola server process " + (m_process_tegola_pid != -1 ? "(pid " + m_process_tegola_pid + ") ": "") + "started");
 
-        //notify br receivers MVT_SERVER__STARTED
-        Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTED);
+        //notify br receivers MVT_SERVER__RUNNING
+        Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__RUNNING);
         if (m_process_tegola_pid != -1)
             intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, m_process_tegola_pid.intValue());
         fgs_asn__update(getString(R.string.running) + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid: ""));
@@ -593,7 +625,15 @@ public class FGS extends Service {
                                                 Log.d(TAG, "logcat_inputstream_processor_thread: thread interrupted");
                                                 Thread.currentThread().interrupt();
                                             } catch (IOException e) {
-                                                e.printStackTrace();
+                                                //e.printStackTrace();
+                                                if (reader_logcat_process_inputstream != null) {
+                                                    try {
+                                                        reader_logcat_process_inputstream.close();
+                                                    } catch (IOException e2) {
+                                                        //e2.printStackTrace();
+                                                    }
+                                                }
+                                                Log.d(TAG, "logcat_inputstream_processor_thread: thread interrupted");
                                             }
                                         }
                                     } else {
@@ -673,6 +713,15 @@ public class FGS extends Service {
                             Thread.currentThread().sleep(100);
                         } catch (IOException e) {
 //                            e.printStackTrace();
+                            if (reader_tegola_process_stderr != null) {
+                                try {
+                                    reader_tegola_process_stderr.close();
+                                } catch (IOException e2) {
+                                    //e2.printStackTrace();
+                                }
+                            }
+                            Log.d(TAG, "tegola_stderr_monitor_thread: thread interrupted");
+                            Thread.currentThread().interrupt();
                         } catch (InterruptedException e1) {
                             //e.printStackTrace();
                             if (reader_tegola_process_stderr != null) {
@@ -737,6 +786,15 @@ public class FGS extends Service {
                             Thread.currentThread().sleep(100);
                         } catch (IOException e) {
 //                            e.printStackTrace();
+                            if (reader_tegola_process_stdout != null) {
+                                try {
+                                    reader_tegola_process_stdout.close();
+                                } catch (IOException e2) {
+                                    //e2.printStackTrace();
+                                }
+                            }
+                            Log.d(TAG, "tegola_stdout_monitor_thread: thread interrupted");
+                            Thread.currentThread().interrupt();
                         } catch (InterruptedException e1) {
                             //e.printStackTrace();
                             if (reader_tegola_process_stdout != null) {
@@ -767,42 +825,49 @@ public class FGS extends Service {
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
                 } finally {
-                    m_process_tegola = null;
-                    m_process_tegola_pid = null;
-                    m_tegola_process_is_running = false;
-
                     int n_thread_cleanup_wait_ms = 250;
 
-                    m_thread_tegola_process_stdout_monitor.interrupt();
-                    try {
-                        Log.i(TAG, "tegola_process_monitor_thread: interrupted stdout monitor thread and waiting " + n_thread_cleanup_wait_ms + " ms for thread to exit");
-                        m_thread_tegola_process_stdout_monitor.join(n_thread_cleanup_wait_ms);
-                    } catch (InterruptedException e) {
-                        //e.printStackTrace();
+                    if (m_thread_tegola_process_stdout_monitor != null && m_thread_tegola_process_stdout_monitor.isAlive()) {
+                        m_thread_tegola_process_stdout_monitor.interrupt();
+                        try {
+                            Log.i(TAG, "tegola_process_monitor_thread: interrupted stdout monitor thread and waiting " + n_thread_cleanup_wait_ms + " ms for thread to exit");
+                            m_thread_tegola_process_stdout_monitor.join(n_thread_cleanup_wait_ms);
+                        } catch (InterruptedException e) {
+                            //e.printStackTrace();
+                        }
                     }
                     m_thread_tegola_process_stdout_monitor = null;
                     Log.i(TAG, "tegola_process_monitor_thread: m_thread_tegola_process_stdout_monitor thread stopped or " + n_thread_cleanup_wait_ms + " ms wait to stop expired");
 
-                    m_thread_tegola_process_stderr_monitor.interrupt();
-                    try {
-                        Log.i(TAG, "tegola_process_monitor_thread: interrupted stderr monitor thread and waiting " + n_thread_cleanup_wait_ms + " ms for thread to exit");
-                        m_thread_tegola_process_stderr_monitor.join(n_thread_cleanup_wait_ms);
-                    } catch (InterruptedException e) {
-                        //e.printStackTrace();
+                    if (m_thread_tegola_process_stderr_monitor != null && m_thread_tegola_process_stderr_monitor.isAlive()) {
+                        m_thread_tegola_process_stderr_monitor.interrupt();
+                        try {
+                            Log.i(TAG, "tegola_process_monitor_thread: interrupted stderr monitor thread and waiting " + n_thread_cleanup_wait_ms + " ms for thread to exit");
+                            m_thread_tegola_process_stderr_monitor.join(n_thread_cleanup_wait_ms);
+                        } catch (InterruptedException e) {
+                            //e.printStackTrace();
+                        }
                     }
                     m_thread_tegola_process_stderr_monitor = null;
                     Log.i(TAG, "tegola_process_monitor_thread: m_thread_tegola_process_stderr_monitor thread stopped or " + n_thread_cleanup_wait_ms + " ms wait to stop expired");
 
-                    m_logcat_process.destroy();
-                    try {
-                        Log.i(TAG, "tegola_process_monitor_thread: destroyed logcat process and waiting " + n_thread_cleanup_wait_ms + " ms for monitor thread to exit");
-                        m_thread_logcat_process_monitor.join(n_thread_cleanup_wait_ms);
-                    } catch (InterruptedException e) {
-                        //e.printStackTrace();
+                    if (m_logcat_process != null)
+                        m_logcat_process.destroy();
+                    if (m_thread_logcat_process_monitor != null && m_thread_logcat_process_monitor.isAlive()) {
+                        m_thread_logcat_process_monitor.interrupt();
+                        try {
+                            Log.i(TAG, "tegola_process_monitor_thread: destroyed logcat process and waiting " + n_thread_cleanup_wait_ms + " ms for monitor thread to exit");
+                            m_thread_logcat_process_monitor.join(n_thread_cleanup_wait_ms);
+                        } catch (InterruptedException e) {
+                            //e.printStackTrace();
+                        }
                     }
                     m_thread_logcat_process_monitor = null;
                     m_logcat_process = null;
                     Log.i(TAG, "tegola_process_monitor_thread: m_thread_logcat_process_monitor thread stopped or " + n_thread_cleanup_wait_ms + " ms wait to stop expired");
+
+                    m_process_tegola_pid = null;
+                    m_tegola_process_is_running = false;
 
                     Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
                     //Log.d(TAG, "tegola_process_monitor_thread: broadcasting intent \"" + intent_notify_server_stopped.getAction() + "\"");
@@ -915,6 +980,7 @@ public class FGS extends Service {
     }
 
     private boolean stop_tegola() {
+        boolean wasrunning = false;
         if (m_process_tegola != null) {
             Log.i(TAG, "stop_tegola: destroying mvt server tegola process (pid " + m_process_tegola_pid + ")...");
             Intent intent_notify_server_stopping = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING);
@@ -925,15 +991,15 @@ public class FGS extends Service {
                 try {
                     m_thread_tegola_process_monitor.join();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                   // e.printStackTrace();
                 }
                 m_thread_tegola_process_monitor = null;
-                m_tegola_process_is_running = false;
             }
-            return true;
+            wasrunning = true;
         }
         Log.i(TAG, "stop_tegola: tegola mvt server is not currently running");
         m_tegola_process_is_running = false;
-        return false;
+        m_process_tegola = null;;
+        return wasrunning;
     }
 }
