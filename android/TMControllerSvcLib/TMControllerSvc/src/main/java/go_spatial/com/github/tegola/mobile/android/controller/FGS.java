@@ -494,11 +494,13 @@ public class FGS extends Service {
             }
         } else if (server_start_spec instanceof MVT_SERVER_START_SPEC__POSTGIS_PROVIDER) {
             final MVT_SERVER_START_SPEC__POSTGIS_PROVIDER server_start_spec_postgis_provider = (MVT_SERVER_START_SPEC__POSTGIS_PROVIDER)server_start_spec;
-            if (server_start_spec_postgis_provider.config_toml__is_remote)
-                throw new Exceptions.InvalidTegolaArgumentException("start spec requests remote config \"" + server_start_spec_postgis_provider.config_toml + "\"for postgis provider but this is temporarily not supported in Tegola Mobile");
-            else {
-                if (server_start_spec_postgis_provider.config_toml == null || server_start_spec_postgis_provider.config_toml.isEmpty())
-                    throw new Exceptions.InvalidTegolaArgumentException("argument \"" + Constants.Strings.TEGOLA_ARG.CONFIG + "\" is null or empty");
+            if (server_start_spec_postgis_provider.config_toml == null || server_start_spec_postgis_provider.config_toml.isEmpty())
+                throw new Exceptions.InvalidTegolaArgumentException("argument \"" + Constants.Strings.TEGOLA_ARG.CONFIG + "\" is null or empty");
+            if (server_start_spec_postgis_provider.config_toml__is_remote) {
+                Log.d(TAG, "start_tegola: using remote config toml file: " + server_start_spec_postgis_provider.config_toml);
+                als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
+                als_cmd_line.add(server_start_spec_postgis_provider.config_toml);
+            } else {
                 final File f_postgis_config_toml = new File(server_start_spec_postgis_provider.config_toml);
                 if (f_postgis_config_toml != null && !f_postgis_config_toml.exists())
                     throw new FileNotFoundException("toml file " + f_postgis_config_toml.getCanonicalPath() + " not found");

@@ -62,8 +62,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
     private Dispatcher m_okhttp3_client_dispather = null;
     private OkHttpClient m_okhttp3_client = null;
     private MapboxMap m_mapboxMap = null;
-    private TextView m_tv_map_name = null;
-    private TextView m_tv_map_attribution = null;
+    private TextView m_tv_attribution = null;
+    private TextView m_tv_version = null;
     private ImageButton ibtn_hide_mbgl_frag = null;
 
     public TegolaMBGLFragment() {
@@ -115,8 +115,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         HttpRequestUtil.setOkHttpClient(m_okhttp3_client);
 
         mapView = (MapView)this_frag_layout_view.findViewById(R.id.mapView);
-        m_tv_map_name = (TextView)this_frag_layout_view.findViewById(R.id.tv_map_name);
-        m_tv_map_attribution = (TextView)this_frag_layout_view.findViewById(R.id.tv_map_attribution);
+        m_tv_attribution = (TextView)this_frag_layout_view.findViewById(R.id.tv_attribution);
+        m_tv_version = (TextView)this_frag_layout_view.findViewById(R.id.tv_tegola_version);
         ibtn_hide_mbgl_frag = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_hide_mbgl_frag);
         ibtn_hide_mbgl_frag.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -180,8 +180,12 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             Log.d(TAG, "(fragment) onMapReady: setting PrefetchedTiles to: true");
             m_mapboxMap.setPrefetchesTiles(true);
 
-            m_tv_map_name.setText(tegolaCapabilities.parsed.maps[0].name);
-            m_tv_map_attribution.setText(tegolaCapabilities.parsed.maps[0].attribution);
+            StringBuilder sb_attribution = new StringBuilder()
+                    .append(tegolaCapabilities.parsed.maps[0].attribution)
+                    .append(" - ")
+                    .append(tegolaCapabilities.parsed.maps[0].name);
+            m_tv_attribution.setText(sb_attribution.toString());
+            m_tv_version.setText(tegolaCapabilities.version);
         }
     };
 

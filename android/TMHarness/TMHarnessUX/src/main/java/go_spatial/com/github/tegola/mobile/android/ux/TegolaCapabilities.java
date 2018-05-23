@@ -8,6 +8,7 @@ import org.json.JSONObject;
 public final class TegolaCapabilities implements Parcelable {
     public String root_url = "";
     public JSONObject root_json_object = null;
+    public String version = "";
     public static class Parsed implements Parcelable {
         public static class Map implements Parcelable {
             public String name = "";
@@ -184,11 +185,13 @@ public final class TegolaCapabilities implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.root_url);
+        dest.writeString(this.version);
         dest.writeParcelable(this.parsed, flags);
     }
 
     protected TegolaCapabilities(Parcel in) {
         this.root_url = in.readString();
+        this.version = in.readString();
         this.parsed = in.readParcelable(Parsed.class.getClassLoader());
     }
 

@@ -1588,6 +1588,11 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             JSONTokener jsonTokener = new JSONTokener(json);
             tegolaCapabilities.root_json_object = new JSONObject(jsonTokener);
             Log.d(TAG, "parse_tegola_capabilities_json: json content is content is:\n" + tegolaCapabilities.root_json_object.toString());
+            tegolaCapabilities.version = tegolaCapabilities.root_json_object.getString("version");
+            if (tegolaCapabilities.version != null) {
+                Log.d(TAG, "parse_tegola_capabilities_json: got \"version\" == \"" + tegolaCapabilities.version + "\"");
+            } else
+                tegolaCapabilities.version = "";
             JSONArray json_maps = tegolaCapabilities.root_json_object.getJSONArray("maps");
             if (json_maps != null) {
                 ArrayList<TegolaCapabilities.Parsed.Map> al_maps = null;
