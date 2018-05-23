@@ -1,21 +1,16 @@
 package go_spatial.com.github.tegola.mobile.android.ux;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.mapbox.mapboxsdk.camera.CameraPosition;
-import com.mapbox.mapboxsdk.camera.CameraUpdate;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.http.HttpRequestUtil;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -56,18 +51,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         void onFragmentInteraction(E_MBGL_FRAG_ACTION e_mbgl_frag_action);
     }
 
-    private static final String ARG__MBGL_STYLE_URL = "mbgl_style_url";
-    private String mbgl_style_url = "";
-    private static final String ARG__C_LAT = "C_LAT";
-    private double c_lat = -1.0;
-    private static final String ARG__C_LONG = "C_LONG";
-    private double c_long = -1.0;
-    private static final String ARG__C_ZOOM = "C_ZOOM";
-    private double c_zoom = -1.0;
-    private static final String ARG__MINZOOM = "MINZOOM";
-    private double minzoom = -1.0;
-    private static final String ARG__MAXZOOM = "MAXZOOM";
-    private double maxzoom = -1.0;
+    private static final String ARG__TEGOLA_CAPABILITIES = "TEGOLA_CAPABILITIES";
+    private TegolaCapabilities tegolaCapabilities = null;
     private static final String ARG__MBMAP_DEBUG_ACTIVE = "mbmap_debug_active";
     private boolean mbmap_debug_active = false;
 
@@ -77,7 +62,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
     private Dispatcher m_okhttp3_client_dispather = null;
     private OkHttpClient m_okhttp3_client = null;
     private MapboxMap m_mapboxMap = null;
-
+    private TextView m_tv_map_name = null;
+    private TextView m_tv_map_attribution = null;
     private ImageButton ibtn_hide_mbgl_frag = null;
 
     public TegolaMBGLFragment() {
@@ -88,49 +74,23 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param mbgl_style_url mbgl_style_url
+     * @param tegolaCapabilities mbgl_style_url
      * @return A new instance of fragment TegolaMBGLFragment.
      */
-    public static TegolaMBGLFragment newInstance(
-            final String mbgl_style_url,
-            final double latitude,
-            final double longitude,
-            final double zoom,
-            final double minzoom,
-            final double maxzoom,
-            final boolean mbmap_debug_active) {
+    public static TegolaMBGLFragment newInstance(final TegolaCapabilities tegolaCapabilities, final boolean mbmap_debug_active) {
         TegolaMBGLFragment fragment = new TegolaMBGLFragment();
         Bundle args = new Bundle();
-        args.putString(ARG__MBGL_STYLE_URL, mbgl_style_url);
-        args.putDouble(ARG__C_LAT, latitude);
-        args.putDouble(ARG__C_LONG, longitude);
-        args.putDouble(ARG__C_ZOOM, zoom);
-        args.putDouble(ARG__MINZOOM, minzoom);
-        args.putDouble(ARG__MAXZOOM, maxzoom);
+        args.putParcelable(ARG__TEGOLA_CAPABILITIES, tegolaCapabilities);
         args.putBoolean(ARG__MBMAP_DEBUG_ACTIVE, mbmap_debug_active);
         fragment.setArguments(args);
         return fragment;
-    }
-    public static TegolaMBGLFragment newInstance(final String mbgl_style_url, final double latitude, final double longitude, final double zoom) {
-        return newInstance(mbgl_style_url, latitude, longitude, zoom, -1.0, -1.0, false);
-    }
-    public static TegolaMBGLFragment newInstance(final String mbgl_style_url, final boolean mbmap_debug_active) {
-        return newInstance(mbgl_style_url, -1.0, -1.0, -1.0, -1.0, -1.0, mbmap_debug_active);
-    }
-    public static TegolaMBGLFragment newInstance(final String mbgl_style_url) {
-        return newInstance(mbgl_style_url, -1.0, -1.0, -1.0, -1.0, -1.0, false);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mbgl_style_url = getArguments().getString(ARG__MBGL_STYLE_URL);
-            c_lat = getArguments().getDouble(ARG__C_LAT, -1.0);
-            c_long = getArguments().getDouble(ARG__C_LONG, -1.0);
-            c_zoom = getArguments().getDouble(ARG__C_ZOOM, -1.0);
-            minzoom = getArguments().getDouble(ARG__MINZOOM, -1.0);
-            maxzoom = getArguments().getDouble(ARG__MAXZOOM, -1.0);
+            tegolaCapabilities = getArguments().getParcelable(ARG__TEGOLA_CAPABILITIES);
             mbmap_debug_active = getArguments().getBoolean(ARG__MBMAP_DEBUG_ACTIVE);
         } else {
             Log.e(TAG, "(fragment) onCreate: cannot start mbgl mapview without mbgl style url!");
@@ -155,6 +115,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         HttpRequestUtil.setOkHttpClient(m_okhttp3_client);
 
         mapView = (MapView)this_frag_layout_view.findViewById(R.id.mapView);
+        m_tv_map_name = (TextView)this_frag_layout_view.findViewById(R.id.tv_map_name);
+        m_tv_map_attribution = (TextView)this_frag_layout_view.findViewById(R.id.tv_map_attribution);
         ibtn_hide_mbgl_frag = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_hide_mbgl_frag);
         ibtn_hide_mbgl_frag.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -166,8 +128,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
 
         mapView.getMapAsync(m_OnMapReadyCallback);
 
-        Log.d(TAG, "(fragment) onCreateView: mbglstyle url: " + mbgl_style_url);
-        mapView.setStyleUrl(mbgl_style_url);
+        Log.d(TAG, "(fragment) onCreateView: mbglstyle url: " + tegolaCapabilities.parsed.maps[0].mbgl_style_json_url);
+        mapView.setStyleUrl(tegolaCapabilities.parsed.maps[0].mbgl_style_json_url);
 
         Log.d(TAG, "(fragment) onCreateView: calling mapView.onCreate()...");
         mapView.onCreate(savedInstanceState);
@@ -185,24 +147,24 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             m_mapboxMap.setDebugActive(mbmap_debug_active);
             m_mapboxMap.getUiSettings().setCompassEnabled(true);
 
-            if (minzoom != -1.0)
-                m_mapboxMap.setMinZoomPreference(minzoom);
-            if (maxzoom != -1.0)
-                m_mapboxMap.setMaxZoomPreference(maxzoom);
+            if (tegolaCapabilities.parsed.maps_layers_inf_minzoom != -1.0)
+                m_mapboxMap.setMinZoomPreference(tegolaCapabilities.parsed.maps_layers_inf_minzoom);
+            if (tegolaCapabilities.parsed.maps_layers_sup_maxzoom != -1.0)
+                m_mapboxMap.setMaxZoomPreference(tegolaCapabilities.parsed.maps_layers_sup_maxzoom);
             Log.d(TAG, "(fragment) onMapReady: map is ready - min zoom level: " + m_mapboxMap.getMinZoomLevel() + "; max zoom level: " + m_mapboxMap.getMaxZoomLevel());
 
             CameraPosition camera_pos = null;
-            if (c_lat != -1.0 && c_long != -1.0 && c_zoom != -1.0) {
+            if (tegolaCapabilities.parsed.maps[0].center.latitude != -1.0 && tegolaCapabilities.parsed.maps[0].center.longitude != -1.0 && tegolaCapabilities.parsed.maps[0].center.zoom != -1.0) {
                 Log.d(TAG, "(fragment) onMapReady: map is ready - setting camera to new pos (parsed from capabilities json): "
-                        + "camera_pos.target.getLatitude() := " + c_lat
-                        + "; camera_pos.target.getLongitude() := " + c_long
-                        + "; camera_pos.zoom := " + c_zoom
+                        + "camera_pos.target.getLatitude() := " + tegolaCapabilities.parsed.maps[0].center.latitude
+                        + "; camera_pos.target.getLongitude() := " + tegolaCapabilities.parsed.maps[0].center.longitude
+                        + "; camera_pos.zoom := " + tegolaCapabilities.parsed.maps[0].center.zoom
                         + "; camera_pos.bearing := 0.0"
                 );
                 m_mapboxMap.setCameraPosition(
                         new CameraPosition.Builder()
-                                .target(new LatLng(c_lat, c_long))
-                                .zoom(c_zoom)
+                                .target(new LatLng(tegolaCapabilities.parsed.maps[0].center.latitude, tegolaCapabilities.parsed.maps[0].center.longitude))
+                                .zoom(tegolaCapabilities.parsed.maps[0].center.zoom)
                                 .bearing(0.0)
                                 .build()
                 );
@@ -217,6 +179,9 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
 
             Log.d(TAG, "(fragment) onMapReady: setting PrefetchedTiles to: true");
             m_mapboxMap.setPrefetchesTiles(true);
+
+            m_tv_map_name.setText(tegolaCapabilities.parsed.maps[0].name);
+            m_tv_map_attribution.setText(tegolaCapabilities.parsed.maps[0].attribution);
         }
     };
 

@@ -13,6 +13,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -1580,35 +1582,6 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         sendBroadcast(intent_mvt_server_read_json);
     }
 
-    private static class TegolaCapabilities {
-        public String root_url = "";
-        public JSONObject root_json_object = null;
-        public static class Parsed {
-            public static class Map {
-                public String name = "";
-                public String mbgl_style_json_url = "";
-                public class Center {
-                    public double
-                        latitude = 0.0,
-                        longitude = 0.0,
-                        zoom = 0.0;
-                }
-                public final Center center = new Center();
-                public static class Layer {
-                    public String name = "";
-                    public double
-                        minzoom = 0.0,
-                        maxzoom = 0.0;
-                }
-                public Layer[] layers = null;
-            }
-            public Map[] maps = null;
-            public double
-                maps_layers_inf_minzoom = -1.0,
-                maps_layers_sup_maxzoom = -1.0;
-        }
-        public final Parsed parsed = new Parsed();
-    }
     private TegolaCapabilities parse_tegola_capabilities_json(final String s_tegola_tile_server_url__root, final String json) {
         final TegolaCapabilities tegolaCapabilities = new TegolaCapabilities();
         try {
@@ -1628,6 +1601,8 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                             TegolaCapabilities.Parsed.Map map = new TegolaCapabilities.Parsed.Map();
                             map.name = json_map.getString("name");
                             Log.d(TAG, "parse_tegola_capabilities_json: \"maps\"[" + i + "].\"name\" == \"" + map.name + "\"");
+                            map.attribution = json_map.getString("attribution");
+                            Log.d(TAG, "parse_tegola_capabilities_json: \"maps\"[" + i + "].\"attribution\" == \"" + map.attribution + "\"");
                             map.mbgl_style_json_url = s_tegola_tile_server_url__root + "/maps/" + map.name + "/style.json";
                             Log.d(TAG, "parse_tegola_capabilities_json: mbgl_style url for map \"" + map.name + "\" is " + map.mbgl_style_json_url);
                             JSONArray jsonarray_map_center = json_map.getJSONArray("center");
@@ -1698,19 +1673,18 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         return tegolaCapabilities;
     }
 
-    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url, double latitude, double longitude, double zoom, double minzoom, double maxzoom) throws MapboxConfigurationException {
-        if (!s_map_mbgl_style_url.isEmpty()) {
+    private void mbgl_map_start(@NonNull final TegolaCapabilities tegolaCapabilities) throws MapboxConfigurationException {
+        if (tegolaCapabilities != null) {
             mbgl_map_stop();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d(TAG, "mbgl_map_start: starting mapbox map with mbgl style " + s_map_mbgl_style_url);
                     Log.d(TAG, "mbgl_map_start: swapping drawer content to TegolaMBGLFragment");
                     getSupportFragmentManager()
                             .beginTransaction()
                             .replace(
                                     R.id.drawerlayout_content__drawer__frag_container,
-                                    TegolaMBGLFragment.newInstance(s_map_mbgl_style_url, latitude, longitude, zoom, minzoom, maxzoom, BuildConfig.mbgl_debug_active),
+                                    TegolaMBGLFragment.newInstance(tegolaCapabilities, BuildConfig.mbgl_debug_active),
                                     FRAG_DRAWER_CONTENT
                             )
                             .commit();
@@ -1727,12 +1701,6 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             throw new MapboxConfigurationException();
         }
     }
-    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url, double latitude, double longitude, double zoom) throws MapboxConfigurationException {
-        mbgl_map_start(s_map_mbgl_style_url, latitude, longitude, zoom, -1.0, -1.0);
-    }
-    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url) throws MapboxConfigurationException {
-        mbgl_map_start(s_map_mbgl_style_url, -1.0, -1.0, -1.0, -1.0, -1.0);
-    }
 
     private void OnMVTServerJSONRead(final String s_tegola_url_root, final String json_url_endpoint, final String json, final String purpose) {
         Log.d(TAG, "OnMVTServerJSONRead: s_tegola_url_root: " + s_tegola_url_root + "; json_url_endpoint: " + json_url_endpoint + "; purpose: " + purpose);
@@ -1741,16 +1709,8 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 final TegolaCapabilities tegolaCapabilities = parse_tegola_capabilities_json(s_tegola_url_root, json);
                 switch (purpose) {
                     case Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.JSON_READ__PURPOSE__VALUE.LOAD_MAP: {
-                        if (tegolaCapabilities.parsed.maps.length > 0) {
-                            mbgl_map_start(
-                                tegolaCapabilities.parsed.maps[0].mbgl_style_json_url,
-                                tegolaCapabilities.parsed.maps[0].center.latitude,
-                                tegolaCapabilities.parsed.maps[0].center.longitude,
-                                tegolaCapabilities.parsed.maps[0].center.zoom,
-                                tegolaCapabilities.parsed.maps_layers_inf_minzoom,
-                                tegolaCapabilities.parsed.maps_layers_sup_maxzoom
-                            );
-                        }
+                        if (tegolaCapabilities.parsed.maps.length > 0)
+                            mbgl_map_start(tegolaCapabilities);
                         break;
                     }
                 }
