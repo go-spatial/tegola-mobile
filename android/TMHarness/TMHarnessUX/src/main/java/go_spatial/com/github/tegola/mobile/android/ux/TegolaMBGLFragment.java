@@ -64,11 +64,18 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
     private double c_long = -1.0;
     private static final String ARG__C_ZOOM = "C_ZOOM";
     private double c_zoom = -1.0;
+    private static final String ARG__MINZOOM = "MINZOOM";
+    private double minzoom = -1.0;
+    private static final String ARG__MAXZOOM = "MAXZOOM";
+    private double maxzoom = -1.0;
     private static final String ARG__MBMAP_DEBUG_ACTIVE = "mbmap_debug_active";
     private boolean mbmap_debug_active = false;
 
     private OnFragmentInteractionListener mFragInteractionListener;
     private MapView mapView = null;
+
+    private Dispatcher m_okhttp3_client_dispather = null;
+    private OkHttpClient m_okhttp3_client = null;
     private MapboxMap m_mapboxMap = null;
 
     private ImageButton ibtn_hide_mbgl_frag = null;
@@ -84,25 +91,34 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
      * @param mbgl_style_url mbgl_style_url
      * @return A new instance of fragment TegolaMBGLFragment.
      */
-    public static TegolaMBGLFragment newInstance(final String mbgl_style_url, final double latitude, final double longitude, final double zoom, final boolean mbmap_debug_active) {
+    public static TegolaMBGLFragment newInstance(
+            final String mbgl_style_url,
+            final double latitude,
+            final double longitude,
+            final double zoom,
+            final double minzoom,
+            final double maxzoom,
+            final boolean mbmap_debug_active) {
         TegolaMBGLFragment fragment = new TegolaMBGLFragment();
         Bundle args = new Bundle();
         args.putString(ARG__MBGL_STYLE_URL, mbgl_style_url);
         args.putDouble(ARG__C_LAT, latitude);
         args.putDouble(ARG__C_LONG, longitude);
         args.putDouble(ARG__C_ZOOM, zoom);
+        args.putDouble(ARG__MINZOOM, minzoom);
+        args.putDouble(ARG__MAXZOOM, maxzoom);
         args.putBoolean(ARG__MBMAP_DEBUG_ACTIVE, mbmap_debug_active);
         fragment.setArguments(args);
         return fragment;
     }
     public static TegolaMBGLFragment newInstance(final String mbgl_style_url, final double latitude, final double longitude, final double zoom) {
-        return newInstance(mbgl_style_url, latitude, longitude, zoom,false);
+        return newInstance(mbgl_style_url, latitude, longitude, zoom, -1.0, -1.0, false);
     }
     public static TegolaMBGLFragment newInstance(final String mbgl_style_url, final boolean mbmap_debug_active) {
-        return newInstance(mbgl_style_url, -1.0, -1.0, -1.0, mbmap_debug_active);
+        return newInstance(mbgl_style_url, -1.0, -1.0, -1.0, -1.0, -1.0, mbmap_debug_active);
     }
     public static TegolaMBGLFragment newInstance(final String mbgl_style_url) {
-        return newInstance(mbgl_style_url, -1.0, -1.0, -1.0, false);
+        return newInstance(mbgl_style_url, -1.0, -1.0, -1.0, -1.0, -1.0, false);
     }
 
     @Override
@@ -113,13 +129,13 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             c_lat = getArguments().getDouble(ARG__C_LAT, -1.0);
             c_long = getArguments().getDouble(ARG__C_LONG, -1.0);
             c_zoom = getArguments().getDouble(ARG__C_ZOOM, -1.0);
+            minzoom = getArguments().getDouble(ARG__MINZOOM, -1.0);
+            maxzoom = getArguments().getDouble(ARG__MAXZOOM, -1.0);
             mbmap_debug_active = getArguments().getBoolean(ARG__MBMAP_DEBUG_ACTIVE);
         } else {
             Log.e(TAG, "(fragment) onCreate: cannot start mbgl mapview without mbgl style url!");
         }
     }
-
-    private Dispatcher m_okhttp3_client_dispather = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -129,13 +145,14 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         HttpRequestUtil.setLogEnabled(true);
         HttpRequestUtil.setPrintRequestUrlOnFailure(true);
         m_okhttp3_client_dispather = new Dispatcher();
-        m_okhttp3_client_dispather.setMaxRequestsPerHost(20);
-        HttpRequestUtil.setOkHttpClient(
-            new OkHttpClient.Builder()
-                .dispatcher(m_okhttp3_client_dispather)
-                .readTimeout(20, TimeUnit.SECONDS)
-                .build()
-        );
+        m_okhttp3_client_dispather.setMaxRequestsPerHost(BuildConfig.mbgl_http_max_requests_per_host);
+        Log.d(TAG, "(fragment) onCreateView: mbgl http max requrests host set to: " + BuildConfig.mbgl_http_max_requests_per_host);
+        m_okhttp3_client = new OkHttpClient.Builder()
+            .dispatcher(m_okhttp3_client_dispather)
+            .readTimeout(BuildConfig.mbgl_http_read_timeout, TimeUnit.SECONDS)
+            .build();
+        Log.d(TAG, "(fragment) onCreateView: mbgl http read timeout set to: " + BuildConfig.mbgl_http_read_timeout + " seconds");
+        HttpRequestUtil.setOkHttpClient(m_okhttp3_client);
 
         mapView = (MapView)this_frag_layout_view.findViewById(R.id.mapView);
         ibtn_hide_mbgl_frag = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_hide_mbgl_frag);
@@ -162,15 +179,26 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         @Override
         public void onMapReady(MapboxMap mapboxMap) {
             m_mapboxMap = mapboxMap;
+
+            m_mapboxMap.addOnCameraMoveListener(m_OnCameraMoveListener);
+            Log.d(TAG, "(fragment) onMapReady: setting DebugActive to: " + mbmap_debug_active);
+            m_mapboxMap.setDebugActive(mbmap_debug_active);
+            m_mapboxMap.getUiSettings().setCompassEnabled(true);
+
+            if (minzoom != -1.0)
+                m_mapboxMap.setMinZoomPreference(minzoom);
+            if (maxzoom != -1.0)
+                m_mapboxMap.setMaxZoomPreference(maxzoom);
             Log.d(TAG, "(fragment) onMapReady: map is ready - min zoom level: " + m_mapboxMap.getMinZoomLevel() + "; max zoom level: " + m_mapboxMap.getMaxZoomLevel());
 
-            CameraPosition camera_pos = m_mapboxMap.getCameraPosition();
-            Log.d(TAG, "(fragment) onMapReady: map is ready - "
-                    + "initial camera_pos.target.getLatitude(): " + camera_pos.target.getLatitude()
-                    + "; initial camera_pos.target.getLongitude(): " + camera_pos.target.getLongitude()
-                    + "; initial camera_pos.zoom: " + camera_pos.zoom
-            );
+            CameraPosition camera_pos = null;
             if (c_lat != -1.0 && c_long != -1.0 && c_zoom != -1.0) {
+                Log.d(TAG, "(fragment) onMapReady: map is ready - setting camera to new pos (parsed from capabilities json): "
+                        + "camera_pos.target.getLatitude() := " + c_lat
+                        + "; camera_pos.target.getLongitude() := " + c_long
+                        + "; camera_pos.zoom := " + c_zoom
+                        + "; camera_pos.bearing := 0.0"
+                );
                 m_mapboxMap.setCameraPosition(
                         new CameraPosition.Builder()
                                 .target(new LatLng(c_lat, c_long))
@@ -179,11 +207,16 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
                                 .build()
                 );
             }
-            m_mapboxMap.setPrefetchesTiles(true);
-            m_mapboxMap.addOnCameraMoveListener(m_OnCameraMoveListener);
-            m_mapboxMap.setDebugActive(mbmap_debug_active);
+            camera_pos = m_mapboxMap.getCameraPosition();
+            Log.d(TAG, "(fragment) onMapReady: map is ready - camera initial pos: "
+                    + "camera_pos.target.getLatitude(): " + camera_pos.target.getLatitude()
+                    + "; camera_pos.target.getLongitude(): " + camera_pos.target.getLongitude()
+                    + "; camera_pos.zoom: " + camera_pos.zoom
+                    + "; camera_pos.bearing: " + camera_pos.bearing
+            );
 
-            m_mapboxMap.getUiSettings().setCompassEnabled(true);
+            Log.d(TAG, "(fragment) onMapReady: setting PrefetchedTiles to: true");
+            m_mapboxMap.setPrefetchesTiles(true);
         }
     };
 

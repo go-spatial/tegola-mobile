@@ -76,6 +76,8 @@ android {
     def mbglPropsFile = file('mbgl.properties')
     Properties mbglProps = null
     String mbglapi_access_token = null
+    Integer mbgl_http_max_requests_per_host = 20
+    Integer mbgl_http_read_timeout = 20     //in seconds
     Boolean mbgl_test_style_json = false
     String mbgl_test_style_json_url = ""
     Boolean mbgl_debug_active = false
@@ -85,6 +87,12 @@ android {
         mbglapi_access_token = mbglProps['api_access_token']
         if (mbglapi_access_token == null)
             throw new GradleException("failed read: mbgl.properties 'api_access_token' value is required")
+        String s_mbgl_http_max_requests_per_host = mbglProps['http_max_requests_per_host']
+        if (s_mbgl_http_max_requests_per_host != null)
+            mbgl_http_max_requests_per_host = Integer.valueOf(s_mbgl_http_max_requests_per_host)
+        String s_mbgl_http_read_timeout = mbglProps['http_read_timeout']
+        if (s_mbgl_http_read_timeout != null)
+            mbgl_http_read_timeout = Integer.valueOf(s_mbgl_http_read_timeout)
         String s_mbgl_test_style_json = mbglProps['test_style_json']
         if (s_mbgl_test_style_json != null)
             mbgl_test_style_json = Boolean.valueOf(s_mbgl_test_style_json)
@@ -101,12 +109,16 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField "String", "mbglapi_access_token", "\"" + mbglapi_access_token + "\""
+            buildConfigField "int", "mbgl_http_max_requests_per_host", mbgl_http_max_requests_per_host.toString()
+            buildConfigField "int", "mbgl_http_read_timeout", mbgl_http_read_timeout.toString()
             buildConfigField "boolean", "mbgl_test_style_json", "false"
             buildConfigField "String", "mbgl_test_style_json_url", "\"\""
             buildConfigField "boolean", "mbgl_debug_active", "false"
         }
         debug {
             buildConfigField "String", "mbglapi_access_token", "\"" + mbglapi_access_token + "\""
+            buildConfigField "int", "mbgl_http_max_requests_per_host", mbgl_http_max_requests_per_host.toString()
+            buildConfigField "int", "mbgl_http_read_timeout", mbgl_http_read_timeout.toString()
             buildConfigField "boolean", "mbgl_test_style_json", mbgl_test_style_json.toString()
             buildConfigField "String", "mbgl_test_style_json_url", "\"" + mbgl_test_style_json_url + "\""
             buildConfigField "boolean", "mbgl_debug_active", mbgl_debug_active.toString()

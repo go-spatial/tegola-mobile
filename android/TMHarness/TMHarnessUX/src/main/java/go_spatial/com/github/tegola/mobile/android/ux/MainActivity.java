@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -27,6 +28,7 @@ import android.text.Spannable;
 import android.text.method.LinkMovementMethod;
 import android.text.method.ScrollingMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -66,7 +68,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -204,6 +205,12 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 //    }
 //    private MyGoogleApiClientCallbacks m_google_api_callbacks = null;
 
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
     //credit to: https://stackoverflow.com/questions/16754305/full-width-navigation-drawer?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
     private void fixMinDrawerMargin(DrawerLayout drawerLayout) {
         try {
@@ -288,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_spinner_val_gpkg_bundle_props_sel__dataadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         m_spinner_val_gpkg_bundle_props_sel.setAdapter(m_spinner_val_gpkg_bundle_props_sel__dataadapter);
 
-        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
+        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_RUNNING, false);
 
         //associate listeners for user-UI-interaction
         m_btn_sect__andro_dev_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
@@ -331,6 +338,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__JSON_READ);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
         m_br_ctrlr_notifications = new BroadcastReceiver() {
@@ -368,10 +376,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                                     break;
                                 }
                                 case MVT_SERVER__STARTED: {
-                                    OnMVTServerStarted(
-                                            intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__VERSION)
-                                            , intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, -1)
-                                    );
+                                    OnMVTServerRunning(intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, -1));
                                     break;
                                 }
                                 case MVT_SERVER__LISTENING: {
@@ -388,6 +393,15 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                                 }
                                 case MVT_SERVER__OUTPUT__STDOUT: {
                                     OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDOUT__LINE));
+                                    break;
+                                }
+                                case MVT_SERVER__JSON_READ: {
+                                    OnMVTServerJSONRead(
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__ROOT_URL),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__JSON_ENDPOINT),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__JSON),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__PURPOSE)
+                                    );
                                     break;
                                 }
                                 case MVT_SERVER__STOPPING: {
@@ -462,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mbgl_map_start(BuildConfig.mbgl_test_style_json_url, -1.0, -1.0, -1.0);
+                    mbgl_map_start(BuildConfig.mbgl_test_style_json_url);
                 }
             }, 50);
         }
@@ -900,7 +914,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         @Override
         public void onClick(View v) {
             Button btn_srvr_ctrl = (Button)v;
-            Boolean srvr_started = (Boolean)btn_srvr_ctrl.getTag(R.id.TAG__SRVR_STARTED);
+            Boolean srvr_started = (Boolean)btn_srvr_ctrl.getTag(R.id.TAG__SRVR_RUNNING);
             if (srvr_started == null || !srvr_started) {
                 start_mvt_server();
             } else {
@@ -1454,7 +1468,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     }
 
     private void OnControllerStarted() {
-        m_tv_val_ctrlr_status.setText(getString(R.string.started));
+        m_tv_val_ctrlr_status.setText(getString(R.string.running));
         m_tv_val_bin_ver.setText(Constants.Enums.TEGOLA_BIN.get_version_string());
     }
 
@@ -1475,13 +1489,20 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         OnMVTServerStopped();
     }
 
-    private void OnMVTServerStarted(final String version, final int pid) {
+    private void textview_setColorizedText(TextView view, String fulltext, String subtext, int color) {
+        view.setText(fulltext, TextView.BufferType.SPANNABLE);
+        Spannable str = (Spannable)view.getText();
+        int i = fulltext.indexOf(subtext);
+        str.setSpan(new ForegroundColorSpan(color), i, i + subtext.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+
+    private void OnMVTServerRunning(final int pid) {
         final StringBuilder sb_srvr_status = new StringBuilder();
-        sb_srvr_status.append(getString(R.string.started));
+        sb_srvr_status.append(getString(R.string.running));
         if (pid != -1)
-            sb_srvr_status.append(" , pid " + pid + "");
-        m_tv_val_srvr_status.setText(sb_srvr_status.toString());
-        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, true);
+            sb_srvr_status.append(" (pid " + pid + ")");
+        textview_setColorizedText(m_tv_val_srvr_status, sb_srvr_status.toString(), getString(R.string.running), Color.GREEN);
+        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_RUNNING, true);
         m_btn_srvr_ctrl.setText(getString(R.string.stop));
         //now disable edit-config button
         m_btn_config_sel_local__edit_file.setEnabled(false);
@@ -1519,28 +1540,151 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     }
 
     private void OnMVTServerListening(final int port) {
-        Boolean srvr_started = (Boolean)m_btn_srvr_ctrl.getTag(R.id.TAG__SRVR_STARTED);
+        Boolean srvr_started = (Boolean)m_btn_srvr_ctrl.getTag(R.id.TAG__SRVR_RUNNING);
         if (srvr_started != null && srvr_started == true) {
-            String s_srvr_status = m_tv_val_srvr_status.getText().toString() + "\nlistening on port " + port;
-            m_tv_val_srvr_status.setText(s_srvr_status);
-            String s_tegola_tile_server_url__root = "http://localhost:" + port;
-            mbgl_map_start__tegola(s_tegola_tile_server_url__root);
+            String s_srvr_status = m_tv_val_srvr_status.getText().toString() + "\n\t\tlistening on port " + port;
+            textview_setColorizedText(m_tv_val_srvr_status, s_srvr_status, getString(R.string.running), Color.GREEN);
+            mbgl_map_start__tegola();
         }
     }
 
-    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url, double latitude, double longitude, double zoom) throws MapboxConfigurationException {
+    private void mbgl_map_start__tegola() {
+        Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__READ_JSON);
+        intent_mvt_server_read_json.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__READ_JSON__PURPOSE, Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP);
+        sendBroadcast(intent_mvt_server_read_json);
+    }
+
+    private static class TegolaCapabilities {
+        public String root_url = "";
+        public JSONObject root_json_object = null;
+        public static class Parsed {
+            public static class Map {
+                public String name = "";
+                public String mbgl_style_json_url = "";
+                public class Center {
+                    public double
+                        latitude = 0.0,
+                        longitude = 0.0,
+                        zoom = 0.0;
+                }
+                public final Center center = new Center();
+                public static class Layer {
+                    public String name = "";
+                    public double
+                        minzoom = 0.0,
+                        maxzoom = 0.0;
+                }
+                public Layer[] layers = null;
+            }
+            public Map[] maps = null;
+            public double
+                maps_layers_inf_minzoom = -1.0,
+                maps_layers_sup_maxzoom = -1.0;
+        }
+        public final Parsed parsed = new Parsed();
+    }
+    private TegolaCapabilities parse_tegola_capabilities_json(final String s_tegola_tile_server_url__root, final String json) {
+        final TegolaCapabilities tegolaCapabilities = new TegolaCapabilities();
+        try {
+            JSONTokener jsonTokener = new JSONTokener(json);
+            tegolaCapabilities.root_json_object = new JSONObject(jsonTokener);
+            Log.d(TAG, "parse_tegola_capabilities_json: json content is content is:\n" + tegolaCapabilities.root_json_object.toString());
+            JSONArray json_maps = tegolaCapabilities.root_json_object.getJSONArray("maps");
+            if (json_maps != null) {
+                ArrayList<TegolaCapabilities.Parsed.Map> al_maps = null;
+                Log.d(TAG, "parse_tegola_capabilities_json: got \"maps\" JSONArray - contains " + json_maps.length() + " \"map\" JSON objects");
+                if (json_maps.length() > 0) {
+                    al_maps = new ArrayList<TegolaCapabilities.Parsed.Map>();
+                    for (int i = 0; i < json_maps.length(); i++) {
+                        JSONObject json_map = json_maps.getJSONObject(i);
+                        if (json_map != null) {
+                            Log.d(TAG, "parse_tegola_capabilities_json: got JSONObject for \"maps\"[" + i + "]");
+                            TegolaCapabilities.Parsed.Map map = new TegolaCapabilities.Parsed.Map();
+                            map.name = json_map.getString("name");
+                            Log.d(TAG, "parse_tegola_capabilities_json: \"maps\"[" + i + "].\"name\" == \"" + map.name + "\"");
+                            map.mbgl_style_json_url = s_tegola_tile_server_url__root + "/maps/" + map.name + "/style.json";
+                            Log.d(TAG, "parse_tegola_capabilities_json: mbgl_style url for map \"" + map.name + "\" is " + map.mbgl_style_json_url);
+                            JSONArray jsonarray_map_center = json_map.getJSONArray("center");
+                            if (jsonarray_map_center != null) {
+                                Log.d(TAG, "parse_tegola_capabilities_json: got \"center\" JSONArray - contains " + jsonarray_map_center.length() + " values");
+                                if (jsonarray_map_center.length() == 3) {
+                                    map.center.latitude = jsonarray_map_center.getDouble(1);
+                                    Log.d(TAG, "parse_tegola_capabilities_json: got \"center\" latitude (pos 1) value: " + map.center.latitude);
+                                    map.center.longitude = jsonarray_map_center.getDouble(0);
+                                    Log.d(TAG, "parse_tegola_capabilities_json: got \"center\" longitude (pos 0) value: " + map.center.longitude);
+                                    map.center.zoom = jsonarray_map_center.getDouble(2);
+                                    Log.d(TAG, "parse_tegola_capabilities_json: got \"center\" zoom (pos 2) value: " + map.center.zoom);
+                                } else {
+                                    Log.e(TAG, "parse_tegola_capabilities_json: \"center\" JSONArray contains " + jsonarray_map_center.length() + " values but 3 are required!");
+                                }
+                            } else {
+                                Log.w(TAG, "parse_tegola_capabilities_json: tegola capabilities json map \"" + map.name + "\" does not contain \"center\" json object");
+                            }
+                            JSONArray jsonarray_map_layers = json_map.getJSONArray("layers");
+                            if (jsonarray_map_layers != null) {
+                                Log.d(TAG, "parse_tegola_capabilities_json: got \"layers\" JSONArray - contains " + jsonarray_map_layers.length() + " objects");
+                                if (jsonarray_map_layers.length() > 0) {
+                                    ArrayList<TegolaCapabilities.Parsed.Map.Layer> al_layers = new ArrayList<TegolaCapabilities.Parsed.Map.Layer>();
+                                    Log.d(TAG, "parse_tegola_capabilities_json: collating layers objects for inf(minzoom) and sup(maxzoom)...");
+                                    for (int j = 0; j < jsonarray_map_layers.length(); j++) {
+                                        JSONObject json_layer = jsonarray_map_layers.getJSONObject(j);
+                                        if (json_layer != null) {
+                                            Log.d(TAG, "parse_tegola_capabilities_json: got JSONObject for \"layers\"[" + j + "]");
+                                            TegolaCapabilities.Parsed.Map.Layer layer = new TegolaCapabilities.Parsed.Map.Layer();
+                                            layer.name = json_layer.getString("name");
+                                            Log.d(TAG, "parse_tegola_capabilities_json: \"layers\"[" + j + "].\"name\" == \"" + layer.name + "\"");
+                                            layer.minzoom = json_layer.getDouble("minzoom");
+                                            Log.d(TAG, "parse_tegola_capabilities_json: \"layers\"[" + j + "].\"minzoom\" == \"" + layer.minzoom + "\"");
+                                            if (tegolaCapabilities.parsed.maps_layers_inf_minzoom == -1.0 || tegolaCapabilities.parsed.maps_layers_inf_minzoom < layer.minzoom) {
+                                                Log.d(TAG, "parse_tegola_capabilities_json: found new inf(minzoom) == " + layer.minzoom);
+                                                tegolaCapabilities.parsed.maps_layers_inf_minzoom = layer.minzoom;
+                                            }
+                                            layer.maxzoom = json_layer.getDouble("maxzoom");
+                                            Log.d(TAG, "parse_tegola_capabilities_json: \"layers\"[" + j + "].\"maxzoom\" == \"" + layer.maxzoom + "\"");
+                                            if (tegolaCapabilities.parsed.maps_layers_sup_maxzoom == -1.0 || tegolaCapabilities.parsed.maps_layers_sup_maxzoom > layer.maxzoom) {
+                                                Log.d(TAG, "parse_tegola_capabilities_json: found new sup(maxzoom) == " + layer.maxzoom);
+                                                tegolaCapabilities.parsed.maps_layers_sup_maxzoom = layer.maxzoom;
+                                            }
+                                            al_layers.add(layer);
+                                        }
+                                    }
+                                    map.layers = al_maps.toArray(new TegolaCapabilities.Parsed.Map.Layer[al_maps.size()]);
+                                }
+                            }
+                            al_maps.add(map);
+                        } else {
+                            Log.e(TAG, "parse_tegola_capabilities_json: tegola capabilities json does not have a map json object at index " + i + " of \"maps\" json array");
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "parse_tegola_capabilities_json: tegola capabilities json \"maps\" json array does not contain any elements!");
+                }
+                tegolaCapabilities.parsed.maps = al_maps.toArray(new TegolaCapabilities.Parsed.Map[al_maps.size()]);
+                Log.d(TAG, "parse_tegola_capabilities_json: post-parse: tegolaCapabilities.parsed.maps contains " + tegolaCapabilities.parsed.maps.length + " elements");
+                Log.d(TAG, "parse_tegola_capabilities_json: post-parse: tegolaCapabilities.parsed.maps_layers_inf_minzoom == " + tegolaCapabilities.parsed.maps_layers_inf_minzoom);
+                Log.d(TAG, "parse_tegola_capabilities_json: post-parse: tegolaCapabilities.parsed.maps_layers_sup_maxzoom == " + tegolaCapabilities.parsed.maps_layers_sup_maxzoom);
+            } else {
+                Log.e(TAG, "parse_tegola_capabilities_json: tegola capabilities json does not contain \"maps\" json array!");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return tegolaCapabilities;
+    }
+
+    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url, double latitude, double longitude, double zoom, double minzoom, double maxzoom) throws MapboxConfigurationException {
         if (!s_map_mbgl_style_url.isEmpty()) {
             mbgl_map_stop();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d(TAG, "mbgl_map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: starting mapbox map with mbgl style " + s_map_mbgl_style_url);
-                    Log.d(TAG, "mbgl_map_start: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: swapping drawer content to TegolaMBGLFragment");
+                    Log.d(TAG, "mbgl_map_start: starting mapbox map with mbgl style " + s_map_mbgl_style_url);
+                    Log.d(TAG, "mbgl_map_start: swapping drawer content to TegolaMBGLFragment");
                     getSupportFragmentManager()
                             .beginTransaction()
                             .replace(
                                     R.id.drawerlayout_content__drawer__frag_container,
-                                    TegolaMBGLFragment.newInstance(s_map_mbgl_style_url, latitude, longitude, zoom, BuildConfig.mbgl_debug_active),
+                                    TegolaMBGLFragment.newInstance(s_map_mbgl_style_url, latitude, longitude, zoom, minzoom, maxzoom, BuildConfig.mbgl_debug_active),
                                     FRAG_DRAWER_CONTENT
                             )
                             .commit();
@@ -1557,98 +1701,43 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             throw new MapboxConfigurationException();
         }
     }
+    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url, double latitude, double longitude, double zoom) throws MapboxConfigurationException {
+        mbgl_map_start(s_map_mbgl_style_url, latitude, longitude, zoom, -1.0, -1.0);
+    }
+    private void mbgl_map_start(@NonNull final String s_map_mbgl_style_url) throws MapboxConfigurationException {
+        mbgl_map_start(s_map_mbgl_style_url, -1.0, -1.0, -1.0, -1.0, -1.0);
+    }
 
-    private void mbgl_map_start__tegola(final String s_tegola_tile_server_url__root) {
-        //get default map from tegola "capabilities" endpoint, then construct url path to its mbgl style json url, and finally start mapbox using it
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                StringBuilder sb_json = new StringBuilder();
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                final String s_tegola_tile_server_url__capabilities_json_endpoint = s_tegola_tile_server_url__root + "/capabilities";
-                Utils.HTTP.Get.exec(s_tegola_tile_server_url__capabilities_json_endpoint, new Utils.HTTP.Get.ContentHandler() {
-                    @Override
-                    public void onStartRead(long n_size) {
-                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onStartRead: read " + s_tegola_tile_server_url__capabilities_json_endpoint + ": content-length: " + n_size);
-                    }
-
-                    @Override
-                    public void onChunkRead(int n_bytes_read, byte[] bytes_1kb_chunk) {
-                        if (n_bytes_read > 0) {
-                            baos.write(bytes_1kb_chunk, 0, n_bytes_read);
-                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onChunkRead: read next " + n_bytes_read + " bytes from " + s_tegola_tile_server_url__capabilities_json_endpoint + " into byteoutputstream");
-                        } else {
-                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onChunkRead: skipped writing bytes from " + s_tegola_tile_server_url__capabilities_json_endpoint + " into byteoutputstream since n_bytes_read <= 0");
+    private void OnMVTServerJSONRead(final String s_tegola_url_root, final String json_url_endpoint, final String json, final String purpose) {
+        Log.d(TAG, "OnMVTServerJSONRead: s_tegola_url_root: " + s_tegola_url_root + "; json_url_endpoint: " + json_url_endpoint + "; purpose: " + purpose);
+        switch (json_url_endpoint) {
+            case "/capabilities": {
+                final TegolaCapabilities tegolaCapabilities = parse_tegola_capabilities_json(s_tegola_url_root, json);
+                switch (purpose) {
+                    case Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.JSON_READ__PURPOSE__VALUE.LOAD_MAP: {
+                        if (tegolaCapabilities.parsed.maps.length > 0) {
+                            mbgl_map_start(
+                                tegolaCapabilities.parsed.maps[0].mbgl_style_json_url,
+                                tegolaCapabilities.parsed.maps[0].center.latitude,
+                                tegolaCapabilities.parsed.maps[0].center.longitude,
+                                tegolaCapabilities.parsed.maps[0].center.zoom,
+                                tegolaCapabilities.parsed.maps_layers_inf_minzoom,
+                                tegolaCapabilities.parsed.maps_layers_sup_maxzoom
+                            );
                         }
+                        break;
                     }
-
-                    @Override
-                    public void onReadError(long n_remaining, Exception e) {
-                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadError: n_remaining: " + n_remaining + "; error: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-
-                    @Override
-                    public void onReadComplete(long n_read, long n_remaining) {
-                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: n_read: " + n_read + "; n_remaining: " + n_remaining);
-                        JSONTokener jsonTokener = new JSONTokener(baos.toString());
-                        try {
-                            baos.close();
-                        } catch (IOException e) {
-                            //e.printStackTrace();
-                        }
-                        try {
-                            String s_default_map = "";
-                            String s_default_map_mbgl_style_url = "";
-                            double def_latitude = 0.0, def_longitude = 0.0, def_zoom = 0.0;
-                            JSONObject jsonObject = new JSONObject(jsonTokener);
-                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: " + s_tegola_tile_server_url__capabilities_json_endpoint + " content is:\n" + jsonObject.toString());
-                            JSONArray json_maps = jsonObject.getJSONArray("maps");
-                            if (json_maps != null) {
-                                Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: got \"maps\" JSONArray - contains " + json_maps.length() + " \"map\" JSON objects");
-                                for (int i = 0; i < json_maps.length(); i++) {
-                                    JSONObject json_map = json_maps.getJSONObject(i);
-                                    if (json_map != null) {
-                                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: got JSONObject for \"maps\"[" + i + "]");
-                                        String s_map = json_map.getString("name");
-                                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: \"maps\"[" + i + "].\"name\" == \"" + s_map + "\"");
-                                        if (i == 0) {
-                                            s_default_map = s_map;
-                                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default map to \"maps\"[" + i + "].\"name\" == \"" + s_map + "\"");
-                                        }
-                                        String s_mbgl_style_json_url = s_tegola_tile_server_url__root + "/maps/" + s_map + "/style.json";
-                                        Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: mbgl_style url for map \"" + s_map + "\" is " + s_mbgl_style_json_url);
-                                        if (i == 0) {
-                                            s_default_map_mbgl_style_url = s_mbgl_style_json_url;
-                                            Log.d(TAG, "mbgl_map_start__tegola: Utils.HTTP.Get.ContentHandler: get tegola capabilities: onReadComplete: set default mbgl_style url to s_default_map_mbgl_style_url");
-                                        }
-                                        JSONArray jsonarray_map_center = json_map.getJSONArray("center");
-                                        double latitude = 0.0, longitude = 0.0, zoom = 0.0;
-                                        if (jsonarray_map_center != null) {
-                                            latitude = jsonarray_map_center.getDouble(1);
-                                            longitude = jsonarray_map_center.getDouble(0);
-                                            zoom = jsonarray_map_center.getDouble(2);
-                                            if (i == 0) {
-                                                def_latitude = latitude;
-                                                def_longitude = longitude;
-                                                def_zoom = zoom;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            mbgl_map_start(s_default_map_mbgl_style_url, def_latitude, def_longitude, def_zoom);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
+                }
+                break;
             }
-        }).start();
+            default: {
+
+            }
+        }
     }
 
     private void OnMVTServerStopping() {
-        m_tv_val_srvr_status.setText(getString(R.string.stopping));
+        textview_setColorizedText(m_tv_val_srvr_status, getString(R.string.stopping), getString(R.string.stopping), Color.YELLOW);
     }
 
     private void mbgl_map_stop() {
@@ -1671,9 +1760,9 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 if (frag_current != null) {
                     Log.d(TAG, "mbgl_map_stop: removing MapFragment from drawer");
                     getSupportFragmentManager()
-                            .beginTransaction()
-                            .remove(frag_current)
-                            .commit();
+                        .beginTransaction()
+                        .remove(frag_current)
+                        .commit();
                 }
             }
         });
@@ -1683,8 +1772,8 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         mbgl_map_stop();
 
         Log.d(TAG, "OnMVTServerStopped: updating status-related UX");
-        m_tv_val_srvr_status.setText(getString(R.string.stopped));
-        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_STARTED, false);
+        textview_setColorizedText(m_tv_val_srvr_status, getString(R.string.stopped), getString(R.string.stopped), Color.RED);
+        m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_RUNNING, false);
         m_btn_srvr_ctrl.setText(getString(R.string.start));
         m_btn_config_sel_local__edit_file.setEnabled(true);
         m_tv_tegola_console_output.setText("");
@@ -1712,8 +1801,14 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         boolean gpkg_provider = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue();
         intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, gpkg_provider);
         if (gpkg_provider) {
-            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
-            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue());
+            intent_start_mvt_server.putExtra(
+                    Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE,
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue()
+            );
+            intent_start_mvt_server.putExtra(
+                    Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS,
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue()
+            );
         } else {
             boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue();
             intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__IS_REMOTE, remote_config);

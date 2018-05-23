@@ -530,7 +530,7 @@
                                 <TextView
                                     android:id="@+id/tv_lbl_gpkg_provider_bundle_config_sel"
                                     style="@style/Section_Content_Item_Label"
-                                    android:text="@string/srvr_gpkg_provider_bundle_config_sel"
+                                    android:text="@string/srvr_gpkg_provider_bundle_props_sel"
                                     android:visibility="visible"/>
 
                                 <RelativeLayout

@@ -13,13 +13,13 @@
     <string name="srvr_postgis_provider_config_type__local">LOCAL</string>
     <string name="srvr_postgis_provider_config_type__remote">REMOTE</string>
     <string name="srvr_postgis_provider_config_sel">PostGIS Provider - Config Selection</string>
-    <string name="srvr_gpkg_provider_bundle_sel">GeoPackage Provider - Bundle Selection</string>
-    <string name="srvr_gpkg_provider_bundle_config_sel">GeoPackage Provider - Config Selection</string>
+    <string name="srvr_gpkg_provider_bundle_sel">GeoPackage Provider/Bundle - Selection</string>
+    <string name="srvr_gpkg_provider_bundle_props_sel">GeoPackage Provider/Bundle - Props Selection</string>
     <string name="srvr_status">Server Status</string>
 
     <string name="start">Start</string>
     <string name="starting">STARTING...</string>
-    <string name="started">STARTED/RUNNING</string>
+    <string name="running">RUNNING</string>
     <string name="stop">Stop</string>
     <string name="stopping">STOPPING...</string>
     <string name="stopped">STOPPED</string>

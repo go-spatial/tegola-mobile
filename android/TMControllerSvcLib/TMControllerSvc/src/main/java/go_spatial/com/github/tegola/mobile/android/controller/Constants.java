@@ -49,6 +49,10 @@ public class Constants {
                 String EXTRA__KEY__GPKG = "GPKG";
                 String EXTRA__KEY__BUNDLE = "BUNDLE";
                 String EXTRA__KEY__PROPS = "PROPS";
+                String EXTRA__KEY__PURPOSE = "PURPOSE";
+                String EXTRA__KEY__ROOT_URL = "ROOT_URL";
+                String EXTRA__KEY__JSON_ENDPOINT = "JSON_ENDPOINT";
+                String EXTRA__KEY__JSON = "JSON";
 
                 interface FGS_CONTROL_REQUEST {
                     String FGS__START_FOREGROUND = PKG + "START_FOREGROUND";
@@ -60,6 +64,7 @@ public class Constants {
                 }
                 interface MVT_SERVER_CONTROL_REQUEST {
                     String MVT_SERVER__START = PKG + ".MVT_SERVER__START";
+                    String MVT_SERVER__READ_JSON = PKG + ".MVT_SERVER__READ_JSON";
                     String MVT_SERVER__STOP = PKG + ".MVT_SERVER__STOP";
                     interface EXTRA__KEY {
                         String MVT_SERVER__START__PROVIDER__IS_GPKG = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG;     //boolean: true: use local gpkg provider, else use postgis provider
@@ -67,6 +72,10 @@ public class Constants {
                         String MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS = MVT_SERVER__START + "." + EXTRA__KEY__PROVIDER + "." + EXTRA__KEY__GPKG + "." + EXTRA__KEY__BUNDLE + "." + EXTRA__KEY__PROPS;
                         String MVT_SERVER__START__CONFIG__IS_REMOTE = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__REMOTE;     //boolean: true: config toml file is retreieved from a remote host, else config toml file exists on local device
                         String MVT_SERVER__START__CONFIG__PATH = MVT_SERVER__START + "." + EXTRA__KEY__CONFIG + "." + EXTRA__KEY__PATH;         //string: the path to config toml file - note that if MVT_SERVER__START__CONFIG__IS_REMOTE is true, then MVT_SERVER__START__CONFIG__PATH should be a URL pointing to remote config toml file
+                        String MVT_SERVER__READ_JSON__PURPOSE = MVT_SERVER__READ_JSON + "." + EXTRA__KEY__PURPOSE;
+                        interface READ_JSON__PURPOSE__VALUE {
+                            String LOAD_MAP = MVT_SERVER__READ_JSON__PURPOSE + ".VALUE.LOAD_MAP";
+                        }
                     }
                 }
                 interface CTRLR_NOTIFICATION {
@@ -81,17 +90,24 @@ public class Constants {
                     String MVT_SERVER__OUTPUT__LOGCAT = PKG + ".MVT_SERVER__OUTPUT__LOGCAT";
                     String MVT_SERVER__OUTPUT__STDERR = PKG + ".MVT_SERVER__OUTPUT__STDERR";
                     String MVT_SERVER__OUTPUT__STDOUT = PKG + ".MVT_SERVER__OUTPUT__STDOUT";
+                    String MVT_SERVER__JSON_READ = PKG + ".MVT_SERVER__JSON_READ";
                     String MVT_SERVER__STOPPING = PKG + ".MVT_SERVER__STOPPING";
                     String MVT_SERVER__STOPPED = PKG + ".MVT_SERVER__STOPPED";
 
                     interface EXTRA__KEY {
                         String MVT_SERVER__START_FAILED__REASON = MVT_SERVER__START_FAILED + "." + EXTRA__KEY__REASON;
-                        String MVT_SERVER__STARTED__VERSION = MVT_SERVER__STARTED + "." + EXTRA__KEY__VERSION;
                         String MVT_SERVER__STARTED__PID = MVT_SERVER__STARTED + "." + EXTRA__KEY__PID;
                         String MVT_SERVER__OUTPUT__LOGCAT__LINE = MVT_SERVER__OUTPUT__LOGCAT + "." + EXTRA__KEY__MSG;
                         String MVT_SERVER__OUTPUT__STDERR__LINE = MVT_SERVER__OUTPUT__STDERR + "." + EXTRA__KEY__MSG;
                         String MVT_SERVER__OUTPUT__STDOUT__LINE = MVT_SERVER__OUTPUT__STDOUT + "." + EXTRA__KEY__MSG;
                         String MVT_SERVER__LISTENING__PORT = MVT_SERVER__LISTENING + "." + EXTRA__KEY__PORT;
+                        String MVT_SERVER__JSON_READ__PURPOSE = MVT_SERVER__JSON_READ + "." + EXTRA__KEY__PURPOSE;
+                        String MVT_SERVER__JSON_READ__ROOT_URL = MVT_SERVER__JSON_READ + "." + EXTRA__KEY__ROOT_URL;
+                        String MVT_SERVER__JSON_READ__JSON_ENDPOINT = MVT_SERVER__JSON_READ + "." + EXTRA__KEY__JSON_ENDPOINT;
+                        String MVT_SERVER__JSON_READ__JSON = MVT_SERVER__JSON_READ + "." + EXTRA__KEY__JSON;
+                        interface JSON_READ__PURPOSE__VALUE {
+                            String LOAD_MAP = MVT_SERVER__JSON_READ__PURPOSE + ".VALUE.LOAD_MAP";
+                        }
                     }
                 }
             }
@@ -157,12 +173,14 @@ public class Constants {
         enum E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST {
             MVT_SERVER__START
             , MVT_SERVER__STOP
+            , MVT_SERVER__READ_JSON
             ;
 
             public static final E_INTENT_ACTION__MVT_SERVER_CONTROL_REQUEST fromString(final String s) {
                 switch (s) {
                     case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START: return MVT_SERVER__START;
                     case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP: return MVT_SERVER__STOP;
+                    case Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__READ_JSON: return MVT_SERVER__READ_JSON;
                     default: return null;
                 }
             }
@@ -172,6 +190,7 @@ public class Constants {
                 switch (this) {
                     case MVT_SERVER__START: return Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__START;
                     case MVT_SERVER__STOP: return Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__STOP;
+                    case MVT_SERVER__READ_JSON: return Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.MVT_SERVER__READ_JSON;
                     default: return null;
                 }
             }
@@ -189,6 +208,7 @@ public class Constants {
             , MVT_SERVER__OUTPUT__LOGCAT
             , MVT_SERVER__OUTPUT__STDERR
             , MVT_SERVER__OUTPUT__STDOUT
+            , MVT_SERVER__JSON_READ
             , MVT_SERVER__STOPPING
             , MVT_SERVER__STOPPED
             ;
@@ -206,6 +226,7 @@ public class Constants {
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT: return MVT_SERVER__OUTPUT__LOGCAT;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR: return MVT_SERVER__OUTPUT__STDERR;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT: return MVT_SERVER__OUTPUT__STDOUT;
+                    case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__JSON_READ: return MVT_SERVER__JSON_READ;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING: return MVT_SERVER__STOPPING;
                     case Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED: return MVT_SERVER__STOPPED;
                     default: return null;
@@ -226,6 +247,7 @@ public class Constants {
                     case MVT_SERVER__OUTPUT__LOGCAT: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT;
                     case MVT_SERVER__OUTPUT__STDERR: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR;
                     case MVT_SERVER__OUTPUT__STDOUT: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT;
+                    case MVT_SERVER__JSON_READ: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__JSON_READ;
                     case MVT_SERVER__STOPPING: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING;
                     case MVT_SERVER__STOPPED: return Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED;
                     default: return null;
