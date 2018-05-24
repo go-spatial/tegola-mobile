@@ -136,4 +136,10 @@
         <item name="android:windowNoTitle">true</item>
     </style>
 
+    <style name="mapview_nav_imagebutton" parent="Base.Widget.AppCompat.ImageButton">
+        <item name="android:background">@drawable/mapview_nav_imagebutton_statelist_background</item>
+        <item name="android:adjustViewBounds">true</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+
 </resources>

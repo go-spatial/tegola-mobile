@@ -13,8 +13,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -508,7 +506,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     @Override
     protected void onResume() {
-        Log.e(TAG, "onResume: entered");
+        Log.d(TAG, "onResume: entered");
         //now queue up initial automated UI actions
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -539,7 +537,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     @Override
     protected void onStop() {
-        Log.e(TAG, "onStop: entered");
+        Log.d(TAG, "onStop: entered");
         super.onStop();
 //        GoogleDriveFileDownloadManager.getInstance().disconnect_api_client();
         //super.onPause();
