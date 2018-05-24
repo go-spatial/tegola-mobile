@@ -1,5 +1,5 @@
 # Tegola Mobile
-Tegola Mobile is a port of tegola (https://github.com/terranodo/tegola) - a *shell-based* high performance vector tile server delivering Mapbox Vector Tiles leveraging PostGIS as the data provider - to non-rooted Android devices.
+Tegola Mobile is a port of tegola (https://github.com/go-spatial/tegola) - a *shell-based* high performance vector tile server delivering Mapbox Vector Tiles leveraging PostGIS as the data provider - to non-rooted Android devices.
 
 ## Background
 Since tegola was designed to be a self-contained shell-based executable and *non-rooted* Android devices do not provide a direct means to execute terminal/shell commands or binaries, the tegola shell binary must be executed or launched by the context of an Android app (or service).  Additionally, tegola follows the daemon pattern, meaning it is meant to run continuously on its host until its process is stopped.  Finally, since we wish to avoid straying from tegola's design philosophy of code-once-deploy-arbitrarily, we require that tegola must be launched out-of-process on Android - see below for explanation.
@@ -86,7 +86,7 @@ Since tegola is written in Golang, we must use Golang and Gomobile build tools i
 	 3. Execute command-line:
 		 - `docker run --name="TM-tegola-bin-compiler" --privileged=true --rm=true -v  $MY_GOLANG_WORKSPACE/src/github.com/go-spatial/tegola:/usr/golang-workspace/src/github.com/go-spatial/tegola -v $MY_GOLANG_WORKSPACE/pkg/github.com/go-spatial/tegola:/usr/golang-workspace/pkg/github.com/go-spatial/tegola -v $MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android:/usr/android-studio-workspace/src/github.com/terranodo/tegola-mobile/android -e MY_ANDROID_STUDIO_WORKSPACE=/usr/android-studio-workspace -it trippiest1/tegola-android-xcompiler /bin/bash /usr/android-studio-workspace/src/github.com/terranodo/tegola-mobile/android/TMControllerSvcLib/TMControllerSvc/src/main/tegola-bin-buildscripts/linux/rebuild_tegola_android_all.sh`
 	 4. Provided android cross-compilation succeeds, tegola android-platform binaries will be placed within the raw resource directory of the Android Studio project
-		 - file location:  `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/ControllerLib/Controller/src/main/res/raw/`
+		 - file location:  `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TMControllerSvcLib/TMControllerSvc/src/main/res/raw/`
 		 - filenames:
 			 - `tegola_bin__android_arm` (for CPU_ABIs: armeabi and armeabi-v7a)
 			 - `tegola_bin__android_arm64` (for CPU_ABI: arm64_v8a)
@@ -99,7 +99,7 @@ You are now ready to build the APK.
 
 1. Start Android Studio
 2. Open the **Tegola Mobile** Android Studio project from the Android Studio launcher by clicking `Open an Existing Android Studio project`
-3. Navigate to the Tegola Mobile Android Studio project directory, located at `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TegolaMobile` and click `OK`
+3. Navigate to the Tegola Mobile Android Studio project directory, located at `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TMHarness` and click `OK`
 4. From Android Studio, select `Build|Build APK` or `Build|Generate Signed APK` - note that to build a signed APK you will need to generate a keystore and signing certificate if you have not already done so
 
 * Note: if you need to build an updated version, `cd $MY_GOLANG_WORKSPACE/src/github.com/terranodo/tegola-mobile/`, `git pull`, and finally repeat step 8 from section "Build Tegola Android-Platform Target Binaries" above
@@ -110,10 +110,10 @@ You are now ready to build the APK.
 	1. you will need:
 	 	- physical device with USB Debugging enabled, attached via USB
 	 	- _OR_, set up and run an instance of an Android Device Emulator - see https://developer.android.com/studio/run/managing-avds.html
-	2. From Android Studio, select `Run|Debug Bootstrapper` - note that Android Studio will
+	2. From Android Studio, select `Run|Debug TMHarnessUX` - note that Android Studio will
 		1. build a debug version of the APK
 		2. automatically install it, provided you have either an instance AVD running or a USB-debuggable Android device attached to your build-host
-		3. automatically launch the main activity - note that currently the Bootstrapper will automatically start TCS (Tegola Controller Service), which will in turn automatically spawn a new child process of tegola mvt server/daemon
+		3. automatically launch the main activity - note that currently the TMHarnessUX will automatically start TMControllerSvc (tegola Android Foreground Service wrapper)
 3. _OR_, if you do not want to attach the Android Studio debugger, you will need to install the debug version or the signed version of the Tegola Mobile APK via ADB
 	1. see https://developer.android.com/studio/command-line/adb.html
 	2. you will need to manually launch Tegola Mobile from Android's app drawer by "clicking" the Tegola Mobile launcher icon
