@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 //            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_download);
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_green_light));
 //            Log.i(TAG, "onConnected: GoogleApiClient flow handler: connection success");
-//            Toast.makeText(getApplicationContext(), "GoogleApiClient successfully connected", Toast.LENGTH_LONG).show();
+//            Toast.makeText(getApplicationContext(), "GoogleApiClient successfully connected", Toast.LENGTH_SHORT).show();
 //        }
 //
 //        //GoogleApiClient override
@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 //            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_disconnected);
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
 //            Log.i(TAG, "onConnectionSuspended: GoogleApiClient flow handler: connection suspended");
-//            Toast.makeText(getApplicationContext(), "GoogleApiClient connection suspended", Toast.LENGTH_LONG).show();
+//            Toast.makeText(getApplicationContext(), "GoogleApiClient connection suspended", Toast.LENGTH_SHORT).show();
 //        }
 //
 //        //GoogleApiClient override
@@ -190,17 +190,17 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
 //            if (!connectionResult.hasResolution()) {
 //                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: abnormal termination :(");
-//                Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed with no reported resolution!", Toast.LENGTH_LONG).show();
+//                Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed with no reported resolution!", Toast.LENGTH_SHORT).show();
 //                GoogleApiAvailability.getInstance().getErrorDialog(MainActivity.this, connectionResult.getErrorCode(), 0).show();
 //                return;
 //            }
 //            Log.i(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: starting GoogleApiClient connection resolution for this result...");
-//            Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed -- starting resolution flow...", Toast.LENGTH_LONG).show();
+//            Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed -- starting resolution flow...", Toast.LENGTH_SHORT).show();
 //            try {
 //                connectionResult.startResolutionForResult(MainActivity.this, REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE);
 //            } catch (IntentSender.SendIntentException e) {
 //                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: IntentSender failed to send intent; abnormal termination :(", e);
-//                Toast.makeText(getApplicationContext(), "GoogleApiClient connection-failure resolution flow abnormally terminated!", Toast.LENGTH_LONG).show();
+//                Toast.makeText(getApplicationContext(), "GoogleApiClient connection-failure resolution flow abnormally terminated!", Toast.LENGTH_SHORT).show();
 //            }
 //        }
 //    }
@@ -221,7 +221,6 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             Field f = DrawerLayout.class.getDeclaredField("mMinDrawerMargin");
             f.setAccessible(true);
             f.set(drawerLayout, 0);
-
             drawerLayout.requestLayout();
         } catch (Exception e) {
             e.printStackTrace();
@@ -755,7 +754,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: no-config-files condition!");
                 if (!s_cached_config_sel__local_val.isEmpty()) {
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " value (currently \"" + s_cached_config_sel__local_val + "\")");
-                    Toast.makeText(getApplicationContext(), "Clearing setting value for local config toml file selection since there are none available", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Clearing setting value for local config toml file selection since there are none available", Toast.LENGTH_SHORT).show();
                     SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.setValue("");
                 } else {
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " since it is already cleared (value is \"" + s_cached_config_sel__local_val + "\")");
@@ -783,7 +782,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             } else {
                 //first, update shared pref val as necessary - does sel value differ from cached?
                 if (s_cached_config_sel__local_val.compareTo(s_sel_val) != 0) {
-                    Toast.makeText(getApplicationContext(), "Saving new setting value for local config toml file \"" + s_sel_val + "\" selection", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Saving new setting value for local config toml file \"" + s_sel_val + "\" selection", Toast.LENGTH_SHORT).show();
                     //now update shared pref
                     SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.setValue(s_sel_val);
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_config_sel_local.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.toString() + " value from \"" + s_cached_config_sel__local_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue() + "\"");
@@ -803,7 +802,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
         @Override
         public void onNothingSelected(AdapterView<?> adapter) {
-            Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_SHORT).show();
             //disable/hide m_btn_config_sel_local__edit_file
             m_btn_config_sel_local__edit_file.setVisibility(View.GONE);
             m_btn_config_sel_local__edit_file.setEnabled(false);
@@ -920,9 +919,9 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.toString() + " current value is \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue() + "\"");
             if (s_old_config_sel__remote_val.compareTo(s_remote_config_toml_sel_normalized) != 0) {
                 if (s_remote_config_toml_sel_normalized.isEmpty())
-                    Toast.makeText(getApplicationContext(), "Clearing remote config toml file selection", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Clearing remote config toml file selection", Toast.LENGTH_SHORT).show();
                 else
-                    Toast.makeText(getApplicationContext(), "Saving new setting value for remote config toml file https://" + s_remote_config_toml_sel_normalized, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Saving new setting value for remote config toml file https://" + s_remote_config_toml_sel_normalized, Toast.LENGTH_SHORT).show();
                 SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.setValue(s_remote_config_toml_sel_normalized);
                 Log.d(TAG, "m_btn_config_sel_remote_apply_changes.setOnClickListener: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.toString() + " value from \"" + s_old_config_sel__remote_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue() + "\"");
                 m_btn_config_sel_remote_apply_changes.setEnabled(false);
@@ -962,7 +961,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: no-gpkg-bundles condition!");
                 if (!s_cached_gpkg_bundle_val.isEmpty()) {
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " value (currently \"" + s_cached_gpkg_bundle_val + "\")");
-                    Toast.makeText(getApplicationContext(), "Clearing setting value for geopackage-bundle selection since there are none installed", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Clearing setting value for geopackage-bundle selection since there are none installed", Toast.LENGTH_SHORT).show();
                     SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.setValue("");
                 } else {
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " since it is already cleared (value is \"" + s_cached_gpkg_bundle_val + "\")");
@@ -992,7 +991,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             } else {
                 //first, update shared pref val as necessary - does sel value differ from cached?
                 if (s_cached_gpkg_bundle_val.compareTo(s_sel_val) != 0) {
-                    Toast.makeText(getApplicationContext(), "Saving new setting value for geopackage-bundle \"" + s_sel_val + "\" selection", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Saving new setting value for geopackage-bundle \"" + s_sel_val + "\" selection", Toast.LENGTH_SHORT).show();
                     //now update shared pref
                     SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.setValue(s_sel_val);
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_sel.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.toString() + " value from \"" + s_cached_gpkg_bundle_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue() + "\"");
@@ -1020,7 +1019,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
         @Override
         public void onNothingSelected(AdapterView<?> adapter) {
-            Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_SHORT).show();
             //disable/hide m_btn_config_sel_local__edit_file
             m_btn_config_sel_local__edit_file.setVisibility(View.GONE);
             m_btn_config_sel_local__edit_file.setEnabled(false);
@@ -1042,7 +1041,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: no-gpkg-no_gpkg_bundle_cfg condition!");
                 if (!s_cached_gpkg_bundle_config_val.isEmpty()) {
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: clearing shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " value (currently \"" + s_cached_gpkg_bundle_config_val + "\")");
-                    Toast.makeText(getApplicationContext(), "Clearing setting value for geopackage-bundle config selection since there are none installed", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Clearing setting value for geopackage-bundle config selection since there are none installed", Toast.LENGTH_SHORT).show();
                     SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.setValue("");
                 } else {
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: skipping change to shared pref setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " since it is already cleared (value is \"" + s_cached_gpkg_bundle_config_val + "\")");
@@ -1072,7 +1071,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             } else {
                 //first, update shared pref val as necessary - does sel value differ from cached?
                 if (s_cached_gpkg_bundle_config_val.compareTo(s_sel_val) != 0) {
-                    Toast.makeText(getApplicationContext(), "Saving new setting value for geopackage-bundle config \"" + s_sel_val + "\" selection", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Saving new setting value for geopackage-bundle config \"" + s_sel_val + "\" selection", Toast.LENGTH_SHORT).show();
                     //now update shared pref
                     SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.setValue(s_sel_val);
                     Log.d(TAG, "OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel.onItemSelected: changed setting " + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.toString() + " value from \"" + s_cached_gpkg_bundle_config_val + "\" to \"" + SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue() + "\"");
@@ -1103,7 +1102,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
         @Override
         public void onNothingSelected(AdapterView<?> adapter) {
-            Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Cleared local config toml file selection", Toast.LENGTH_SHORT).show();
             //disable/hide m_btn_config_sel_local__edit_file
             m_btn_config_sel_local__edit_file.setVisibility(View.GONE);
             m_btn_config_sel_local__edit_file.setEnabled(false);
@@ -1304,7 +1303,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 //                                    runOnUiThread(new Runnable() {
 //                                        @Override
 //                                        public void run() {
-//                                            Toast.makeText(getApplicationContext(), s_result_msg, Toast.LENGTH_LONG).show();
+//                                            Toast.makeText(getApplicationContext(), s_result_msg, Toast.LENGTH_SHORT).show();
 //                                            if (succeeded)
 //                                                synchronize_spinner_val_config_sel_local();
 //                                        }

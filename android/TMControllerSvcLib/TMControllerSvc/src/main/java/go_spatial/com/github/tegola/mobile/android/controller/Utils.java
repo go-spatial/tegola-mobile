@@ -501,10 +501,10 @@ public class Utils {
                         final Source source_ret = new ForwardingSource(source) {
                             @Override
                             public long read(Buffer sink, long byteCount) throws IOException {
-                                long bytesRead = super.read(sink, byteCount);
+                                long bytesRead = super.read(sink, byteCount);   // read() returns the number of bytes read, or -1 if this source is exhausted.
                                 //Log.d(TAG, "ForwardingSource::read() - read " + bytesRead + " bytes into sink; assert sink.size()==" + bytesRead + " --> " + (sink.size() == bytesRead) + "; calling m_asyncgetfiletask_stage_handler.onChunkRead()...");
-                                // read() returns the number of bytes read, or -1 if this source is exhausted.
                                 m_asyncgetfiletask_stage_handler.onChunkRead(sink, bytesRead, m_responseBody.contentLength(), bytesRead == -1);
+                                sink.flush();
                                 return bytesRead;
                             }
                         };
@@ -595,7 +595,11 @@ public class Utils {
                                 //Log.d(TAG, "download_file: response.body().source().read() loop: read next " + n_bytes_read + " byte-chunk of " + n_bytes_remaining + " bytes remaining");
                                 n_bytes_remaining -= n_bytes_read;
                             } else {
-                                //Log.d(TAG, "download_file: response.body().source().read() loop: n_bytes_read==-1 --> breaking out of loop");
+                                if (n_bytes_remaining > 0) {
+                                    Log.e(TAG, "download_file: response.body().source().read() loop: n_bytes_read==-1 --> failed to read, n_bytes_remaining==" + n_bytes_remaining);
+                                } else {
+                                    Log.d(TAG, "download_file: response.body().source().read() loop: n_bytes_read==-1 --> breaking out of loop; n_bytes_remaining==0");
+                                }
                                 break;
                             }
                         }
@@ -692,7 +696,11 @@ public class Utils {
                             }
                             download_file(response);
                         }
-                    } finally {
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        throw e;
+                    }
+                    finally {
                         if (call__http_get != null)
                             call__http_get.cancel();
                         if (response != null) {

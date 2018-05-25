@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,11 +34,9 @@ import java.util.concurrent.TimeUnit;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 import okhttp3.Cache;
 import okhttp3.Call;
-import okhttp3.ConnectionPool;
 import okhttp3.Dispatcher;
 import okhttp3.EventListener;
 import okhttp3.Handshake;
-import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Response;
@@ -282,8 +279,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         }
     };
 
-    private File m_okhttp_cache_dir = null;
-    private File m_okhttp_cache = null;
+    private Cache m_okhttp_cache = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -292,11 +288,15 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
 
         loadingPanel = this_frag_layout_view.findViewById(R.id.loadingPanel);
 
-        try {
-            m_okhttp_cache_dir = new File(getApplicationContext().getFilesDir().getCanonicalPath(), "okhttp");
-            m_okhttp_cache = new File(m_okhttp_cache_dir.getCanonicalPath(), "cache");
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (BuildConfig.mbgl_http_cache_size > 0) {
+            try {
+                File okhttp_cache_dir = new File(getApplicationContext().getFilesDir().getCanonicalPath(), "okhttp");
+                File okhttp_cache_file = new File(okhttp_cache_dir.getCanonicalPath(), "cache");
+                Log.d(TAG, "(fragment) onCreateView: creating okhttp cache file " + okhttp_cache_file.getCanonicalPath() + " (" + BuildConfig.mbgl_http_cache_size + " MB) for mapview okhttpclient");
+                m_okhttp_cache = new Cache(okhttp_cache_file, BuildConfig.mbgl_http_cache_size * 1024 * 1024);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         HttpRequestUtil.setLogEnabled(true);
@@ -312,20 +312,14 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         Log.d(TAG, "(fragment) onCreateView: mbgl http max requrests host set to: " + BuildConfig.mbgl_http_max_requests_per_host);
         OkHttpClient.Builder okhttpclientbuilder = new OkHttpClient.Builder()
             .dispatcher(m_okhttp3_client_dispather)
-            .connectTimeout(20, TimeUnit.SECONDS)
+            .connectTimeout(BuildConfig.mbgl_http_connect_timeout, TimeUnit.SECONDS)
             .readTimeout(BuildConfig.mbgl_http_read_timeout, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .followRedirects(true)
-            //.connectionPool(new ConnectionPool())
+            //.connectionPool(new ConnectionPool(BuildConfig.mbgl_http_max_requests_per_host, 5, TimeUnit.SECONDS))
             .eventListener(m_okhttpeventlistener);
-        if (m_okhttp_cache != null) {
-            try {
-                Log.d(TAG, "(fragment) onCreateView: creating/using cache " + m_okhttp_cache.getCanonicalPath() + " for mapview okhttpclient");
-                okhttpclientbuilder.cache(new Cache(m_okhttp_cache, 8192));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        if (m_okhttp_cache != null)
+            okhttpclientbuilder.cache(m_okhttp_cache);
         m_okhttp3_client = okhttpclientbuilder.build();
         Log.d(TAG, "(fragment) onCreateView: mbgl http read timeout set to: " + BuildConfig.mbgl_http_read_timeout + " seconds");
         HttpRequestUtil.setOkHttpClient(m_okhttp3_client);
@@ -348,31 +342,31 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
                         break;
                     }
                     case REGION_WILL_CHANGE_ANIMATED: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: REGION_WILL_CHANGE_ANIMATED");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: REGION_WILL_CHANGE_ANIMATED");
                         if (loadingPanel.getVisibility() != View.VISIBLE)
                             loadingPanel.setVisibility(View.VISIBLE);
                         break;
                     }
                     case REGION_DID_CHANGE_ANIMATED: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: REGION_DID_CHANGE_ANIMATED");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: REGION_DID_CHANGE_ANIMATED");
                         if (loadingPanel.getVisibility() != View.VISIBLE)
                             loadingPanel.setVisibility(View.VISIBLE);
                         break;
                     }
                     case WILL_START_LOADING_MAP: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: WILL_START_LOADING_MAP");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: WILL_START_LOADING_MAP");
                         if (loadingPanel.getVisibility() != View.VISIBLE)
                             loadingPanel.setVisibility(View.VISIBLE);
                         break;
                     }
                     case DID_FINISH_LOADING_MAP: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_LOADING_MAP");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_LOADING_MAP");
                         if (loadingPanel.getVisibility() != View.GONE)
                             loadingPanel.setVisibility(View.GONE);
                         break;
                     }
                     case DID_FAIL_LOADING_MAP: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FAIL_LOADING_MAP");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FAIL_LOADING_MAP");
                         if (loadingPanel.getVisibility() != View.GONE)
                             loadingPanel.setVisibility(View.GONE);
                         break;
@@ -386,31 +380,31 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
                         break;
                     }
                     case DID_FINISH_RENDERING_FRAME_FULLY_RENDERED: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_RENDERING_FRAME_FULLY_RENDERED");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_RENDERING_FRAME_FULLY_RENDERED");
                         if (loadingPanel.getVisibility() != View.GONE)
                             loadingPanel.setVisibility(View.GONE);
                         break;
                     }
                     case WILL_START_RENDERING_MAP: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: WILL_START_RENDERING_MAP");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: WILL_START_RENDERING_MAP");
                         break;
                     }
                     case DID_FINISH_RENDERING_MAP: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_RENDERING_MAP");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_RENDERING_MAP");
                         break;
                     }
                     case DID_FINISH_RENDERING_MAP_FULLY_RENDERED: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_RENDERING_MAP_FULLY_RENDERED");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_RENDERING_MAP_FULLY_RENDERED");
                         break;
                     }
                     case DID_FINISH_LOADING_STYLE: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_LOADING_STYLE");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: DID_FINISH_LOADING_STYLE");
                         if (loadingPanel.getVisibility() != View.VISIBLE)
                             loadingPanel.setVisibility(View.VISIBLE);
                         break;
                     }
                     case SOURCE_DID_CHANGE: {
-                        Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: SOURCE_DID_CHANGE");
+                        //Log.d(TAG, "(fragment) MapChangedListener.onMapChanged: change: SOURCE_DID_CHANGE");
                         if (loadingPanel.getVisibility() != View.VISIBLE)
                             loadingPanel.setVisibility(View.VISIBLE);
                         break;
@@ -428,7 +422,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             @Override
             public void onClick(View v) {
                 if (m_mapboxMap.getCameraPosition().zoom == m_mapboxMap.getMaxZoomLevel())
-                    Toast.makeText(getApplicationContext(), "Camera already at MAX zoom level (" + m_mapboxMap.getMaxZoomLevel() + ")! Cannot zoom in any further.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Camera already at MAX zoom level (" + m_mapboxMap.getMaxZoomLevel() + ")! Cannot zoom in any further.", Toast.LENGTH_SHORT).show();
                 else {
                     m_mapboxMap.easeCamera(
                         CameraUpdateFactory.newCameraPosition(
@@ -445,7 +439,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             @Override
             public void onClick(View v) {
                 if (m_mapboxMap.getCameraPosition().zoom == m_mapboxMap.getMinZoomLevel())
-                    Toast.makeText(getApplicationContext(), "Camera already at MIN zoom level (" + m_mapboxMap.getMinZoomLevel() + ")! Cannot zoom out any further.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Camera already at MIN zoom level (" + m_mapboxMap.getMinZoomLevel() + ")! Cannot zoom out any further.", Toast.LENGTH_SHORT).show();
                 else {
                     m_mapboxMap.easeCamera(
                         CameraUpdateFactory.newCameraPosition(
@@ -542,12 +536,20 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
                 .append(" - ")
                 .append(tegolaCapabilities.parsed.maps[0].name);
             m_tv_attribution.setText(sb_attribution.toString());
-            m_tv_version.setText(tegolaCapabilities.version);
+            StringBuilder sb_verion = new StringBuilder()
+                .append("Tegola Version")
+                .append(": ")
+                .append(tegolaCapabilities.version);
+            m_tv_version.setText(sb_verion.toString());
 
             Log.d(TAG, "(fragment) onMapReady: setting PrefetchedTiles to: true");
             m_mapboxMap.setPrefetchesTiles(true);
 
-
+            int
+                    new_top = (m_cv.getVisibility() != View.GONE ? m_cv.getBottom() : 0),
+                    translate_y = new_top - (m_nav_container.getTop() - 50);
+            Log.d(TAG, "(fragment) onMapReady: moving top of m_nav_container by " + translate_y);
+            m_nav_container.setTranslationY(translate_y);
             show_nav(true);
             m_ctv_show_camera_updates.setChecked(true);
             m_ctv_show_camera_updates.callOnClick();
@@ -572,7 +574,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
     };
 
     private void show_nav(boolean show) {
-        m_nav_container.setVisibility(show ? View.VISIBLE : View.GONE);
+        m_nav_container.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
     }
 
     final private MapboxMap.OnCameraMoveListener m_OnCameraMoveListener = new MapboxMap.OnCameraMoveListener() {
@@ -644,12 +646,13 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
         m_okhttp3_client = null;
         m_okhttp3_client_dispather = null;
 
-        if (m_okhttp_cache_dir != null && m_okhttp_cache_dir.exists()) {
+        if (m_okhttp_cache != null && m_okhttp_cache.directory().exists()) {
             try {
-                Utils.Files.delete(m_okhttp_cache_dir);
+                Utils.Files.delete(m_okhttp_cache.directory());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            m_okhttp_cache = null;
         }
     }
 

@@ -348,8 +348,7 @@ public class Constants {
 
                     case arm64_v8a:     return tegola_bin__arm64;
 
-                    case x86:           return tegola_bin__x86;
-
+                    case x86:
                     case x86_64:        return tegola_bin__x86;
 
                     case mips:          //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b

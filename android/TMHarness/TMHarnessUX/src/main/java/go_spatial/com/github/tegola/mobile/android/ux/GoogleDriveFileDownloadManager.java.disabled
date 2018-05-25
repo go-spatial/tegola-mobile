@@ -55,7 +55,7 @@ public class GoogleDriveFileDownloadManager {
     public boolean validate_init_api_client(@NonNull final Activity activity, @NonNull final GoogleApiClient.ConnectionCallbacks gapic_conn_callbacks, @NonNull final GoogleApiClient.OnConnectionFailedListener gapic_conn_failed_listener) {
         if (m_google_api_client == null) {
             Log.i(TAG, "validate_init_api_client: GoogleApiClient flow handler: building new GoogleApiClient instance...");
-            Toast.makeText(activity, "Initializing GoogleApiClient", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Initializing GoogleApiClient", Toast.LENGTH_SHORT).show();
             m_google_api_client = new GoogleApiClient.Builder(activity)
                     .addApi(Drive.API)
                     .addScope(Drive.SCOPE_FILE)
@@ -71,7 +71,7 @@ public class GoogleDriveFileDownloadManager {
     public boolean validate_connect_api_client(@NonNull final Activity activity) {
         if (!m_google_api_client.isConnected()) {
             Log.i(TAG, "validate_connect_api_client: GoogleApiClient flow handler: GoogleApiClient is not connected -- starting connection...");
-            Toast.makeText(activity, "Connecting GoogleApiClient...", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Connecting GoogleApiClient...", Toast.LENGTH_SHORT).show();
             m_google_api_client.connect();
             return false;
         }
@@ -99,10 +99,10 @@ public class GoogleDriveFileDownloadManager {
                         activity.startIntentSenderForResult(google_drive_file_open_intentSender, request_id, null, 0, 0, 0);
                     } catch (IntentSender.SendIntentException e) {
                         Log.e(TAG, "google_drive__select_files: Failed to select/download Google Drive file contents -- IntentSender failure!", e);
-                        Toast.makeText(activity, "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(activity, "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(activity, "Failed to select/download Google Drive file contents", Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, "Failed to select/download Google Drive file contents", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -121,10 +121,10 @@ public class GoogleDriveFileDownloadManager {
                         activity.startIntentSenderForResult(google_drive_file_open_intentSender, request_id, null, 0, 0, 0);
                     } catch (IntentSender.SendIntentException e) {
                         Log.e(TAG, "google_drive__select_files: Failed to select/download Google Drive file contents -- IntentSender failure!", e);
-                        Toast.makeText(activity, "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(activity, "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(activity, "Failed to select/download Google Drive file contents", Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, "Failed to select/download Google Drive file contents", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -143,10 +143,10 @@ public class GoogleDriveFileDownloadManager {
                         activity.startIntentSenderForResult(google_drive_file_open_intentSender, request_id, null, 0, 0, 0);
                     } catch (IntentSender.SendIntentException e) {
                         Log.e(TAG, "google_drive__select_files: Failed to select/download Google Drive file contents -- IntentSender failure!", e);
-                        Toast.makeText(activity, "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(activity, "Failed to select/download Google Drive file contents -- IntentSender failure!", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(activity, "Failed to select/download Google Drive file contents", Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, "Failed to select/download Google Drive file contents", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -172,7 +172,7 @@ public class GoogleDriveFileDownloadManager {
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(activity, s_err, Toast.LENGTH_LONG).show();
+                                    Toast.makeText(activity, s_err, Toast.LENGTH_SHORT).show();
                                 }
                             });
                             return;
