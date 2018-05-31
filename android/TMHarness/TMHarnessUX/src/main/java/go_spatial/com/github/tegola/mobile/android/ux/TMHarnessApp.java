@@ -5,6 +5,7 @@ import com.mapbox.mapboxsdk.Mapbox;
 
 public class TMHarnessApp extends TMApp {
     public Mapbox mapbox = null;
+
     @Override
     public void onCreate() {
         super.onCreate();

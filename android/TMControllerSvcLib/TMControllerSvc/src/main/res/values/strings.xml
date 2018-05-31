@@ -4,18 +4,29 @@
     <string name="ctrlr_info">Controller Info</string>
     <string name="ctrlr_status">Controller Status</string>
 
-    <string name="srvr_info">Server Info</string>
-    <string name="srvr_ver">Version</string>
-    <string name="srvr_provider_type">Provider Type</string>
-    <string name="srvr_provider_type__postgis">PostGIS</string>
-    <string name="srvr_provider_type__gpkg">GeoPackage</string>
-    <string name="srvr_postgis_provider_config_type">PostGIS Provider - Config Type</string>
-    <string name="srvr_postgis_provider_config_type__local">LOCAL</string>
-    <string name="srvr_postgis_provider_config_type__remote">REMOTE</string>
-    <string name="srvr_postgis_provider_config_sel">PostGIS Provider - Config Selection</string>
-    <string name="srvr_gpkg_provider_bundle_sel">GeoPackage Provider/Bundle - Selection</string>
-    <string name="srvr_gpkg_provider_bundle_props_sel">GeoPackage Provider/Bundle - Props Selection</string>
-    <string name="srvr_status">Server Status</string>
+    <string name="mbgl_info">Tile-Fetch Config</string>
+    <string name="mbgl_mvt_source">Tile Source</string>
+    <string name="mbgl_http_client_connect_timeout">Connect Timeout</string>
+    <string name="mbgl_http_client_read_timeout">Read Timeout</string>
+    <string name="mbgl_http_client_cache_size">Cache Size</string>
+    <string name="mbgl_http_client_max_requests_per_host">Max Requests/Host</string>
+
+    <string name="provision_src__local">LOCAL</string>
+    <string name="provision_src__remote">REMOTE</string>
+
+    <string name="local_srvr_info">Local Tile Server Info/Config</string>
+    <string name="local_srvr_ver">Version</string>
+    <string name="local_srvr_provider_type">Provider Type</string>
+    <string name="local_srvr_provider_type__postgis">PostGIS</string>
+    <string name="local_srvr_provider_type__gpkg">GeoPackage</string>
+    <string name="local_srvr_postgis_provider_config_type">PostGIS Provider - Config Type</string>
+    <string name="local_srvr_postgis_provider_config_sel">PostGIS Provider - Config Selection</string>
+    <string name="local_srvr_gpkg_provider_bundle_sel">GeoPackage Provider/Bundle - Selection</string>
+    <string name="local_srvr_gpkg_provider_bundle_props_sel">GeoPackage Provider/Bundle - Props Selection</string>
+    <string name="local_srvr_status">Server Status</string>
+
+    <string name="remote_srvr_info">Remote Tile Server Config</string>
+    <string name="remote_srvr_capabilities_url">Address</string>
 
     <string name="start">Start</string>
     <string name="starting">STARTING...</string>
@@ -23,4 +34,7 @@
     <string name="stop">Stop</string>
     <string name="stopping">STOPPING...</string>
     <string name="stopped">STOPPED</string>
+
+    <string name="seconds">seconds</string>
+    <string name="kilobytes">KB</string>
 </resources>

@@ -292,8 +292,8 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             try {
                 File okhttp_cache_dir = new File(getApplicationContext().getFilesDir().getCanonicalPath(), "okhttp");
                 File okhttp_cache_file = new File(okhttp_cache_dir.getCanonicalPath(), "cache");
-                Log.d(TAG, "(fragment) onCreateView: creating okhttp cache file " + okhttp_cache_file.getCanonicalPath() + " (" + BuildConfig.mbgl_http_cache_size + " MB) for mapview okhttpclient");
-                m_okhttp_cache = new Cache(okhttp_cache_file, BuildConfig.mbgl_http_cache_size * 1024 * 1024);
+                Log.d(TAG, "(fragment) onCreateView: creating okhttp cache file " + okhttp_cache_file.getCanonicalPath() + " (" + BuildConfig.mbgl_http_cache_size + " KB) for mapview okhttpclient");
+                m_okhttp_cache = new Cache(okhttp_cache_file, BuildConfig.mbgl_http_cache_size * 1024);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -518,13 +518,13 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             Log.d(TAG, "(fragment) onMapReady: setting DebugActive to: " + mbmap_debug_active);
             m_mapboxMap.setDebugActive(mbmap_debug_active);
 
-            if (tegolaCapabilities.parsed.maps_layers_inf_minzoom != -1.0) {
-                Log.d(TAG, "(fragment) onMapReady: updating min zoom from tegolaCapabilities.parsed.maps_layers_inf_minzoom: " + tegolaCapabilities.parsed.maps_layers_inf_minzoom);
-                m_mapboxMap.setMinZoomPreference(tegolaCapabilities.parsed.maps_layers_inf_minzoom);
+            if (tegolaCapabilities.parsed.maps_layers_minzoom != -1.0) {
+                Log.d(TAG, "(fragment) onMapReady: updating min zoom from tegolaCapabilities.parsed.maps_layers_minzoom: " + tegolaCapabilities.parsed.maps_layers_minzoom);
+                m_mapboxMap.setMinZoomPreference(tegolaCapabilities.parsed.maps_layers_minzoom);
             }
-            if (tegolaCapabilities.parsed.maps_layers_sup_maxzoom != -1.0) {
-                Log.d(TAG, "(fragment) onMapReady: updating max zoom from tegolaCapabilities.parsed.maps_layers_sup_maxzoom: " + tegolaCapabilities.parsed.maps_layers_sup_maxzoom);
-                m_mapboxMap.setMaxZoomPreference(tegolaCapabilities.parsed.maps_layers_sup_maxzoom);
+            if (tegolaCapabilities.parsed.maps_layers_maxzoom != -1.0) {
+                Log.d(TAG, "(fragment) onMapReady: updating max zoom from tegolaCapabilities.parsed.maps_layers_maxzoom: " + tegolaCapabilities.parsed.maps_layers_maxzoom);
+                m_mapboxMap.setMaxZoomPreference(tegolaCapabilities.parsed.maps_layers_maxzoom);
             }
             Log.d(TAG, "(fragment) onMapReady: min zoom level: " + m_mapboxMap.getMinZoomLevel() + "; max zoom level: " + m_mapboxMap.getMaxZoomLevel());
 
@@ -545,11 +545,11 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
             Log.d(TAG, "(fragment) onMapReady: setting PrefetchedTiles to: true");
             m_mapboxMap.setPrefetchesTiles(true);
 
-            int
-                    new_top = (m_cv.getVisibility() != View.GONE ? m_cv.getBottom() : 0),
-                    translate_y = new_top - (m_nav_container.getTop() - 50);
-            Log.d(TAG, "(fragment) onMapReady: moving top of m_nav_container by " + translate_y);
-            m_nav_container.setTranslationY(translate_y);
+//            int
+//                    new_top = (m_cv.getVisibility() != View.GONE ? m_cv.getBottom() : 0),
+//                    translate_y = new_top - (m_nav_container.getTop() - 50);
+//            Log.d(TAG, "(fragment) onMapReady: moving top of m_nav_container by " + translate_y);
+//            m_nav_container.setTranslationY(translate_y);
             show_nav(true);
             m_ctv_show_camera_updates.setChecked(true);
             m_ctv_show_camera_updates.callOnClick();

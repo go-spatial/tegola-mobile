@@ -33,7 +33,7 @@
                 android:layout_centerVertical="false"
                 android:layout_toLeftOf="@+id/btn_install_remote_geopackage_bundle__cancel"
                 android:layout_toStartOf="@+id/btn_install_remote_geopackage_bundle__cancel"
-                android:text="@string/activity_title__install_remote_gpkg_bundle"
+                android:text="@string/activity_title__install_gpkg_bundle"
             />
         </RelativeLayout>
 
@@ -71,7 +71,8 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
-                    android:layout_centerVertical="false"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="2dp"
                     android:paddingBottom="10dp"
                     android:paddingTop="10dp"
                     android:text="https://"
@@ -79,11 +80,11 @@
 
                 <EditText
                     android:id="@+id/edt_remote_gpkg_bundle__root_url"
-                    style="@style/Widget.AppCompat.EditText"
+                    style="@style/edittext"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
-                    android:layout_alignTop="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
+                    android:gravity="center_vertical"
+                    android:layout_centerVertical="true"
                     android:layout_toEndOf="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
                     android:layout_toRightOf="@id/tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix"
                     android:layout_alignParentEnd="true"
@@ -141,9 +142,11 @@
 
                 <EditText
                     android:id="@+id/edt_remote_gpkg_bundle__name"
-                    style="@style/Widget.AppCompat.EditText"
+                    style="@style/edittext"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:layout_centerVertical="true"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentRight="true"
@@ -180,9 +183,11 @@
 
                 <EditText
                     android:id="@+id/edt_remote_gpkg_bundle__ver_props"
-                    style="@style/Widget.AppCompat.EditText"
+                    style="@style/edittext"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:layout_centerVertical="true"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentRight="true"
@@ -218,7 +223,9 @@
 
                 <EditText
                     android:id="@+id/edt_local_gpkg_bundle__name"
-                    style="@style/Widget.AppCompat.EditText"
+                    style="@style/edittext"
+                    android:gravity="center_vertical"
+                    android:layout_centerVertical="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
@@ -237,29 +244,24 @@
         <!-- install gpkg bundle - selection - name: END -->
 
         <!-- install gpkg bundle - DO IT button - name: BEGIN -->
-        <LinearLayout
-            android:id="@+id/sect_content__item__gpkg_bundle__install"
-            style="@style/Section_Content_Item"
-            android:paddingTop="20dp">
 
-            <RelativeLayout
-                style="@style/Section_Content_Item_Content"
-                android:orientation="horizontal">
 
-                <Button
-                    android:id="@+id/btn_install_remote_gpkg_bundle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"
-                    android:drawableLeft="@drawable/ic_download_black_24dp"
-                    android:drawablePadding="5dp"
-                    android:text="@string/install"
+        <RelativeLayout
+            style="@style/Section_Content_Item_Content"
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp">
+            <Button
+                android:id="@+id/btn_install_remote_gpkg_bundle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:drawableLeft="@drawable/ic_download_black_24dp"
+                android:drawablePadding="5dp"
+                android:text="@string/install"
                 />
 
-            </RelativeLayout>
-
-        </LinearLayout>
+        </RelativeLayout>
         <!-- install gpkg bundle - DO IT button - END -->
 
         <!-- install gpkg bundle - progress - name: BEGIN -->

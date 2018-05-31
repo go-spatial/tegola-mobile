@@ -14,7 +14,7 @@
     <string name="get_list">Get List</string>
     <string name="Progress">Progress</string>
 
-    <string name="android_device_info">Android/Device Info</string>
+    <string name="android_device_info">Device Info</string>
     <string name="cpu_abi">CPU_ABI</string>
     <string name="api_level">API Level</string>
 
@@ -24,7 +24,7 @@
     <string name="srvr_config_type__local__manage_geopackage_bundles">Geopackage Bundles</string>
     <string name="srvr_provider_type__gpkg__no_geopackage_bundles_installed">**NO GEOPACKAGE BUNDLES INSTALLED**</string>
     <string name="srvr_provider_type__gpkg__no_geopackage_bundles_installed__alert_msg">Tegola MVT server cannot be started without installing and selecting a geopackage-bundle.\n\nPlease install a geopackage-bundle now.</string>
-    <string name="activity_title__install_remote_gpkg_bundle">Install Remote Geopackage Bundle</string>
+    <string name="activity_title__install_gpkg_bundle">Install Geopackage Bundle</string>
     <string name="lbl__remote_gpkg_bundle__root_url">Root URL</string>
     <string name="lbl__remote_gpkg_bundle__name">GPKG Bundle - Name</string>
     <string name="lbl__remote_gpkg_bundle__ver_props">GPKG Bundle - Version Properties File</string>
@@ -42,11 +42,13 @@
 
     <string name="activity_title__config_file_viewer">Tegola Config TOML File Viewer</string>
 
-
     <string name="srvr_config_type__remote__no_url_specified">**NO REMOTE CONFIG .toml URL SPECIFIED**</string>
     <string name="srvr_config_type__remote__no_url_specified__alert_msg">Tegola MVT server cannot be started without specifying a config TOML URL.\n\nPlease specify one, or alternatively change config type to \"local\".</string>
     <string name="srvr_console_ouput">Server Console Output:</string>
 
     <string name="gpkg_bundle__root_url__default">s3-us-west-2.amazonaws.com/tegola-mobile</string>
     <string name="fixed__remote_gpkg_bundle__root_url__tail">/geopackage-bundle/android</string>
+
+    <string name="open_tile_stream">START MAPS</string>
+    <string name="close_tile_stream">STOP MAPS</string>
 </resources>

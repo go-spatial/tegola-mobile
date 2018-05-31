@@ -135,8 +135,8 @@ public final class TegolaCapabilities implements Parcelable {
         }
         public Map[] maps = null;
         public double
-                maps_layers_inf_minzoom = -1.0,
-                maps_layers_sup_maxzoom = -1.0;
+                maps_layers_minzoom = -1.0,
+                maps_layers_maxzoom = -1.0;
 
         @Override
         public int describeContents() {
@@ -146,8 +146,8 @@ public final class TegolaCapabilities implements Parcelable {
         @Override
         public void writeToParcel(Parcel dest, int flags) {
             dest.writeTypedArray(this.maps, flags);
-            dest.writeDouble(this.maps_layers_inf_minzoom);
-            dest.writeDouble(this.maps_layers_sup_maxzoom);
+            dest.writeDouble(this.maps_layers_minzoom);
+            dest.writeDouble(this.maps_layers_maxzoom);
         }
 
         public Parsed() {
@@ -155,8 +155,8 @@ public final class TegolaCapabilities implements Parcelable {
 
         protected Parsed(Parcel in) {
             this.maps = in.createTypedArray(Map.CREATOR);
-            this.maps_layers_inf_minzoom = in.readDouble();
-            this.maps_layers_sup_maxzoom = in.readDouble();
+            this.maps_layers_minzoom = in.readDouble();
+            this.maps_layers_maxzoom = in.readDouble();
         }
 
         public static final Creator<Parsed> CREATOR = new Creator<Parsed>() {

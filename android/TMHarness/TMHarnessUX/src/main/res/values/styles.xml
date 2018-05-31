@@ -41,7 +41,8 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:editable">false</item>
         <item name="android:textSize">16sp</item>
-        <item name="android:textColor">@android:color/holo_blue_dark</item>
+        <item name="android:textColor">@android:color/holo_blue_bright</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:gravity">bottom</item>
     </style>
 
@@ -93,7 +94,7 @@
         <item name="android:editable">false</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">italic</item>
-        <item name="android:textColor">@android:color/holo_blue_bright</item>
+        <item name="android:textColor">@android:color/holo_blue_dark</item>
     </style>
 
     <style name="Section_Content_SubItem_Label">
@@ -140,6 +141,14 @@
         <item name="android:background">@drawable/mapview_nav_imagebutton_statelist_background</item>
         <item name="android:adjustViewBounds">true</item>
         <item name="android:scaleType">fitCenter</item>
+    </style>
+
+    <style name="edittext" parent="Widget.AppCompat.EditText">
+        <item name="android:background">@drawable/edittext_with_border</item>
+        <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingRight">2dp</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
 </resources>

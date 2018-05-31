@@ -25,6 +25,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.method.ScrollingMovementMethod;
 import android.text.style.ClickableSpan;
@@ -42,6 +43,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -80,7 +82,6 @@ import java.util.ArrayList;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.REQUEST_CODES;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
-import go_spatial.com.github.tegola.mobile.android.controller.FGS;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
 public class MainActivity extends AppCompatActivity implements TegolaMBGLFragment.OnFragmentInteractionListener {
@@ -105,13 +106,23 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     private ExpandableRelativeLayout m_vw_sect_content__ctrlr_nfo = null;
     private TextView m_tv_val_ctrlr_status = null;
 
+    //mbgl info - UI objects
+    private Button m_btn_sect__mbgl_nfo__expand = null;
+    private ExpandableRelativeLayout m_vw_sect_content__mbgl_nfo = null;
+    private RadioGroup m_rg_val_mvt_source_sel = null;
+    private RadioButton m_rb_val_mvt_source_sel__remote = null;
+    private RadioButton m_rb_val_mvt_source_sel__local = null;
+    private EditText m_edt_val_http_client_cfg__connect_timeout = null;
+    private EditText m_edt_val_http_client_cfg__read_timeout = null;
+    private EditText m_edt_val_http_client_cfg__cache_size = null;
+    private EditText m_edt_val_http_client_cfg__max_requests_per_host = null;
+
+    private View m_sect__local_srvr_nfo = null;
     //srvr info - version - UI objects
     private TextView m_tv_val_bin_ver = null;
-
     //srvr info - provider sel postgis - UI objects
     private RadioButton m_rb_val_provider_type_sel__postgis = null;
     private View m_sect__postgis_provider_spec = null;
-
     //srvr info - config sel local - UI objects
     private RadioButton m_rb_val_config_type_sel__local = null;
     private TextView m_tv_lbl_config_type_sel__local__manage_files = null;
@@ -122,13 +133,11 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     private ImageButton m_btn_config_sel_local__edit_file = null;
 //    private ImageButton m_btn_config_sel_local_import__googledrive = null;
     private ImageButton m_btn_config_sel_local_import__sdcard = null;
-
     //srvr info - config sel remote - UI objects
     private RadioButton m_rb_val_config_type_sel__remote = null;
     private View m_vw_config_sel_container__remote = null;
     private EditText m_edt_val_config_sel__remote;
     private Button m_btn_config_sel_remote_apply_changes = null;
-
     //srvr info - provider sel gpkg - UI objects
     private RadioButton m_rb_val_provider_type_sel__gpkg = null;
     private View m_sect__gpkg_provider_spec = null;
@@ -138,17 +147,19 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     private CustomSpinner m_spinner_val_gpkg_bundle_props_sel = null;
     private final ArrayList<String> m_spinner_val_gpkg_bundle_props_sel__items = new ArrayList<String>();
     private ArrayAdapter<String> m_spinner_val_gpkg_bundle_props_sel__dataadapter = null;
-
     //srvr info - status - UI objects
     private TextView m_tv_val_srvr_status = null;
     private Button m_btn_srvr_ctrl = null;
-
     //srvr info - console output - UI objects
     private View m_sect_content__item__srvr_console_output = null;
     private TextView m_tv_tegola_console_output = null;
 
-    private final TegolaMBGLFragment mb_frag = new TegolaMBGLFragment();
+    private View m_sect__remote_srvr_nfo = null;
+    private EditText m_edt_val_root_url = null;
+    private EditText m_edt_val_capabilities = null;
+    private Button m_btn_stream_tiles = null;
 
+    private final TegolaMBGLFragment mb_frag = new TegolaMBGLFragment();
 
     private BroadcastReceiver m_br_ctrlr_notifications = null;
     private IntentFilter m_br_ctrlr_notifications_filter = null;
@@ -261,11 +272,20 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_vw_sect_content__ctrlr_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__ctrlr_nfo);
         m_tv_val_ctrlr_status = (TextView)findViewById(R.id.tv_val_tegola_ctrlr_status);
 
-        m_tv_val_bin_ver = (TextView)findViewById(R.id.tv_val_bin_ver);
+        m_btn_sect__mbgl_nfo__expand = (Button)findViewById(R.id.btn_sect__mbgl_nfo__expand);
+        m_vw_sect_content__mbgl_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__mbgl_nfo);
+        m_rg_val_mvt_source_sel = (RadioGroup)findViewById(R.id.rg_val_mvt_source_sel);
+        m_rb_val_mvt_source_sel__local = (RadioButton)findViewById(R.id.rb_val_mvt_source_sel__local);
+        m_rb_val_mvt_source_sel__remote = (RadioButton)findViewById(R.id.rb_val_mvt_source_sel__remote);
+        m_edt_val_http_client_cfg__connect_timeout = (EditText)findViewById(R.id.edt_val_http_client_cfg__connect_timeout);
+        m_edt_val_http_client_cfg__read_timeout = (EditText)findViewById(R.id.edt_val_http_client_cfg__read_timeout);
+        m_edt_val_http_client_cfg__cache_size = (EditText)findViewById(R.id.edt_val_http_client_cfg__cache_size);
+        m_edt_val_http_client_cfg__max_requests_per_host = (EditText)findViewById(R.id.edt_val_http_client_cfg__max_requests_per_host);
 
+        m_sect__local_srvr_nfo = findViewById(R.id.sect__local_srvr_nfo);
+        m_tv_val_bin_ver = (TextView)findViewById(R.id.tv_val_bin_ver);
         m_rb_val_provider_type_sel__postgis = (RadioButton)findViewById(R.id.rb_val_provider_type_sel__postgis);
         m_rb_val_provider_type_sel__gpkg = (RadioButton)findViewById(R.id.rb_val_provider_type_sel__gpkg);
-
         m_sect__postgis_provider_spec = (View)findViewById(R.id.sect__postgis_provider_spec);
         m_rb_val_config_type_sel__local = (RadioButton)findViewById(R.id.rb_val_config_type_sel__local);
         m_tv_lbl_config_type_sel__local__manage_files = (TextView)findViewById(R.id.tv_lbl_gpkg_provider_type_sel__manage_bundles);
@@ -278,15 +298,18 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_vw_config_sel_container__remote = findViewById(R.id.postgis_provider_config_sel__remote__container);
         m_edt_val_config_sel__remote = (EditText)findViewById(R.id.edt_val_postgis_provider_config_sel__remote);
         m_btn_config_sel_remote_apply_changes = (Button)findViewById(R.id.btn_postgis_provider_config_sel_remote_apply_changes);
-
         m_sect__gpkg_provider_spec = (View)findViewById(R.id.sect__gpkg_provider_spec);
         m_spinner_val_gpkg_bundle_sel = (CustomSpinner)findViewById(R.id.spinner_val_gpkg_provider_bundle_sel);
         m_spinner_val_gpkg_bundle_props_sel = (CustomSpinner)findViewById(R.id.spinner_val_gpkg_provider_bundle_props_sel);
-
         m_tv_val_srvr_status = (TextView)findViewById(R.id.tv_val_srvr_status);
         m_btn_srvr_ctrl = (Button)findViewById(R.id.btn_srvr_ctrl);
         m_sect_content__item__srvr_console_output = findViewById(R.id.sect_content__item__srvr_console_output);
         m_tv_tegola_console_output = (TextView)findViewById(R.id.tv_tegola_console_output);
+
+        m_sect__remote_srvr_nfo = findViewById(R.id.sect__remote_srvr_nfo);
+        m_edt_val_root_url = (EditText)findViewById(R.id.edt_val_root_url);
+        m_edt_val_capabilities = (EditText)findViewById(R.id.edt_val_capabilities);
+        m_btn_stream_tiles = (Button)findViewById(R.id.btn_stream_tiles);
 
         //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
         m_spinner_val_config_sel_local__dataadapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, m_spinner_val_config_sel_local__items);
@@ -304,6 +327,120 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         //associate listeners for user-UI-interaction
         m_btn_sect__andro_dev_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
         m_btn_sect__ctrlr_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
+        m_btn_sect__mbgl_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
+        m_rb_val_mvt_source_sel__local.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                //Log.d(TAG, "m_rb_val_mvt_source_sel__local.onCheckedChanged: isChecked== " + isChecked);
+                m_sect__remote_srvr_nfo.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+                m_sect__local_srvr_nfo.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                m_tv_tegola_console_output__scroll_max();
+                m_scvw_main__scroll_max();
+            }
+        });
+        m_rb_val_mvt_source_sel__remote.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                //Log.d(TAG, "m_rb_val_mvt_source_sel__remote.onCheckedChanged: isChecked== " + isChecked);
+                m_sect__local_srvr_nfo.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+                m_sect__remote_srvr_nfo.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                m_tv_tegola_console_output__scroll_max();
+                m_scvw_main__scroll_max();
+            }
+        });
+        m_edt_val_http_client_cfg__connect_timeout.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
+                    //validate_enable_install_button();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+        m_edt_val_http_client_cfg__connect_timeout.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    //validate_enable_install_button();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
+        m_edt_val_http_client_cfg__read_timeout.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
+                    //validate_enable_install_button();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+        m_edt_val_http_client_cfg__read_timeout.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    //validate_enable_install_button();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
+        m_edt_val_http_client_cfg__cache_size.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
+                    //validate_enable_install_button();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+        m_edt_val_http_client_cfg__cache_size.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    //validate_enable_install_button();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
+        m_edt_val_http_client_cfg__max_requests_per_host.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
+                    //validate_enable_install_button();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+        m_edt_val_http_client_cfg__max_requests_per_host.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    //validate_enable_install_button();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
+
         m_rb_val_provider_type_sel__postgis.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_provider_type_sel__postgis);
         m_rb_val_provider_type_sel__gpkg.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_provider_type_sel__gpkg);
         m_rb_val_config_type_sel__local.setOnCheckedChangeListener(OnCheckedChangeListener__m_rb_val_config_type_sel__local);
@@ -322,6 +459,49 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_spinner_val_gpkg_bundle_props_sel.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel);
         m_btn_srvr_ctrl.setOnClickListener(OnClickListener__m_btn_srvr_ctrl);
 
+        m_btn_stream_tiles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (m_btn_stream_tiles.getText().toString().compareTo(getString(R.string.open_tile_stream)) == 0) {
+                    String
+                            root_url = m_edt_val_root_url.getText().toString(),
+                            //endpoint = m_edt_val_capabilities.getText().toString();
+                            endpoint = "/capabilities";
+                    Log.d(TAG, "m_btn_stream_tiles.onClick: root_url==\"" + root_url + "\"; endpoint==\"" + endpoint + "\"");
+                    if (!root_url.isEmpty() && !endpoint.isEmpty()) {
+                        Log.d(TAG, "m_btn_stream_tiles.onClick: requesting capabilities from " + root_url + endpoint);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+                                intent_mvt_server_read_json.putExtra(
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                                );
+                                intent_mvt_server_read_json.putExtra(
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING,
+                                        root_url
+                                );
+                                intent_mvt_server_read_json.putExtra(
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING,
+                                        endpoint
+                                );
+                                sendBroadcast(intent_mvt_server_read_json);
+                            }
+                        }, 50);
+                    }
+                    if (m_vw_sect_content__mbgl_nfo.isExpanded()) {
+                        m_vw_sect_content__mbgl_nfo.collapse();
+                        m_vw_sect_content__mbgl_nfo.setExpanded(false);
+                        reconcile_expandable_section(m_vw_sect_content__mbgl_nfo);
+                    }
+                } else {
+                    mbgl_map_stop();
+                    m_btn_stream_tiles.setText(getString(R.string.open_tile_stream));
+                }
+            }
+        });
+
 
         //instantiate PersistentConfigSettingsManager singleton
         SharedPrefsManager.newInstance(this);
@@ -331,20 +511,20 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
         //set up BR to listen to notifications from ControllerLib
         m_br_ctrlr_notifications_filter = new IntentFilter();
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_RUNNING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STOPPED);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__RUNNING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__JSON_READ);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STARTING.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.RUNNING.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPING.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPED.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STARTING.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING);
         m_br_ctrlr_notifications = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -353,66 +533,66 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Constants.Enums.E_INTENT_ACTION__CTRLR_NOTIFICATION e_ctrlr_notification = Constants.Enums.E_INTENT_ACTION__CTRLR_NOTIFICATION.fromString(intent != null ? intent.getAction() : null);
+                            Constants.Enums.E_INTENT_ACTION__NOTIFICATION e_ctrlr_notification = Constants.Enums.E_INTENT_ACTION__NOTIFICATION.fromString(intent != null ? intent.getAction() : null);
                             switch (e_ctrlr_notification) {
-                                case CONTROLLER_FOREGROUND_STARTING: {
+                                case FGS_STATE_STARTING: {
                                     OnControllerStarting();
                                     break;
                                 }
-                                case CONTROLLER_FOREGROUND_STARTED: {
+                                case FGS_STATE_RUNNING: {
                                     OnControllerRunning();
                                     break;
                                 }
-                                case CONTROLLER_FOREGROUND_STOPPING: {
+                                case FGS_STATE_STOPPING: {
                                     OnControllerStopping();
                                     break;
                                 }
-                                case CONTROLLER_FOREGROUND_STOPPED: {
+                                case FGS_STATE_STOPPED: {
                                     OnControllerStopped();
                                     break;
                                 }
-                                case MVT_SERVER__STARTING: {
+                                case MVT_SERVER_STATE_STARTING: {
                                     OnMVTServerStarting();
                                     break;
                                 }
-                                case MVT_SERVER__START_FAILED: {
-                                    OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON));
+                                case MVT_SERVER_STATE_START_FAILED: {
+                                    OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING));
                                     break;
                                 }
-                                case MVT_SERVER__RUNNING: {
-                                    OnMVTServerRunning(intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, -1));
+                                case MVT_SERVER_STATE_RUNNING: {
+                                    OnMVTServerRunning(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.EXTRA_KEY.PID.STRING, -1));
                                     break;
                                 }
-                                case MVT_SERVER__LISTENING: {
-                                    OnMVTServerListening(intent.getIntExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, 8080));
+                                case MVT_SERVER_STATE_LISTENING: {
+                                    OnMVTServerListening(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.EXTRA_KEY.PORT.STRING, 8080));
                                     break;
                                 }
-                                case MVT_SERVER__OUTPUT__LOGCAT: {
-                                    OnMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__LOGCAT__LINE));
+                                case MVT_SERVER_MONITOR_LOGCAT_OUTPUT: {
+                                    OnMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.EXTRA_KEY.LINE.STRING));
                                     break;
                                 }
-                                case MVT_SERVER__OUTPUT__STDERR: {
-                                    OnMVTServerOutputStdErr(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDERR__LINE));
+                                case MVT_SERVER_MONITOR_STDERR_OUTPUT: {
+                                    OnMVTServerOutputStdErr(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.EXTRA_KEY.LINE.STRING));
                                     break;
                                 }
-                                case MVT_SERVER__OUTPUT__STDOUT: {
-                                    OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDOUT__LINE));
+                                case MVT_SERVER_MONITOR_STDOUT_OUTPUT: {
+                                    OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.EXTRA_KEY.LINE.STRING));
                                     break;
                                 }
-                                case MVT_SERVER__JSON_READ: {
+                                case MVT_SERVER_HTTP_URL_API_READ_JSON: {
                                     OnMVTServerJSONRead(
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__ROOT_URL),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__JSON_ENDPOINT),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__JSON),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__PURPOSE)
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.CONTENT.STRING),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING)
                                     );
                                     break;
                                 }
-                                case MVT_SERVER__STOPPING: {
+                                case MVT_SERVER_STATE_STOPPING: {
                                     OnMVTServerStopping();
                                     break;
                                 }
-                                case MVT_SERVER__STOPPED: {
+                                case MVT_SERVER_STATE_STOPPED: {
                                     OnMVTServerStopped();
                                     break;
                                 }
@@ -464,9 +644,14 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_vw_sect_content__andro_dev_nfo.setExpanded(false);
         m_vw_sect_content__ctrlr_nfo.expand();
         m_vw_sect_content__ctrlr_nfo.setExpanded(true);
+        m_vw_sect_content__mbgl_nfo.collapse();
+        m_vw_sect_content__mbgl_nfo.setExpanded(false);
 
         m_sect_content__item__srvr_console_output.setVisibility(View.GONE);
         m_tv_tegola_console_output.setMovementMethod(new ScrollingMovementMethod());
+
+        m_edt_val_root_url.setText(BuildConfig.mbgl_test_extern_mvt_server_root_url);
+        m_edt_val_capabilities.setText(BuildConfig.mbgl_test_extern_mvt_server_endpoint);
 
         //now queue up initial automated UI actions
         new Handler().postDelayed(new Runnable() {
@@ -474,14 +659,20 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             public void run() {
                 if (savedInstanceState == null || !savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false))
                     start_controller_fgs();
-                Intent intent_query_mvt_server_is_running = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.IS_RUNNING);
+                Intent intent_query_mvt_server_is_running = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING);
                 sendBroadcast(intent_query_mvt_server_is_running);
-                Intent intent_query_mvt_server_listen_port = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.LISTEN_PORT);
+                Intent intent_query_mvt_server_listen_port = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING);
                 sendBroadcast(intent_query_mvt_server_listen_port);
+
+                //default to local MVT server (tegola) for MBGL
+                m_rg_val_mvt_source_sel.clearCheck();
+                m_rg_val_mvt_source_sel.check(R.id.rb_val_mvt_source_sel__local);
+                m_rg_val_mvt_source_sel.callOnClick();
 
                 //reconcile expandable sections UI with initial "expanded" state
                 m_vw_sect_content__andro_dev_nfo.callOnClick();
                 m_vw_sect_content__ctrlr_nfo.callOnClick();
+                m_vw_sect_content__mbgl_nfo.callOnClick();
 
                 m_tv_tegola_console_output__scroll_max();
 
@@ -489,16 +680,6 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 m_scvw_main__scroll_max();
             }
         }, 50);
-
-//        if (BuildConfig.mbgl_test_style_json) {
-//            Log.d(TAG, "onPostCreate: BuildConfig.mbgl_test_style_json==true --> starting mbgl mapview with test mbgl_style_url " + BuildConfig.mbgl_test_style_json_url);
-//            new Handler().postDelayed(new Runnable() {
-//                @Override
-//                public void run() {
-//                    mbgl_map_start(BuildConfig.mbgl_test_style_json_url);
-//                }
-//            }, 50);
-//        }
 
         super.onPostCreate(savedInstanceState);
     }
@@ -510,6 +691,28 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+                //get mbgl config shared prefs
+                if (SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CONNECT_TIMEOUT.getValue() == null) {
+                    Log.d(TAG, "onResume.async.runnable.run: int shared pref " + SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CONNECT_TIMEOUT.toString() + " is not set - default to BuildConfig.mbgl_http_connect_timeout==" + BuildConfig.mbgl_http_connect_timeout);
+                    SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CONNECT_TIMEOUT.setValue(BuildConfig.mbgl_http_connect_timeout);
+                }
+                m_edt_val_http_client_cfg__connect_timeout.setText(Integer.toString(SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CONNECT_TIMEOUT.getValue()));
+                if (SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__READ_TIMEOUT.getValue() == null) {
+                    Log.d(TAG, "onResume.async.runnable.run: int shared pref " + SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__READ_TIMEOUT.toString() + " is not set - default to BuildConfig.mbgl_http_read_timeout==" + BuildConfig.mbgl_http_read_timeout);
+                    SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__READ_TIMEOUT.setValue(BuildConfig.mbgl_http_read_timeout);
+                }
+                m_edt_val_http_client_cfg__read_timeout.setText(Integer.toString(SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__READ_TIMEOUT.getValue()));
+                if (SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__MAX_REQ_PER_HOST.getValue() == null) {
+                    Log.d(TAG, "onResume.async.runnable.run: int shared pref " + SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__MAX_REQ_PER_HOST.toString() + " is not set - default to BuildConfig.mbgl_http_max_requests_per_host==" + BuildConfig.mbgl_http_max_requests_per_host);
+                    SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__MAX_REQ_PER_HOST.setValue(BuildConfig.mbgl_http_max_requests_per_host);
+                }
+                m_edt_val_http_client_cfg__max_requests_per_host.setText(Integer.toString(SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__MAX_REQ_PER_HOST.getValue()));
+                if (SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CACHE_SIZE.getValue() == null) {
+                    Log.d(TAG, "onResume.async.runnable.run: int shared pref " + SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CACHE_SIZE.toString() + " is not set - default to BuildConfig.mbgl_http_cache_size==" + BuildConfig.mbgl_http_cache_size);
+                    SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CACHE_SIZE.setValue(BuildConfig.mbgl_http_cache_size);
+                }
+                m_edt_val_http_client_cfg__cache_size.setText(Integer.toString(SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CACHE_SIZE.getValue()));
+
                 //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER__IS_GEOPACKAGE val
                 if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue() == true) {
                     m_rb_val_provider_type_sel__gpkg.setChecked(true);
@@ -555,6 +758,9 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                     break;
                 case R.id.btn_sect__ctrlr_nfo__expand:
                     expandable_section = m_vw_sect_content__ctrlr_nfo;
+                    break;
+                case R.id.btn_sect__mbgl_nfo__expand:
+                    expandable_section = m_vw_sect_content__mbgl_nfo;
                     break;
                 default: return;
             }
@@ -933,6 +1139,14 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         }
     };
 
+    private void toggle_expandable_view(final ExpandableRelativeLayout erl, boolean expand) {
+        if (expand)
+            erl.expand();
+        else
+            erl.collapse();
+
+    }
+
     private final View.OnClickListener OnClickListener__m_btn_srvr_ctrl = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -940,6 +1154,11 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             Boolean srvr_started = (Boolean)btn_srvr_ctrl.getTag(R.id.TAG__SRVR_RUNNING);
             if (srvr_started == null || !srvr_started) {
                 start_mvt_server();
+                if (m_vw_sect_content__mbgl_nfo.isExpanded()) {
+                    m_vw_sect_content__mbgl_nfo.collapse();
+                    m_vw_sect_content__mbgl_nfo.setExpanded(false);
+                    reconcile_expandable_section(m_vw_sect_content__mbgl_nfo);
+                }
             } else {
                 stop_mvt_server();
             }
@@ -1136,6 +1355,10 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             }
             case R.id.sect_content__ctrlr_nfo: {
                 btn_toggle = m_btn_sect__ctrlr_nfo__expand;
+                break;
+            }
+            case R.id.sect_content__mbgl_nfo: {
+                btn_toggle = m_btn_sect__mbgl_nfo__expand;
                 break;
             }
         }
@@ -1528,7 +1751,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             sb_srvr_status.append(" (pid " + pid + ")");
         textview_setColorizedText(m_tv_val_srvr_status, sb_srvr_status.toString(), getString(R.string.running), Color.GREEN);
         m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_RUNNING, true);
-        m_btn_srvr_ctrl.setText(getString(R.string.stop));
+        m_btn_srvr_ctrl.setText(getString(R.string.close_tile_stream));
         //now disable edit-config button
         m_btn_config_sel_local__edit_file.setEnabled(false);
         m_tv_tegola_console_output.setText("");
@@ -1536,13 +1759,13 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     //process stream-output (STDOUT/STDERR) and logcat-output helper functions associated w/ server-started state
     private void OnMVTServerOutputLogcat(final String logcat_line) {
-        sv_append_mvt_server_console_output("LOGCAT> " + logcat_line);
+        sv_append_mvt_server_console_output("LOGCAT", logcat_line);
     }
     private void OnMVTServerOutputStdErr(final String stderr_line) {
-        sv_append_mvt_server_console_output("STDERR> " + stderr_line);
+        sv_append_mvt_server_console_output("STDERR", stderr_line);
     }
     private void OnMVTServerOutputStdOut(final String stdout_line) {
-        sv_append_mvt_server_console_output("STDOUT> " + stdout_line);
+        sv_append_mvt_server_console_output("STDOUT", stdout_line);
     }
     private void m_tv_tegola_console_output__scroll_max() {
         m_tv_tegola_console_output.postDelayed(new Runnable() {
@@ -1558,8 +1781,32 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             }
         }, 50);
     }
-    private void sv_append_mvt_server_console_output(final String s) {
-        m_tv_tegola_console_output.append(s + "\n");
+    private void sv_append_mvt_server_console_output(final String source, final String s) {
+        if (s == null || s.trim().isEmpty())
+            return;
+        int color = Color.YELLOW;
+        String s_src_trimmed = "UNSPECIFIED";
+        if (source != null && !source.isEmpty()) {
+            s_src_trimmed = source.trim();
+            switch (source) {
+                case "STDOUT":
+                    color = Color.GREEN;
+                    break;
+                case "STDERR":
+                    color = Color.RED;
+                    break;
+                case "LOGCAT":
+                    color = Color.CYAN;
+                    break;
+            }
+        }
+        StringBuilder sb_line = new StringBuilder();
+        sb_line.append(s_src_trimmed + "> ");
+        sb_line.append(s);
+        sb_line.append("\n");
+        SpannableString ss_line = new SpannableString(sb_line.toString());
+        ss_line.setSpan(new ForegroundColorSpan(color), 0, s_src_trimmed.length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        m_tv_tegola_console_output.append(ss_line);
         m_tv_tegola_console_output__scroll_max();
         m_scvw_main__scroll_max();
     }
@@ -1569,13 +1816,16 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         if (srvr_started != null && srvr_started == true) {
             String s_srvr_status = m_tv_val_srvr_status.getText().toString() + "\n\t\tlistening on port " + port;
             textview_setColorizedText(m_tv_val_srvr_status, s_srvr_status, getString(R.string.running), Color.GREEN);
-            mbgl_map_start__tegola();
+            mbgl_map_start();
         }
     }
 
-    private void mbgl_map_start__tegola() {
-        Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.READ_JSON);
-        intent_mvt_server_read_json.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.MVT_SERVER__READ_JSON__PURPOSE, Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP);
+    private void mbgl_map_start() {
+        Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+        intent_mvt_server_read_json.putExtra(
+            Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
+            Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+        );
         sendBroadcast(intent_mvt_server_read_json);
     }
 
@@ -1638,15 +1888,15 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                                             Log.d(TAG, "parse_tegola_capabilities_json: \"layers\"[" + j + "].\"name\" == \"" + layer.name + "\"");
                                             layer.minzoom = json_layer.getDouble("minzoom");
                                             Log.d(TAG, "parse_tegola_capabilities_json: \"layers\"[" + j + "].\"minzoom\" == \"" + layer.minzoom + "\"");
-                                            if (tegolaCapabilities.parsed.maps_layers_inf_minzoom == -1.0 || tegolaCapabilities.parsed.maps_layers_inf_minzoom < layer.minzoom) {
-                                                Log.d(TAG, "parse_tegola_capabilities_json: found new inf(minzoom) == " + layer.minzoom);
-                                                tegolaCapabilities.parsed.maps_layers_inf_minzoom = layer.minzoom;
+                                            if (tegolaCapabilities.parsed.maps_layers_minzoom == -1.0 || layer.minzoom < tegolaCapabilities.parsed.maps_layers_minzoom) {
+                                                Log.d(TAG, "parse_tegola_capabilities_json: found new minzoom == " + layer.minzoom);
+                                                tegolaCapabilities.parsed.maps_layers_minzoom = layer.minzoom;
                                             }
                                             layer.maxzoom = json_layer.getDouble("maxzoom");
                                             Log.d(TAG, "parse_tegola_capabilities_json: \"layers\"[" + j + "].\"maxzoom\" == \"" + layer.maxzoom + "\"");
-                                            if (tegolaCapabilities.parsed.maps_layers_sup_maxzoom == -1.0 || tegolaCapabilities.parsed.maps_layers_sup_maxzoom > layer.maxzoom) {
-                                                Log.d(TAG, "parse_tegola_capabilities_json: found new sup(maxzoom) == " + layer.maxzoom);
-                                                tegolaCapabilities.parsed.maps_layers_sup_maxzoom = layer.maxzoom;
+                                            if (tegolaCapabilities.parsed.maps_layers_maxzoom == -1.0 || layer.maxzoom > tegolaCapabilities.parsed.maps_layers_maxzoom) {
+                                                Log.d(TAG, "parse_tegola_capabilities_json: found new maxzoom == " + layer.maxzoom);
+                                                tegolaCapabilities.parsed.maps_layers_maxzoom = layer.maxzoom;
                                             }
                                             al_layers.add(layer);
                                         }
@@ -1664,8 +1914,8 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 }
                 tegolaCapabilities.parsed.maps = al_maps.toArray(new TegolaCapabilities.Parsed.Map[al_maps.size()]);
                 Log.d(TAG, "parse_tegola_capabilities_json: post-parse: tegolaCapabilities.parsed.maps contains " + tegolaCapabilities.parsed.maps.length + " elements");
-                Log.d(TAG, "parse_tegola_capabilities_json: post-parse: tegolaCapabilities.parsed.maps_layers_inf_minzoom == " + tegolaCapabilities.parsed.maps_layers_inf_minzoom);
-                Log.d(TAG, "parse_tegola_capabilities_json: post-parse: tegolaCapabilities.parsed.maps_layers_sup_maxzoom == " + tegolaCapabilities.parsed.maps_layers_sup_maxzoom);
+                Log.d(TAG, "parse_tegola_capabilities_json: post-parse: tegolaCapabilities.parsed.maps_layers_minzoom == " + tegolaCapabilities.parsed.maps_layers_minzoom);
+                Log.d(TAG, "parse_tegola_capabilities_json: post-parse: tegolaCapabilities.parsed.maps_layers_maxzoom == " + tegolaCapabilities.parsed.maps_layers_maxzoom);
             } else {
                 Log.e(TAG, "parse_tegola_capabilities_json: tegola capabilities json does not contain \"maps\" json array!");
             }
@@ -1693,7 +1943,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                     Log.d(TAG, "mbgl_map_start: adding drawerlistener m_drawerlayout_main__DrawerToggle to m_drawerlayout");
                     m_drawerlayout.addDrawerListener(m_drawerlayout_main__DrawerToggle);
                     Log.d(TAG, "mbgl_map_start: attaching drawerhandle R.layout.drawer_handle to m_drawerlayout_content__drawer");
-                    m_drawer_handle = DrawerHandle.attach(m_drawerlayout_content__drawer, R.layout.drawer_handle, 0.45f);
+                    m_drawer_handle = DrawerHandle.attach(m_drawerlayout_content__drawer, R.layout.drawer_handle, 0.95f);
                     Log.d(TAG, "mbgl_map_start: unlocking drawer");
                     m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                     m_drawer_handle.openDrawer();
@@ -1710,9 +1960,12 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             case "/capabilities": {
                 final TegolaCapabilities tegolaCapabilities = parse_tegola_capabilities_json(s_tegola_url_root, json);
                 switch (purpose) {
-                    case Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.JSON_READ__PURPOSE__VALUE.LOAD_MAP: {
-                        if (tegolaCapabilities.parsed.maps.length > 0)
+                    case Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                        if (tegolaCapabilities.parsed.maps.length > 0) {
                             mbgl_map_start(tegolaCapabilities);
+                            if (!s_tegola_url_root.contains("localhost"))
+                                m_btn_stream_tiles.setText(getString(R.string.close_tile_stream));
+                        }
                         break;
                     }
                 }
@@ -1762,7 +2015,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         Log.d(TAG, "OnMVTServerStopped: updating status-related UX");
         textview_setColorizedText(m_tv_val_srvr_status, getString(R.string.stopped), getString(R.string.stopped), Color.RED);
         m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_RUNNING, false);
-        m_btn_srvr_ctrl.setText(getString(R.string.start));
+        m_btn_srvr_ctrl.setText(getString(R.string.open_tile_stream));
         m_btn_config_sel_local__edit_file.setEnabled(true);
         m_tv_tegola_console_output.setText("");
         m_sect_content__item__srvr_console_output.setVisibility(View.GONE);
@@ -1770,36 +2023,36 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     private void start_controller_fgs() {
         m_tv_val_ctrlr_status.setText(getString(R.string.starting));
-        Intent intent_start_controller_fgs = new Intent(MainActivity.this, FGS.class);
-        intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.START);
-        intent_start_controller_fgs.putExtra(Constants.Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS, MainActivity.class.getName());
+        Intent intent_start_controller_fgs = new Intent(MainActivity.this, go_spatial.com.github.tegola.mobile.android.controller.FGS.class);
+        intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.START.STRING);
+        intent_start_controller_fgs.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.START.EXTRA_KEY.HARNESS_CLASS_NAME.STRING, MainActivity.class.getName());
         startService(intent_start_controller_fgs);
     }
 
     private void stop_controller_fgs() {
         m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
-        Intent intent_stop_controller_fgs = new Intent(MainActivity.this, FGS.class);
-        intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.STOP);
+        Intent intent_stop_controller_fgs = new Intent(MainActivity.this, go_spatial.com.github.tegola.mobile.android.controller.FGS.class);
+        intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.STOP.STRING);
         stopService(intent_stop_controller_fgs);
     }
 
     private void start_mvt_server() {
-        Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.START);
+        Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.STRING);
         String s_config_toml = null;
         boolean gpkg_provider = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue();
-        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, gpkg_provider);
+        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.STRING, gpkg_provider);
         if (gpkg_provider) {
             intent_start_mvt_server.putExtra(
-                    Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE,
+                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.BUNDLE.STRING,
                     SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue()
             );
             intent_start_mvt_server.putExtra(
-                    Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS,
+                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.BUNDLE.PROPS.STRING,
                     SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue()
             );
         } else {
             boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue();
-            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__IS_REMOTE, remote_config);
+            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.CONFIG.REMOTE.STRING, remote_config);
             if (!remote_config) {
                 File
                         f_filesDir = getFilesDir()
@@ -1812,13 +2065,13 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             } else
                 s_config_toml = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue();
         }
-        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__PATH, s_config_toml);
+        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.CONFIG.PATH.STRING, s_config_toml);
         sendBroadcast(intent_start_mvt_server);
     }
 
     private void stop_mvt_server() {
         mbgl_map_stop();
-        Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.STOP);
+        Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING);
         sendBroadcast(intent_stop_mvt_server);
     }
 }

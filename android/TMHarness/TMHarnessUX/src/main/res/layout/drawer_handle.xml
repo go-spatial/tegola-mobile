@@ -17,13 +17,12 @@
         <ImageView
             android:layout_width="25dp"
             android:layout_height="25dp"
-            app:srcCompat="@drawable/ic_chevron_left_black_24dp"
-            android:contentDescription="show map"
             android:background="@android:color/transparent"
+            android:contentDescription="show map"
+            android:cropToPadding="false"
             android:tint="@color/mapbox_blue"
-        />
+            app:srcCompat="@drawable/ic_chevron_left_black_24dp" />
 
-        <!--
         <ImageView
             android:layout_width="25dp"
             android:layout_height="25dp"
@@ -32,7 +31,6 @@
             android:background="@android:color/transparent"
             android:tint="@color/mapbox_blue"
         />
-        -->
 
     </LinearLayout>
 
@@ -53,7 +51,7 @@
             android:tint="@color/mapbox_blue"
         />
         -->
-
+        <!--
         <ImageView
             android:layout_width="25dp"
             android:layout_height="25dp"
@@ -62,6 +60,7 @@
             android:background="@android:color/transparent"
             android:tint="@color/mapbox_blue"
         />
+        -->
 
     </LinearLayout>
 

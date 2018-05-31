@@ -62,15 +62,15 @@ public class FGS extends Service {
 
     @Override
     public int onStartCommand(Intent intent, /*@IntDef(value = {Service.START_FLAG_REDELIVERY, Service.START_FLAG_RETRY}, flag = true)*/ int flags, int startId) {
-        Constants.Enums.E_INTENT_ACTION__FGS_CONTROL_REQUEST e_fgs_ctrl_request = Constants.Enums.E_INTENT_ACTION__FGS_CONTROL_REQUEST.fromString(intent != null ? intent.getAction() : null);
+        Constants.Enums.E_INTENT_ACTION__REQUEST e_fgs_ctrl_request = Constants.Enums.E_INTENT_ACTION__REQUEST.fromString(intent != null ? intent.getAction() : null);
         if (e_fgs_ctrl_request != null) {
             switch (e_fgs_ctrl_request) {
-                case FGS__START: {
-                    String s_class_harness = intent.getStringExtra(Constants.Strings.INTENT.ACTION.FGS_COMMAND_REQUEST.EXTRA__KEY.FGS__START_FOREGROUND__HARNESS);
+                case FGS_COMMAND_START: {
+                    String s_class_harness = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.START.EXTRA_KEY.HARNESS_CLASS_NAME.STRING);
                     Log.i(TAG, "onStartCommand: Received START request from harness " + s_class_harness);
 
                     if (!m_is_running) {
-                        Intent intent_notify_service_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_STARTING);
+                        Intent intent_notify_service_starting = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STARTING.STRING);
                         sendBroadcast(intent_notify_service_starting);
 
                         try {
@@ -92,11 +92,11 @@ public class FGS extends Service {
                     }
 
                     Log.d(TAG, "onStartCommand: start sequence complete - notifying harness...");
-                    Intent intent_notify_service_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.CONTROLLER__FOREGROUND_RUNNING);
+                    Intent intent_notify_service_started = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.RUNNING.STRING);
                     sendBroadcast(intent_notify_service_started);
                     break;
                 }
-                case FGS__STOP: {
+                case FGS_COMMAND_STOP: {
                     Log.i(TAG, "Received STOP request");
                     stop_tegola();
                     stopForeground(true);
@@ -188,69 +188,101 @@ public class FGS extends Service {
 
         //set BR to listen for client mvt-server-control-request
         m_filter_br_client_control_request = new IntentFilter();
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.START);
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.STOP);
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.READ_JSON);
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.IS_RUNNING);
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.LISTEN_PORT);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.STRING);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING);
         m_br_client_control_request = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent != null) {
                     Log.d(TAG, "m_br_client_control_request received: " + intent.getAction());
-                    switch (intent.getAction()) {
-                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.START: {
+                    Constants.Enums.E_INTENT_ACTION__REQUEST eReq = Constants.Enums.E_INTENT_ACTION__REQUEST.fromString(intent.getAction());
+                    switch (eReq) {
+                        case MVT_SERVER_CONTROL_START: {
                             MVT_SERVER_START_SPEC server_start_spec = null;
-                            if (intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__PROVIDER__IS_GPKG, false))
+                            if (intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.STRING, false))
                                 server_start_spec = new MVT_SERVER_START_SPEC__GPKG_PROVIDER(
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__GPKG_PROVIDER__BUNDLE__PROPS)
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.BUNDLE.STRING),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.BUNDLE.PROPS.STRING)
                                 );
                             else {
                                 server_start_spec = new MVT_SERVER_START_SPEC__POSTGIS_PROVIDER(
-                                        intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__IS_REMOTE, false)
-                                        , intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.EXTRA__KEY.MVT_SERVER__START__CONFIG__PATH)
+                                        intent.getBooleanExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.CONFIG.REMOTE.STRING, false)
+                                        , intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.CONFIG.PATH.STRING)
                                 );
                             }
                             handle_mvt_server_control_request__start(server_start_spec);
                             break;
                         }
-                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.READ_JSON: {
-                            String s_purpose = intent.getStringExtra(Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.MVT_SERVER__READ_JSON__PURPOSE);
+                        case MVT_SERVER_HTTP_URL_API_READ_JSON: {
+                            String s_purpose = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING);
+                            if (s_purpose == null || s_purpose.isEmpty()) {
+                                s_purpose = Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING;
+                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_READ_JSON): "
+                                    + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING
+                                    + " string extra is null or empty - setting s_purpose==\"" + s_purpose + "\""
+                                );
+                            }
+                            String s_root_url = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING);
+                            if (s_root_url == null || s_root_url.isEmpty()) {
+                                s_root_url = "http://localhost:" + m_i_tegola_listen_port;
+                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_READ_JSON): "
+                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING
+                                        + " string extra is null or empty - setting s_root_url==\"" + s_root_url + "\""
+                                );
+                            }
+                            String s_endpoint = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING);
+                            if (s_endpoint == null || s_endpoint.isEmpty()) {
+                                s_endpoint = "/capabilities";
+                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_READ_JSON): "
+                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING
+                                        + " string extra is null or empty - setting s_endpoint==\"" + s_endpoint + "\""
+                                );
+                            }
                             switch (s_purpose) {
-                                case Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP: {
-                                    read_tegola_json("/capabilities", Constants.Strings.INTENT.ACTION.MVT_SERVER_HTTP_URL_API.EXTRA_KEY.READ_JSON__PURPOSE__VALUE.LOAD_MAP);
+                                case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                                    read_tegola_json(
+                                        s_root_url,
+                                        s_endpoint,
+                                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                                    );
                                     break;
                                 }
                                 default: {
-                                    //TODO: handle different read-json purpose
+                                    read_tegola_json(
+                                        s_root_url,
+                                        s_endpoint,
+                                        s_purpose
+                                    );
                                 }
                             }
                             break;
                         }
-                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_CONTROL_REQUEST.STOP: {
+                        case MVT_SERVER_CONTROL_STOP: {
                             stop_tegola();
                             break;
                         }
-                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.IS_RUNNING: {
+                        case MVT_SERVER_STATE_IS_RUNNING: {
                             if (m_process_tegola != null && m_thread_tegola_process_monitor != null && m_thread_tegola_process_monitor.isAlive()) {
-                                //notify br receivers MVT_SERVER__RUNNING
-                                Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__RUNNING);
+                                //notify br receivers MVT_SERVER_STATE_RUNNING
+                                Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.STRING);
                                 if (m_process_tegola_pid != -1)
-                                    intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, m_process_tegola_pid.intValue());
+                                    intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.EXTRA_KEY.PID.STRING, m_process_tegola_pid.intValue());
                                 fgs_asn__update(getString(R.string.running) + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid: ""));
                                 sendBroadcast(intent_notify_server_started);
                             } else {
-                                Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
+                                Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING);
                                 fgs_asn__update(getString(R.string.stopped));
                                 sendBroadcast(intent_notify_server_stopped);
                             }
                             break;
                         }
-                        case Constants.Strings.INTENT.ACTION.MVT_SERVER_STATE_QUERY.LISTEN_PORT: {
+                        case MVT_SERVER_STATE_LISTEN_PORT: {
                             if (m_process_tegola != null && m_thread_tegola_process_monitor != null && m_thread_tegola_process_monitor.isAlive() && m_i_tegola_listen_port != null) {
-                                Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
-                                intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, m_i_tegola_listen_port.intValue());
+                                Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.STRING);
+                                intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.EXTRA_KEY.PORT.STRING, m_i_tegola_listen_port.intValue());
                                 fgs_asn__update(
                             getString(R.string.running)
                                     + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid : "")
@@ -389,29 +421,29 @@ public class FGS extends Service {
     private void handle_mvt_server_control_request__start(@NonNull final MVT_SERVER_START_SPEC server_start_spec) {
         try {
             final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());   //this line just asserts tegola bin supports this device's ABI
-            start_tegola(server_start_spec);  //note that this function internally handles sending the MVT_SERVER__STARTING and MVT_SERVER__RUNNING notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
+            start_tegola(server_start_spec);  //note that this function internally handles sending the MVT_SERVER_STATE_STARTING and MVT_SERVER_STATE_RUNNING notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
         } catch (IOException e) {
             e.printStackTrace();
-            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
-            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING, e.getMessage());
             fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         } catch (Exceptions.UnsupportedCPUABIException e) {
             e.printStackTrace();
-            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
-            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING, e.getMessage());
             fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         } catch (Exceptions.InvalidTegolaArgumentException e) {
             e.printStackTrace();
-            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
-            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING, e.getMessage());
             fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         } catch (UnknownMVTServerStartSpecType e) {
             e.printStackTrace();
-            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__START_FAILED);
-            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__START_FAILED__REASON, e.getMessage());
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING, e.getMessage());
             fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
         }
@@ -520,7 +552,7 @@ public class FGS extends Service {
 
         Log.i(TAG, "start_tegola: starting new tegola server process...");
         //notify br_receivers (if any) server starting
-        Intent intent_notify_server_starting = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STARTING);
+        Intent intent_notify_server_starting = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STARTING.STRING);
         fgs_asn__update(getString(R.string.starting));
         sendBroadcast(intent_notify_server_starting);
 
@@ -538,13 +570,13 @@ public class FGS extends Service {
         Log.d(TAG, "start_tegola: starting tegola server process (cmdline is '" + s_cmdline + "' and will run in " + s_working_dir + ")...");
         m_process_tegola = pb.start();
 
-        //immediately notify br receivers MVT_SERVER__STOPPED if we fail to create tegola process
+        //immediately notify br receivers MVT_SERVER_STATE_STOPPED if we fail to create tegola process
         if (m_process_tegola == null) {
             m_thread_tegola_process_stdout_monitor = null;
             m_thread_tegola_process_stderr_monitor = null;
             m_process_tegola = null;
             m_tegola_process_is_running = false;
-            Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
+            Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING);
             fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_server_stopped);
             return false;
@@ -556,10 +588,10 @@ public class FGS extends Service {
         m_process_tegola_pid = getPid(m_process_tegola);
         Log.i(TAG, "start_tegola: tegola server process " + (m_process_tegola_pid != -1 ? "(pid " + m_process_tegola_pid + ") ": "") + "started");
 
-        //notify br receivers MVT_SERVER__RUNNING
-        Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__RUNNING);
+        //notify br receivers MVT_SERVER_STATE_RUNNING
+        Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.STRING);
         if (m_process_tegola_pid != -1)
-            intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__STARTED__PID, m_process_tegola_pid.intValue());
+            intent_notify_server_started.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.EXTRA_KEY.PID.STRING, m_process_tegola_pid.intValue());
         fgs_asn__update(getString(R.string.running) + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid: ""));
         sendBroadcast(intent_notify_server_started);
 
@@ -600,8 +632,8 @@ public class FGS extends Service {
                                             try {
                                                 while ((s_line = reader_logcat_process_inputstream.readLine()) != null) {
                                                     if (s_line.contains(m_process_tegola_pid + ":")) {
-                                                        Intent intent_notify_server_output_logcat = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__LOGCAT);
-                                                        intent_notify_server_output_logcat.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__LOGCAT__LINE, s_line);
+                                                        Intent intent_notify_server_output_logcat = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.STRING);
+                                                        intent_notify_server_output_logcat.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.EXTRA_KEY.LINE.STRING, s_line);
                                                         sendBroadcast(intent_notify_server_output_logcat);
                                                     }
                                                 }
@@ -688,8 +720,8 @@ public class FGS extends Service {
                         try {
                             while ((s_line = reader_tegola_process_stderr.readLine()) != null) {
                                 Log.e(TAG, "tegola_STDERR_output: " + s_line);
-                                Intent intent_notify_server_output_stderr = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDERR);
-                                intent_notify_server_output_stderr.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDERR__LINE, s_line);
+                                Intent intent_notify_server_output_stderr = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING);
+                                intent_notify_server_output_stderr.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.EXTRA_KEY.LINE.STRING, s_line);
                                 sendBroadcast(intent_notify_server_output_stderr);
 
                                 if (!found_listen_port) {
@@ -699,10 +731,10 @@ public class FGS extends Service {
                                         s_port = s_port.substring(s_port.indexOf(":") + 1).trim();
                                         Log.d(TAG, "tegola_STDERR_output: confirmed tegola process (PID " + m_process_tegola_pid+ ") is listening on localhost:" + s_port);
 
-                                        //notify br receivers MVT_SERVER__LISTENING
+                                        //notify br receivers MVT_SERVER_STATE_LISTENING
                                         m_i_tegola_listen_port = Integer.valueOf(s_port);
-                                        Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
-                                        intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, m_i_tegola_listen_port.intValue());
+                                        Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.STRING);
+                                        intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.EXTRA_KEY.PORT.STRING, m_i_tegola_listen_port.intValue());
                                         fgs_asn__update(
                                                 getString(R.string.running)
                                                         + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid : "")
@@ -761,8 +793,8 @@ public class FGS extends Service {
                         try {
                             while ((s_line = reader_tegola_process_stdout.readLine()) != null) {
                                 Log.d(TAG, "tegola_STDOUT_output: " + s_line);
-                                Intent intent_notify_server_output_stdout = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__OUTPUT__STDOUT);
-                                intent_notify_server_output_stdout.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__OUTPUT__STDOUT__LINE, s_line);
+                                Intent intent_notify_server_output_stdout = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING);
+                                intent_notify_server_output_stdout.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.EXTRA_KEY.LINE.STRING, s_line);
                                 sendBroadcast(intent_notify_server_output_stdout);
 
                                 if (!found_listen_port) {
@@ -772,10 +804,10 @@ public class FGS extends Service {
                                         s_port = s_port.substring(s_port.indexOf(":") + 1).trim();
                                         Log.d(TAG, "tegola_STDOUT_output: confirmed tegola process (PID " + m_process_tegola_pid+ ") is listening on localhost:" + s_port);
 
-                                        //notify br receivers MVT_SERVER__LISTENING
+                                        //notify br receivers MVT_SERVER_STATE_LISTENING
                                         m_i_tegola_listen_port = Integer.valueOf(s_port);
-                                        Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
-                                        intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, m_i_tegola_listen_port.intValue());
+                                        Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.STRING);
+                                        intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.EXTRA_KEY.PORT.STRING, m_i_tegola_listen_port.intValue());
                                         fgs_asn__update(
                                                 getString(R.string.running)
                                                         + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid : "")
@@ -871,7 +903,7 @@ public class FGS extends Service {
                     m_process_tegola_pid = null;
                     m_tegola_process_is_running = false;
 
-                    Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPED);
+                    Intent intent_notify_server_stopped = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING);
                     //Log.d(TAG, "tegola_process_monitor_thread: broadcasting intent \"" + intent_notify_server_stopped.getAction() + "\"");
                     sendBroadcast(intent_notify_server_stopped);
                     //Log.d(TAG, "tegola_process_monitor_thread: updating ASNB w/ \"" + getString(R.string.stopped) + "\"");
@@ -889,13 +921,12 @@ public class FGS extends Service {
         public String json_url_endpoint = "";
         public String json_string = "";
     }
-    private void read_tegola_json(final String json_url_endpoint, final String purpose) {
+    private void read_tegola_json(final String root_url, final String json_url_endpoint, final String purpose) {
         final TegolaJSON tegolaJSON = new TegolaJSON();
 
-        //get default map from tegola "capabilities" endpoint, then construct url path to its mbgl style json url, and finally start mapbox using it
         StringBuilder sb_json = new StringBuilder();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        tegolaJSON.root_url = "http://localhost:" + m_i_tegola_listen_port;
+        tegolaJSON.root_url = root_url;
         tegolaJSON.json_url_endpoint = json_url_endpoint;
 
         Utils.HTTP.Get.exec(
@@ -929,11 +960,23 @@ public class FGS extends Service {
                         tegolaJSON.json_string = baos.toString();
                         Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onReadComplete: json content is:\n" + tegolaJSON.json_string);
                         baos.close();
-                        Intent intent_notify_mvt_server_json_read = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__JSON_READ);
-                        intent_notify_mvt_server_json_read.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__PURPOSE, Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.JSON_READ__PURPOSE__VALUE.LOAD_MAP);
-                        intent_notify_mvt_server_json_read.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__ROOT_URL, tegolaJSON.root_url);
-                        intent_notify_mvt_server_json_read.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__JSON_ENDPOINT, tegolaJSON.json_url_endpoint);
-                        intent_notify_mvt_server_json_read.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__JSON_READ__JSON, tegolaJSON.json_string);
+                        Intent intent_notify_mvt_server_json_read = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+                        intent_notify_mvt_server_json_read.putExtra(
+                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
+                            purpose
+                        );
+                        intent_notify_mvt_server_json_read.putExtra(
+                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING,
+                            tegolaJSON.root_url
+                        );
+                        intent_notify_mvt_server_json_read.putExtra(
+                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING,
+                            tegolaJSON.json_url_endpoint
+                        );
+                        intent_notify_mvt_server_json_read.putExtra(
+                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.CONTENT.STRING,
+                            tegolaJSON.json_string
+                        );
                         sendBroadcast(intent_notify_mvt_server_json_read);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -969,9 +1012,9 @@ public class FGS extends Service {
 //                            i_port = 8080;  //punt to best known default listen port
 //                            Log.w(TAG, "tegola_process_monitor_thread: could not confirm listen port for tegola process (PID " + m_process_tegola_pid.toString() + "); assuming tegola is listening on default port " + i_port + " - note that this could be wrong if tegola startup is delayed");
 //                        }
-//                        //notify br receivers MVT_SERVER__LISTENING
-//                        Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__LISTENING);
-//                        intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.EXTRA__KEY.MVT_SERVER__LISTENING__PORT, i_port);
+//                        //notify br receivers MVT_SERVER_STATE_LISTENING
+//                        Intent intent_notify_server_listening = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER_STATE_LISTENING);
+//                        intent_notify_server_listening.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.EXTRA_KEY.MVT_SERVER__LISTENING__PORT, i_port);
 //                        fgs_asn__update(
 //                                getString(R.string.started)
 //                                        + (m_process_tegola_pid != -1 ? ", pid " + m_process_tegola_pid : "")
@@ -985,7 +1028,7 @@ public class FGS extends Service {
         boolean wasrunning = false;
         if (m_process_tegola != null) {
             Log.i(TAG, "stop_tegola: destroying mvt server tegola process (pid " + m_process_tegola_pid + ")...");
-            Intent intent_notify_server_stopping = new Intent(Constants.Strings.INTENT.ACTION.CTRLR_NOTIFICATION.MVT_SERVER__STOPPING);
+            Intent intent_notify_server_stopping = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING);
             fgs_asn__update(getString(R.string.stopping));
             sendBroadcast(intent_notify_server_stopping);
             m_process_tegola.destroy();
