@@ -783,11 +783,11 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                         Utils.HTTP.AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
                                         File file = httpUrl_to_local_file.get_file();
                                         sb_alert_msg
-                                                .append("Remote geopackage-bundle file ")
+                                                .append("Geopackage-bundle file ")
                                                 .append(httpUrl_to_local_file.get_url().toString())
-                                                .append(" has been successfully installed to: \n")
+                                                .append(" has been successfully installed to: \n\n")
                                                 .append("\t" + File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + file.getName())
-                                                .append("\n\n");
+                                                .append("\n\n\n");
                                     }
                                     alertDialog.setMessage(sb_alert_msg.toString());
                                     alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",

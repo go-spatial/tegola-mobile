@@ -123,8 +123,8 @@ public class FGS extends Service {
         return notificationBuilder
             .setContentTitle(s_title)
             .setContentText(s_status)
+            .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
             .setSmallIcon(R.drawable.ic_stat_satellite_black)
-            .setLargeIcon(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher), 128, 128, false))
             .setContentIntent(pending_intent_bring_harness_to_foreground)
             .setOngoing(true)
             .build();
