@@ -78,13 +78,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Set;
 
+import go_spatial.com.github.tegola.mobile.android.controller.Exceptions;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.REQUEST_CODES;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
-public class MainActivity extends AppCompatActivity implements TegolaMBGLFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements MBGLFragment.OnFragmentInteractionListener {
     private static final String TAG = MainActivity.class.getName();
 
     private DrawerLayout m_drawerlayout = null;
@@ -96,15 +98,15 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     private ScrollView m_scvw_main = null;
 
     //andro_dev info - UI objects
-    private Button m_btn_sect__andro_dev_nfo__expand = null;
-    private ExpandableRelativeLayout m_vw_sect_content__andro_dev_nfo = null;
-    private TextView m_tv_val_CPU_ABI = null;
-    private TextView m_tv_val_API_level = null;
+//    private Button m_btn_sect__andro_dev_nfo__expand = null;
+//    private ExpandableRelativeLayout m_vw_sect_content__andro_dev_nfo = null;
+//    private TextView m_tv_val_CPU_ABI = null;
+//    private TextView m_tv_val_API_level = null;
 
     //ctrlr info - UI objects
-    private Button m_btn_sect__ctrlr_nfo__expand = null;
-    private ExpandableRelativeLayout m_vw_sect_content__ctrlr_nfo = null;
-    private TextView m_tv_val_ctrlr_status = null;
+//    private Button m_btn_sect__ctrlr_nfo__expand = null;
+//    private ExpandableRelativeLayout m_vw_sect_content__ctrlr_nfo = null;
+//    private TextView m_tv_val_ctrlr_status = null;
 
     //mbgl info - UI objects
     private Button m_btn_sect__mbgl_nfo__expand = null;
@@ -156,10 +158,10 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     private View m_sect__remote_srvr_nfo = null;
     private EditText m_edt_val_root_url = null;
-    private EditText m_edt_val_capabilities = null;
+//    private EditText m_edt_val_capabilities = null;
     private Button m_btn_stream_tiles = null;
 
-    private final TegolaMBGLFragment mb_frag = new TegolaMBGLFragment();
+    private final MBGLFragment mb_frag = new MBGLFragment();
 
     private BroadcastReceiver m_br_ctrlr_notifications = null;
     private IntentFilter m_br_ctrlr_notifications_filter = null;
@@ -263,14 +265,14 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
         m_scvw_main = (ScrollView)findViewById(R.id.sv_main);
 
-        m_btn_sect__andro_dev_nfo__expand = (Button)findViewById(R.id.btn_sect__andro_dev_nfo__expand);
-        m_vw_sect_content__andro_dev_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__andro_dev_nfo);
-        m_tv_val_CPU_ABI = (TextView)findViewById(R.id.tv_val_CPU_ABI);
-        m_tv_val_API_level = (TextView)findViewById(R.id.tv_val_API_level);
-
-        m_btn_sect__ctrlr_nfo__expand = (Button)findViewById(R.id.btn_sect__ctrlr_nfo__expand);
-        m_vw_sect_content__ctrlr_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__ctrlr_nfo);
-        m_tv_val_ctrlr_status = (TextView)findViewById(R.id.tv_val_tegola_ctrlr_status);
+//        m_btn_sect__andro_dev_nfo__expand = (Button)findViewById(R.id.btn_sect__andro_dev_nfo__expand);
+//        m_vw_sect_content__andro_dev_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__andro_dev_nfo);
+//        m_tv_val_CPU_ABI = (TextView)findViewById(R.id.tv_val_CPU_ABI);
+//        m_tv_val_API_level = (TextView)findViewById(R.id.tv_val_API_level);
+//
+//        m_btn_sect__ctrlr_nfo__expand = (Button)findViewById(R.id.btn_sect__ctrlr_nfo__expand);
+//        m_vw_sect_content__ctrlr_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__ctrlr_nfo);
+//        m_tv_val_ctrlr_status = (TextView)findViewById(R.id.tv_val_tegola_ctrlr_status);
 
         m_btn_sect__mbgl_nfo__expand = (Button)findViewById(R.id.btn_sect__mbgl_nfo__expand);
         m_vw_sect_content__mbgl_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__mbgl_nfo);
@@ -308,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
         m_sect__remote_srvr_nfo = findViewById(R.id.sect__remote_srvr_nfo);
         m_edt_val_root_url = (EditText)findViewById(R.id.edt_val_root_url);
-        m_edt_val_capabilities = (EditText)findViewById(R.id.edt_val_capabilities);
+//        m_edt_val_capabilities = (EditText)findViewById(R.id.edt_val_capabilities);
         m_btn_stream_tiles = (Button)findViewById(R.id.btn_stream_tiles);
 
         //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
@@ -325,8 +327,8 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_btn_srvr_ctrl.setTag(R.id.TAG__SRVR_RUNNING, false);
 
         //associate listeners for user-UI-interaction
-        m_btn_sect__andro_dev_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
-        m_btn_sect__ctrlr_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
+//        m_btn_sect__andro_dev_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
+//        m_btn_sect__ctrlr_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
         m_btn_sect__mbgl_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
         m_rb_val_mvt_source_sel__local.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -475,16 +477,16 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                             public void run() {
                                 Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
                                 intent_mvt_server_read_json.putExtra(
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
+                                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
                                 );
                                 intent_mvt_server_read_json.putExtra(
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING,
-                                        root_url
+                                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING,
+                                    root_url
                                 );
                                 intent_mvt_server_read_json.putExtra(
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING,
-                                        endpoint
+                                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING,
+                                    endpoint
                                 );
                                 sendBroadcast(intent_mvt_server_read_json);
                             }
@@ -523,6 +525,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.STRING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING);
         m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING);
         m_br_ctrlr_notifications = new BroadcastReceiver() {
@@ -588,6 +591,15 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                                     );
                                     break;
                                 }
+                                case MVT_SERVER_HTTP_URL_API_READ_JSON_FAILED: {
+                                    OnMVTServerJSONReadFailed(
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.ROOT_URL.STRING),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.ENDPOINT.STRING),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.PURPOSE.STRING),
+                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.REASON.STRING)
+                                    );
+                                    break;
+                                }
                                 case MVT_SERVER_STATE_STOPPING: {
                                     OnMVTServerStopping();
                                     break;
@@ -631,8 +643,8 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         setTitle(getString(R.string.app_name) + " - build " + BuildConfig.VERSION_NAME);
 
         //set andro_dev info fixed val content
-        m_tv_val_CPU_ABI.setText(Constants.Enums.CPU_ABI.fromDevice().toString());
-        m_tv_val_API_level.setText(Build.VERSION.SDK);
+//        m_tv_val_CPU_ABI.setText(Constants.Enums.CPU_ABI.fromDevice().toString());
+//        m_tv_val_API_level.setText(Build.VERSION.SDK);
 
         m_drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
@@ -640,18 +652,17 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         OnControllerStopped();
 
         //set expandable sections UI initial "expanded" state
-        m_vw_sect_content__andro_dev_nfo.collapse();
-        m_vw_sect_content__andro_dev_nfo.setExpanded(false);
-        m_vw_sect_content__ctrlr_nfo.expand();
-        m_vw_sect_content__ctrlr_nfo.setExpanded(true);
+//        m_vw_sect_content__andro_dev_nfo.collapse();
+//        m_vw_sect_content__andro_dev_nfo.setExpanded(false);
+//        m_vw_sect_content__ctrlr_nfo.expand();
+//        m_vw_sect_content__ctrlr_nfo.setExpanded(true);
         m_vw_sect_content__mbgl_nfo.collapse();
         m_vw_sect_content__mbgl_nfo.setExpanded(false);
 
         m_sect_content__item__srvr_console_output.setVisibility(View.GONE);
         m_tv_tegola_console_output.setMovementMethod(new ScrollingMovementMethod());
 
-        m_edt_val_root_url.setText(BuildConfig.mbgl_test_extern_mvt_server_root_url);
-        m_edt_val_capabilities.setText(BuildConfig.mbgl_test_extern_mvt_server_endpoint);
+        m_edt_val_root_url.setText(BuildConfig.mbgl_default_remote_mvt_server_url);
 
         //now queue up initial automated UI actions
         new Handler().postDelayed(new Runnable() {
@@ -664,14 +675,14 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
                 Intent intent_query_mvt_server_listen_port = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING);
                 sendBroadcast(intent_query_mvt_server_listen_port);
 
-                //default to local MVT server (tegola) for MBGL
+                //default to local MVT server for MBGL
                 m_rg_val_mvt_source_sel.clearCheck();
                 m_rg_val_mvt_source_sel.check(R.id.rb_val_mvt_source_sel__local);
                 m_rg_val_mvt_source_sel.callOnClick();
 
                 //reconcile expandable sections UI with initial "expanded" state
-                m_vw_sect_content__andro_dev_nfo.callOnClick();
-                m_vw_sect_content__ctrlr_nfo.callOnClick();
+//                m_vw_sect_content__andro_dev_nfo.callOnClick();
+//                m_vw_sect_content__ctrlr_nfo.callOnClick();
                 m_vw_sect_content__mbgl_nfo.callOnClick();
 
                 m_tv_tegola_console_output__scroll_max();
@@ -753,12 +764,12 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         public void onClick(View v) {
             ExpandableRelativeLayout expandable_section = null;
             switch (v.getId()) {
-                case R.id.btn_sect__andro_dev_nfo__expand:
-                    expandable_section = m_vw_sect_content__andro_dev_nfo;
-                    break;
-                case R.id.btn_sect__ctrlr_nfo__expand:
-                    expandable_section = m_vw_sect_content__ctrlr_nfo;
-                    break;
+//                case R.id.btn_sect__andro_dev_nfo__expand:
+//                    expandable_section = m_vw_sect_content__andro_dev_nfo;
+//                    break;
+//                case R.id.btn_sect__ctrlr_nfo__expand:
+//                    expandable_section = m_vw_sect_content__ctrlr_nfo;
+//                    break;
                 case R.id.btn_sect__mbgl_nfo__expand:
                     expandable_section = m_vw_sect_content__mbgl_nfo;
                     break;
@@ -1328,7 +1339,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
         }
     };
 
-    //TegolaMBGLFragment overrides
+    //MBGLFragment overrides
     @Override
     public void onFragmentInteraction(E_MBGL_FRAG_ACTION e_mbgl_frag_action) {
         switch (e_mbgl_frag_action) {
@@ -1349,14 +1360,14 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     private void reconcile_expandable_section(@NonNull final ExpandableRelativeLayout expandable_section) {
         Button btn_toggle = null;
         switch (expandable_section.getId()) {
-            case R.id.sect_content__andro_dev_nfo: {
-                btn_toggle = m_btn_sect__andro_dev_nfo__expand;
-                break;
-            }
-            case R.id.sect_content__ctrlr_nfo: {
-                btn_toggle = m_btn_sect__ctrlr_nfo__expand;
-                break;
-            }
+//            case R.id.sect_content__andro_dev_nfo: {
+//                btn_toggle = m_btn_sect__andro_dev_nfo__expand;
+//                break;
+//            }
+//            case R.id.sect_content__ctrlr_nfo: {
+//                btn_toggle = m_btn_sect__ctrlr_nfo__expand;
+//                break;
+//            }
             case R.id.sect_content__mbgl_nfo: {
                 btn_toggle = m_btn_sect__mbgl_nfo__expand;
                 break;
@@ -1710,22 +1721,31 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
     //ControllerLib-related stuff
     private void OnControllerStarting() {
-        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
+//        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
     }
 
     private void OnControllerRunning() {
         m_controller_running = true;
         Log.d(TAG, "OnControllerRunning: set m_controller_running == " + m_controller_running);
-        m_tv_val_ctrlr_status.setText(getString(R.string.running));
-        m_tv_val_bin_ver.setText(Constants.Enums.TEGOLA_BIN.get_version_string());
+        try {
+            m_tv_val_bin_ver.setText(Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get_version_string());
+        } catch (PackageManager.NameNotFoundException e) {
+            //e.printStackTrace();
+        } catch (IOException e) {
+            //e.printStackTrace();
+        } catch (Exceptions.TegolaBinaryNotExecutableException e) {
+            //e.printStackTrace();
+        } catch (Exceptions.UnsupportedCPUABIException e) {
+            //e.printStackTrace();
+        }
     }
 
     private void OnControllerStopping() {
-        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
+//        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
     }
 
     private void OnControllerStopped() {
-        m_tv_val_ctrlr_status.setText(getString(R.string.stopped));
+//        m_tv_val_ctrlr_status.setText(getString(R.string.stopped));
     }
 
     private void OnMVTServerStarting() {
@@ -1931,12 +1951,12 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d(TAG, "mbgl_map_start: swapping drawer content to TegolaMBGLFragment");
+                    Log.d(TAG, "mbgl_map_start: swapping drawer content to MBGLFragment");
                     getSupportFragmentManager()
                             .beginTransaction()
                             .replace(
                                     R.id.drawerlayout_content__drawer__frag_container,
-                                    TegolaMBGLFragment.newInstance(tegolaCapabilities, BuildConfig.mbgl_debug_active),
+                                    MBGLFragment.newInstance(tegolaCapabilities, BuildConfig.mbgl_debug_active),
                                     FRAG_DRAWER_CONTENT
                             )
                             .commit();
@@ -1975,6 +1995,41 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
 
             }
         }
+    }
+
+    private void OnMVTServerJSONReadFailed(final String s_tegola_url_root, final String json_url_endpoint, final String purpose, final String s_reason) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                StringBuilder sb_alert_msg = new StringBuilder();
+                switch (purpose) {
+                    case Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                        alertDialog.setTitle("Failed loading maps!");
+                        sb_alert_msg.append("Could not parse/read mbgl style json from " + s_tegola_url_root + json_url_endpoint);
+                        break;
+                    }
+                    default: {
+                        alertDialog.setTitle("Failed loading JSON!");
+                        sb_alert_msg.append("Could not read json from " + s_tegola_url_root + json_url_endpoint);
+                        break;
+                    }
+                }
+                sb_alert_msg.append("\r");
+                sb_alert_msg.append("\r");
+                sb_alert_msg.append("Error: " + s_reason);
+                alertDialog.setMessage(sb_alert_msg.toString());
+                alertDialog.setButton(
+                    AlertDialog.BUTTON_NEUTRAL, "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    }
+                );
+                alertDialog.show();
+            }
+        });
     }
 
     private void OnMVTServerStopping() {
@@ -2022,7 +2077,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     }
 
     private void start_controller_fgs() {
-        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
+//        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
         Intent intent_start_controller_fgs = new Intent(MainActivity.this, go_spatial.com.github.tegola.mobile.android.controller.FGS.class);
         intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.START.STRING);
         intent_start_controller_fgs.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.START.EXTRA_KEY.HARNESS_CLASS_NAME.STRING, MainActivity.class.getName());
@@ -2030,7 +2085,7 @@ public class MainActivity extends AppCompatActivity implements TegolaMBGLFragmen
     }
 
     private void stop_controller_fgs() {
-        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
+//        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
         Intent intent_stop_controller_fgs = new Intent(MainActivity.this, go_spatial.com.github.tegola.mobile.android.controller.FGS.class);
         intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.STOP.STRING);
         stopService(intent_stop_controller_fgs);

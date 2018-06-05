@@ -83,7 +83,7 @@
     public static void main(...);
 }
 
--keep class go_spatial.com.github.tegola.mobile.android.controller.** { *; }
+-keep class go_spatial.com.github.tegola.mobile.android.controller.Exceptions$NativeSignalException
 #native/JNI related - END
 
 -keep class com.mapbox.geojson.** { *; }

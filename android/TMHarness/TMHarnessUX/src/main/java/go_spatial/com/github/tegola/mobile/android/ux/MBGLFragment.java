@@ -62,13 +62,13 @@ import static com.mapbox.mapboxsdk.maps.MapView.WILL_START_RENDERING_MAP;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link TegolaMBGLFragment.OnFragmentInteractionListener} interface
+ * {@link MBGLFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link TegolaMBGLFragment#newInstance} factory method to
+ * Use the {@link MBGLFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
-    public static final String TAG = TegolaMBGLFragment.class.getName();
+public class MBGLFragment extends android.support.v4.app.Fragment {
+    public static final String TAG = MBGLFragment.class.getName();
 
     /**
      * This interface must be implemented by activities that contain this
@@ -116,7 +116,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
 
     private final double ZOOM_BY = .25;
 
-    public TegolaMBGLFragment() {
+    public MBGLFragment() {
         // Required empty public constructor
     }
 
@@ -125,10 +125,10 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
      * this fragment using the provided parameters.
      *
      * @param tegolaCapabilities mbgl_style_url
-     * @return A new instance of fragment TegolaMBGLFragment.
+     * @return A new instance of fragment MBGLFragment.
      */
-    public static TegolaMBGLFragment newInstance(final TegolaCapabilities tegolaCapabilities, final boolean mbmap_debug_active) {
-        TegolaMBGLFragment fragment = new TegolaMBGLFragment();
+    public static MBGLFragment newInstance(final TegolaCapabilities tegolaCapabilities, final boolean mbmap_debug_active) {
+        MBGLFragment fragment = new MBGLFragment();
         Bundle args = new Bundle();
         args.putParcelable(ARG__TEGOLA_CAPABILITIES, tegolaCapabilities);
         args.putBoolean(ARG__MBMAP_DEBUG_ACTIVE, mbmap_debug_active);
@@ -180,7 +180,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
 //                            + " (" + n_running + " running and " + n_queued + " queued)"
 //            );
 //            if (loadingPanel != null) {
-//                TegolaMBGLFragment.this.getActivity().runOnUiThread(new Runnable() {
+//                MBGLFragment.this.getActivity().runOnUiThread(new Runnable() {
 //                    @Override
 //                    public void run() {
 //                        loadingPanel.setVisibility(View.VISIBLE);
@@ -204,7 +204,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
 //            );
 //            if (n_total == 0) {
 //                if (loadingPanel != null) {
-//                    TegolaMBGLFragment.this.getActivity().runOnUiThread(new Runnable() {
+//                    MBGLFragment.this.getActivity().runOnUiThread(new Runnable() {
 //                        @Override
 //                        public void run() {
 //                            loadingPanel.setVisibility(View.GONE);
@@ -256,7 +256,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
 //            );
 //            if (n_total == 0) {
 //                if (loadingPanel != null) {
-//                    TegolaMBGLFragment.this.getActivity().runOnUiThread(new Runnable() {
+//                    MBGLFragment.this.getActivity().runOnUiThread(new Runnable() {
 //                        @Override
 //                        public void run() {
 //                            loadingPanel.setVisibility(View.GONE);
@@ -284,7 +284,7 @@ public class TegolaMBGLFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View this_frag_layout_view = inflater.inflate(R.layout.fragment_mapbox, container, false);
+        View this_frag_layout_view = inflater.inflate(R.layout.fragment_mbgl, container, false);
 
         loadingPanel = this_frag_layout_view.findViewById(R.id.loadingPanel);
 

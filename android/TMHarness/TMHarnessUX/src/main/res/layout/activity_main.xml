@@ -29,146 +29,146 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
                 <!-- device info section: BEGIN -->
-                <LinearLayout
-                    android:id="@+id/sect__andro_dev_nfo"
-                    style="@style/Section"
-                    android:layout_marginTop="0dp">
-                    <!-- device info section heading: BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect__andro_dev_nfo__heading"
-                        style="@style/Section_Heading">
-                        <RelativeLayout
-                            style="@style/Section_Heading_Content">
-                            <Button
-                                android:id="@+id/btn_sect__andro_dev_nfo__expand"
-                                style="@style/Expandable_Section_Heading_Button"/>
+                <!--<LinearLayout-->
+                    <!--android:id="@+id/sect__andro_dev_nfo"-->
+                    <!--style="@style/Section"-->
+                    <!--android:layout_marginTop="0dp">-->
+                    <!--&lt;!&ndash; device info section heading: BEGIN &ndash;&gt;-->
+                    <!--<LinearLayout-->
+                        <!--android:id="@+id/sect__andro_dev_nfo__heading"-->
+                        <!--style="@style/Section_Heading">-->
+                        <!--<RelativeLayout-->
+                            <!--style="@style/Section_Heading_Content">-->
+                            <!--<Button-->
+                                <!--android:id="@+id/btn_sect__andro_dev_nfo__expand"-->
+                                <!--style="@style/Expandable_Section_Heading_Button"/>-->
 
-                            <TextView
-                                android:id="@+id/tv_sect_heading_lbl__andro_device_info"
-                                style="@style/Section_Heading_Content_Label"
-                                android:layout_alignBottom="@+id/btn_sect__andro_dev_nfo__expand"
-                                android:layout_alignTop="@+id/btn_sect__andro_dev_nfo__expand"
-                                android:layout_centerVertical="false"
-                                android:layout_toLeftOf="@+id/btn_sect__andro_dev_nfo__expand"
-                                android:layout_toStartOf="@+id/btn_sect__andro_dev_nfo__expand"
-                                android:text="@string/android_device_info"/>
-                        </RelativeLayout>
-                        <View
-                            android:id="@+id/vw_sect_heading_underscore__andro_dev_nfo"
-                            style="@style/Section_Heading_Underscore"/>
-                    </LinearLayout>
-                    <!-- device info section heading: END -->
-                    <!-- dev nfo section content: BEGIN -->
-                    <com.github.aakira.expandablelayout.ExpandableRelativeLayout
-                        android:id="@+id/sect_content__andro_dev_nfo"
-                        style="@style/Section_Content"
-                        app:ael_duration="200"
-                        app:ael_expanded="false"
-                        app:ael_interpolator="linear"
-                        app:ael_orientation="vertical">
-                        <!-- dev nfo section content item: CPU_ABI - BEGIN -->
-                        <LinearLayout
-                            android:id="@+id/sect_content__item__CPU_ABI"
-                            style="@style/Section_Content_Item"
-                            android:layout_alignParentTop="true">
+                            <!--<TextView-->
+                                <!--android:id="@+id/tv_sect_heading_lbl__andro_device_info"-->
+                                <!--style="@style/Section_Heading_Content_Label"-->
+                                <!--android:layout_alignBottom="@+id/btn_sect__andro_dev_nfo__expand"-->
+                                <!--android:layout_alignTop="@+id/btn_sect__andro_dev_nfo__expand"-->
+                                <!--android:layout_centerVertical="false"-->
+                                <!--android:layout_toLeftOf="@+id/btn_sect__andro_dev_nfo__expand"-->
+                                <!--android:layout_toStartOf="@+id/btn_sect__andro_dev_nfo__expand"-->
+                                <!--android:text="@string/android_device_info"/>-->
+                        <!--</RelativeLayout>-->
+                        <!--<View-->
+                            <!--android:id="@+id/vw_sect_heading_underscore__andro_dev_nfo"-->
+                            <!--style="@style/Section_Heading_Underscore"/>-->
+                    <!--</LinearLayout>-->
+                    <!--&lt;!&ndash; device info section heading: END &ndash;&gt;-->
+                    <!--&lt;!&ndash; dev nfo section content: BEGIN &ndash;&gt;-->
+                    <!--<com.github.aakira.expandablelayout.ExpandableRelativeLayout-->
+                        <!--android:id="@+id/sect_content__andro_dev_nfo"-->
+                        <!--style="@style/Section_Content"-->
+                        <!--app:ael_duration="200"-->
+                        <!--app:ael_expanded="false"-->
+                        <!--app:ael_interpolator="linear"-->
+                        <!--app:ael_orientation="vertical">-->
+                        <!--&lt;!&ndash; dev nfo section content item: CPU_ABI - BEGIN &ndash;&gt;-->
+                        <!--<LinearLayout-->
+                            <!--android:id="@+id/sect_content__item__CPU_ABI"-->
+                            <!--style="@style/Section_Content_Item"-->
+                            <!--android:layout_alignParentTop="true">-->
 
-                            <TextView
-                                android:id="@+id/tv_lbl_CPU_ABI"
-                                style="@style/Section_Content_Item_Label"
-                                android:text="@string/cpu_abi"
-                                android:visibility="visible"/>
+                            <!--<TextView-->
+                                <!--android:id="@+id/tv_lbl_CPU_ABI"-->
+                                <!--style="@style/Section_Content_Item_Label"-->
+                                <!--android:text="@string/cpu_abi"-->
+                                <!--android:visibility="visible"/>-->
 
-                            <TextView
-                                android:id="@+id/tv_val_CPU_ABI"
-                                style="@style/Section_Content_Item_Content"
-                                android:text="**placeholder__cpu_abi**"
-                                android:visibility="visible"/>
-                        </LinearLayout>
-                        <!-- dev nfo section content item: CPU_ABI - END -->
-                        <!-- dev nfo section content item: API level - BEGIN -->
-                        <LinearLayout
-                            android:id="@+id/sect_content__item__API_level"
-                            style="@style/Section_Content_Item"
-                            android:layout_below="@+id/sect_content__item__CPU_ABI">
+                            <!--<TextView-->
+                                <!--android:id="@+id/tv_val_CPU_ABI"-->
+                                <!--style="@style/Section_Content_Item_Content"-->
+                                <!--android:text="**placeholder__cpu_abi**"-->
+                                <!--android:visibility="visible"/>-->
+                        <!--</LinearLayout>-->
+                        <!--&lt;!&ndash; dev nfo section content item: CPU_ABI - END &ndash;&gt;-->
+                        <!--&lt;!&ndash; dev nfo section content item: API level - BEGIN &ndash;&gt;-->
+                        <!--<LinearLayout-->
+                            <!--android:id="@+id/sect_content__item__API_level"-->
+                            <!--style="@style/Section_Content_Item"-->
+                            <!--android:layout_below="@+id/sect_content__item__CPU_ABI">-->
 
-                            <TextView
-                                android:id="@+id/tv_lbl_API_level"
-                                style="@style/Section_Content_Item_Label"
-                                android:text="@string/api_level"
-                                android:visibility="visible"/>
+                            <!--<TextView-->
+                                <!--android:id="@+id/tv_lbl_API_level"-->
+                                <!--style="@style/Section_Content_Item_Label"-->
+                                <!--android:text="@string/api_level"-->
+                                <!--android:visibility="visible"/>-->
 
-                            <TextView
-                                android:id="@+id/tv_val_API_level"
-                                style="@style/Section_Content_Item_Content"
-                                android:text="**placeholder__api_level**"
-                                android:visibility="visible"/>
-                        </LinearLayout>
-                        <!-- dev nfo section content item: API level - BEGIN -->
-                    </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
-                    <!-- dev nfo section content: END -->
-                </LinearLayout>
+                            <!--<TextView-->
+                                <!--android:id="@+id/tv_val_API_level"-->
+                                <!--style="@style/Section_Content_Item_Content"-->
+                                <!--android:text="**placeholder__api_level**"-->
+                                <!--android:visibility="visible"/>-->
+                        <!--</LinearLayout>-->
+                        <!--&lt;!&ndash; dev nfo section content item: API level - BEGIN &ndash;&gt;-->
+                    <!--</com.github.aakira.expandablelayout.ExpandableRelativeLayout>-->
+                    <!--&lt;!&ndash; dev nfo section content: END &ndash;&gt;-->
+                <!--</LinearLayout>-->
                 <!-- device info section: END -->
                 <!-- controller info section: BEGIN -->
-                <LinearLayout
-                    android:id="@+id/sect__ctrlr_nfo"
-                    style="@style/Section">
-                    <!-- controller info section heading: BEGIN -->
-                    <LinearLayout
-                        android:id="@+id/sect__ctrlr_nfo__heading"
-                        style="@style/Section_Heading">
+                <!--<LinearLayout-->
+                    <!--android:id="@+id/sect__ctrlr_nfo"-->
+                    <!--style="@style/Section">-->
+                    <!--&lt;!&ndash; controller info section heading: BEGIN &ndash;&gt;-->
+                    <!--<LinearLayout-->
+                        <!--android:id="@+id/sect__ctrlr_nfo__heading"-->
+                        <!--style="@style/Section_Heading">-->
 
-                        <RelativeLayout
-                            style="@style/Section_Heading_Content">
+                        <!--<RelativeLayout-->
+                            <!--style="@style/Section_Heading_Content">-->
 
-                            <Button
-                                android:id="@+id/btn_sect__ctrlr_nfo__expand"
-                                style="@style/Expandable_Section_Heading_Button"/>
+                            <!--<Button-->
+                                <!--android:id="@+id/btn_sect__ctrlr_nfo__expand"-->
+                                <!--style="@style/Expandable_Section_Heading_Button"/>-->
 
-                            <TextView
-                                android:id="@+id/tv_sect_heading_lbl__ctrlr_nfo"
-                                style="@style/Section_Heading_Content_Label"
-                                android:layout_alignBottom="@+id/btn_sect__ctrlr_nfo__expand"
-                                android:layout_alignTop="@+id/btn_sect__ctrlr_nfo__expand"
-                                android:layout_toLeftOf="@+id/btn_sect__ctrlr_nfo__expand"
-                                android:layout_toStartOf="@+id/btn_sect__ctrlr_nfo__expand"
-                                android:text="@string/ctrlr_info"/>
-                        </RelativeLayout>
+                            <!--<TextView-->
+                                <!--android:id="@+id/tv_sect_heading_lbl__ctrlr_nfo"-->
+                                <!--style="@style/Section_Heading_Content_Label"-->
+                                <!--android:layout_alignBottom="@+id/btn_sect__ctrlr_nfo__expand"-->
+                                <!--android:layout_alignTop="@+id/btn_sect__ctrlr_nfo__expand"-->
+                                <!--android:layout_toLeftOf="@+id/btn_sect__ctrlr_nfo__expand"-->
+                                <!--android:layout_toStartOf="@+id/btn_sect__ctrlr_nfo__expand"-->
+                                <!--android:text="@string/ctrlr_info"/>-->
+                        <!--</RelativeLayout>-->
 
-                        <View
-                            android:id="@+id/vw_sect_heading_underscore__ctrlr_nfo"
-                            style="@style/Section_Heading_Underscore"/>
-                    </LinearLayout>
-                    <!-- controller info section heading: END -->
-                    <!-- controller nfo section content: BEGIN -->
-                    <com.github.aakira.expandablelayout.ExpandableRelativeLayout
-                        android:id="@+id/sect_content__ctrlr_nfo"
-                        style="@style/Section_Content"
-                        app:ael_duration="200"
-                        app:ael_expanded="false"
-                        app:ael_interpolator="linear"
-                        app:ael_orientation="vertical">
-                        <!-- controller nfo section content - STATUS - BEGIN -->
-                        <LinearLayout
-                            android:id="@+id/sect_content__item__ctrlr_status"
-                            style="@style/Section_Content_Item"
-                            android:layout_alignParentTop="true">
+                        <!--<View-->
+                            <!--android:id="@+id/vw_sect_heading_underscore__ctrlr_nfo"-->
+                            <!--style="@style/Section_Heading_Underscore"/>-->
+                    <!--</LinearLayout>-->
+                    <!--&lt;!&ndash; controller info section heading: END &ndash;&gt;-->
+                    <!--&lt;!&ndash; controller nfo section content: BEGIN &ndash;&gt;-->
+                    <!--<com.github.aakira.expandablelayout.ExpandableRelativeLayout-->
+                        <!--android:id="@+id/sect_content__ctrlr_nfo"-->
+                        <!--style="@style/Section_Content"-->
+                        <!--app:ael_duration="200"-->
+                        <!--app:ael_expanded="false"-->
+                        <!--app:ael_interpolator="linear"-->
+                        <!--app:ael_orientation="vertical">-->
+                        <!--&lt;!&ndash; controller nfo section content - STATUS - BEGIN &ndash;&gt;-->
+                        <!--<LinearLayout-->
+                            <!--android:id="@+id/sect_content__item__ctrlr_status"-->
+                            <!--style="@style/Section_Content_Item"-->
+                            <!--android:layout_alignParentTop="true">-->
 
-                            <TextView
-                                android:id="@+id/tv_lbl_ctrlr_status"
-                                style="@style/Section_Content_Item_Label"
-                                android:text="@string/ctrlr_status"
-                                android:visibility="visible"/>
+                            <!--<TextView-->
+                                <!--android:id="@+id/tv_lbl_ctrlr_status"-->
+                                <!--style="@style/Section_Content_Item_Label"-->
+                                <!--android:text="@string/ctrlr_status"-->
+                                <!--android:visibility="visible"/>-->
 
-                            <TextView
-                                android:id="@+id/tv_val_tegola_ctrlr_status"
-                                style="@style/Section_Content_Item_Content"
-                                android:text="@string/stopped"
-                                android:visibility="visible"/>
-                        </LinearLayout>
-                        <!-- controller nfo section content - STATUS - END -->
-                    </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
-                    <!-- controller nfo section content: END -->
-                </LinearLayout>
+                            <!--<TextView-->
+                                <!--android:id="@+id/tv_val_tegola_ctrlr_status"-->
+                                <!--style="@style/Section_Content_Item_Content"-->
+                                <!--android:text="@string/stopped"-->
+                                <!--android:visibility="visible"/>-->
+                        <!--</LinearLayout>-->
+                        <!--&lt;!&ndash; controller nfo section content - STATUS - END &ndash;&gt;-->
+                    <!--</com.github.aakira.expandablelayout.ExpandableRelativeLayout>-->
+                    <!--&lt;!&ndash; controller nfo section content: END &ndash;&gt;-->
+                <!--</LinearLayout>-->
                 <!-- controller info section: END -->
                 <!-- mbgl info section: BEGIN -->
                 <LinearLayout

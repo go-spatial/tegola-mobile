@@ -31,7 +31,9 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 
 public class FGS extends Service {
@@ -144,20 +146,8 @@ public class FGS extends Service {
             final Constants.Enums.CPU_ABI e_device_abi = Constants.Enums.CPU_ABI.fromDevice();
             if (e_device_abi == null)
                 throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
-            final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(e_device_abi);
-            if (e_tegola_bin == null)
-                throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
-            Log.d(TAG, "init: tegola bin is " + e_tegola_bin.name() + " for CPU_ABI " + e_device_abi.toString());
-            File f_tegola_bin_executable = new File(f_filesDir.getPath() + "/" + e_tegola_bin.name());
-            if (!f_tegola_bin_executable.exists()) {
-                Log.d(TAG, "init: transferring " + e_tegola_bin.name() + " raw res to private files dir...");
-                Utils.Files.copy_raw_res_to_app_file(getApplicationContext(), e_tegola_bin.raw_res_id(), e_tegola_bin.name(), Utils.Files.TM_APP_FILE_TYPE.PRIVATE);
-                if (f_tegola_bin_executable.exists() && !f_tegola_bin_executable.setExecutable(true))
-                    throw new Exceptions.TegolaBinaryNotExecutableException(e_tegola_bin.name());
-            }
-            Log.d(TAG, "init: " + e_tegola_bin.name() + " " + (f_tegola_bin_executable.exists() ? "exists" : "transfer to files dir failed!"));
-            if (f_tegola_bin_executable.exists())
-                get__tegola_version();
+            Utils.TEGOLA_BIN.getInstance(getApplicationContext());
+            get__tegola_version();
         } catch (Exceptions.UnsupportedCPUABIException e) {
             e.printStackTrace();
         } catch (Exceptions.TegolaBinaryNotExecutableException e) {
@@ -340,10 +330,7 @@ public class FGS extends Service {
 
     private void get__tegola_version() {
         try {
-            final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());   //this line just asserts tegola bin supports this device's ABI
-            final File
-                    f_filesDir = getFilesDir()
-                    , f_tegola_bin_executable = new File(f_filesDir.getPath() + File.separator + e_tegola_bin.name());
+            final File f_tegola_bin_executable = Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get();
             final String
                     s_tegola_bin_executable_path = f_tegola_bin_executable.getCanonicalPath()
                     ;
@@ -381,11 +368,27 @@ public class FGS extends Service {
                 }
                 if (m_s_version == null)
                     m_s_version = "unknown";
-                Constants.Enums.TEGOLA_BIN.set_version_string(m_s_version);
+                Utils.TEGOLA_BIN.getInstance(getApplicationContext()).set_version_string(m_s_version);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Constants.Enums.TEGOLA_BIN.set_version_string("unknown");
+            try {
+                Utils.TEGOLA_BIN.getInstance(getApplicationContext()).set_version_string("unknown");
+            } catch (PackageManager.NameNotFoundException e1) {
+                //
+            } catch (IOException e1) {
+                //e1.printStackTrace();
+            } catch (Exceptions.TegolaBinaryNotExecutableException e1) {
+                //e1.printStackTrace();
+            } catch (Exceptions.UnsupportedCPUABIException e1) {
+                //e1.printStackTrace();
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        } catch (Exceptions.TegolaBinaryNotExecutableException e) {
+            e.printStackTrace();
+        } catch (Exceptions.UnsupportedCPUABIException e) {
+            e.printStackTrace();
         }
     }
 
@@ -420,7 +423,7 @@ public class FGS extends Service {
     }
     private void handle_mvt_server_control_request__start(@NonNull final MVT_SERVER_START_SPEC server_start_spec) {
         try {
-            final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());   //this line just asserts tegola bin supports this device's ABI
+            Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get();
             start_tegola(server_start_spec);  //note that this function internally handles sending the MVT_SERVER_STATE_STARTING and MVT_SERVER_STATE_RUNNING notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
         } catch (IOException e) {
             e.printStackTrace();
@@ -446,17 +449,28 @@ public class FGS extends Service {
             intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING, e.getMessage());
             fgs_asn__update(getString(R.string.stopped));
             sendBroadcast(intent_notify_mvt_server_start_failed);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING, e.getMessage());
+            fgs_asn__update(getString(R.string.stopped));
+            sendBroadcast(intent_notify_mvt_server_start_failed);
+        } catch (Exceptions.TegolaBinaryNotExecutableException e) {
+            e.printStackTrace();
+            Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
+            intent_notify_mvt_server_start_failed.putExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING, e.getMessage());
+            fgs_asn__update(getString(R.string.stopped));
+            sendBroadcast(intent_notify_mvt_server_start_failed);
         }
     }
 
     private Process m_logcat_process = null;
 
-    private boolean start_tegola(@NonNull final MVT_SERVER_START_SPEC server_start_spec) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException, UnknownMVTServerStartSpecType {
+    private boolean start_tegola(@NonNull final MVT_SERVER_START_SPEC server_start_spec) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException, UnknownMVTServerStartSpecType, PackageManager.NameNotFoundException, Exceptions.TegolaBinaryNotExecutableException {
         m_process_tegola_pid = null;
-        final Constants.Enums.TEGOLA_BIN e_tegola_bin = Constants.Enums.TEGOLA_BIN.get_for(Constants.Enums.CPU_ABI.fromDevice());
         final File
                 f_filesDir = getFilesDir()
-                , f_tegola_bin_executable = new File(f_filesDir.getPath() + File.separator + e_tegola_bin.name());
+                , f_tegola_bin_executable = Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get();
         final String
                 s_tegola_bin_executable_path = f_tegola_bin_executable.getCanonicalPath()
                 ;
@@ -637,7 +651,7 @@ public class FGS extends Service {
                                                         sendBroadcast(intent_notify_server_output_logcat);
                                                     }
                                                 }
-                                                Thread.currentThread().sleep(100);
+                                                Thread.currentThread().sleep(1000);
                                             } catch (InterruptedIOException e1) {
                                                 //e1.printStackTrace();
                                                 try {
@@ -744,7 +758,7 @@ public class FGS extends Service {
                                     }
                                 }
                             }
-                            Thread.currentThread().sleep(100);
+                            Thread.currentThread().sleep(1000);
                         } catch (IOException e) {
 //                            e.printStackTrace();
                             if (reader_tegola_process_stderr != null) {
@@ -817,7 +831,7 @@ public class FGS extends Service {
                                     }
                                 }
                             }
-                            Thread.currentThread().sleep(100);
+                            Thread.currentThread().sleep(1000);
                         } catch (IOException e) {
 //                            e.printStackTrace();
                             if (reader_tegola_process_stdout != null) {
@@ -951,6 +965,24 @@ public class FGS extends Service {
                 public void onReadError(long n_remaining, Exception e) {
                     Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onReadError: n_remaining: " + n_remaining + "; error: " + e.getMessage());
                     e.printStackTrace();
+                    Intent intent_notify_mvt_server_json_read_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.STRING);
+                    intent_notify_mvt_server_json_read_failed.putExtra(
+                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.PURPOSE.STRING,
+                        purpose
+                    );
+                    intent_notify_mvt_server_json_read_failed.putExtra(
+                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.ROOT_URL.STRING,
+                        tegolaJSON.root_url
+                    );
+                    intent_notify_mvt_server_json_read_failed.putExtra(
+                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.ENDPOINT.STRING,
+                        tegolaJSON.json_url_endpoint
+                    );
+                    intent_notify_mvt_server_json_read_failed.putExtra(
+                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.REASON.STRING,
+                        e.getMessage()
+                    );
+                    sendBroadcast(intent_notify_mvt_server_json_read_failed);
                 }
 
                 @Override

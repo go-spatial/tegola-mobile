@@ -259,6 +259,21 @@ public class Constants {
                             }
                             interface READ_JSON_FAILED {
                                 String STRING = HTTP_URL_API.STRING + "." + "READ_JSON_FAILED";
+                                interface EXTRA_KEY {
+                                    String STRING = READ_JSON.STRING + "." + "EXTRA_KEY";
+                                    interface PURPOSE {
+                                        String STRING = EXTRA_KEY.STRING + "." + "PURPOSE";
+                                    }
+                                    interface ROOT_URL {
+                                        String STRING = READ_JSON.STRING + "." + "ROOT_URL";
+                                    }
+                                    interface ENDPOINT {
+                                        String STRING = READ_JSON.STRING + "." + "ENDPOINT";
+                                    }
+                                    interface REASON {
+                                        String STRING = READ_JSON.STRING + "." + "REASON";
+                                    }
+                                }
                             }
                         }
                     }
@@ -351,6 +366,7 @@ public class Constants {
             , MVT_SERVER_MONITOR_STDERR_OUTPUT
             , MVT_SERVER_MONITOR_STDOUT_OUTPUT
             , MVT_SERVER_HTTP_URL_API_READ_JSON
+            , MVT_SERVER_HTTP_URL_API_READ_JSON_FAILED
             , MVT_SERVER_STATE_STOPPING
             , MVT_SERVER_STATE_STOPPED
             ;
@@ -369,6 +385,7 @@ public class Constants {
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING: return MVT_SERVER_MONITOR_STDERR_OUTPUT;
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING: return MVT_SERVER_MONITOR_STDOUT_OUTPUT;
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING: return MVT_SERVER_HTTP_URL_API_READ_JSON;
+                    case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.STRING: return MVT_SERVER_HTTP_URL_API_READ_JSON_FAILED;
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING: return MVT_SERVER_STATE_STOPPING;
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING: return MVT_SERVER_STATE_STOPPED;
                     default: return null;
@@ -390,6 +407,7 @@ public class Constants {
                     case MVT_SERVER_MONITOR_STDERR_OUTPUT: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING;
                     case MVT_SERVER_MONITOR_STDOUT_OUTPUT: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING;
                     case MVT_SERVER_HTTP_URL_API_READ_JSON: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING;
+                    case MVT_SERVER_HTTP_URL_API_READ_JSON_FAILED: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.STRING;
                     case MVT_SERVER_STATE_STOPPING: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING;
                     case MVT_SERVER_STATE_STOPPED: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING;
                     default: return null;
@@ -461,69 +479,6 @@ public class Constants {
                     case mips64: return Strings.CPU_ABI.CPU_ABI__mips64;
                     default: return null;
                 }
-            }
-        }
-
-        enum TEGOLA_BIN {
-            tegola_bin__arm
-            , tegola_bin__x86
-            , tegola_bin__arm64
-            , tegola_bin__x86_64
-            ;
-
-            public final CPU_ABI[] supported_ABIs() {
-                switch (this) {
-                    case tegola_bin__arm: return new CPU_ABI[]{CPU_ABI.armeabi, CPU_ABI.armeabi_v7a};
-                    case tegola_bin__x86: return new CPU_ABI[]{CPU_ABI.x86};
-                    case tegola_bin__arm64: return new CPU_ABI[]{CPU_ABI.arm64_v8a};
-                    case tegola_bin__x86_64: return new CPU_ABI[]{CPU_ABI.x86_64};
-                    default: return null;
-                }
-            }
-
-            public final Integer min_api() {
-                switch (this) {
-                    case tegola_bin__arm:
-                    case tegola_bin__x86: return 16;
-                    case tegola_bin__arm64:
-                    case tegola_bin__x86_64: return 21;
-                    default: return null;
-                }
-            }
-
-            public final Integer raw_res_id() {
-                switch (this) {
-                    case tegola_bin__arm: return R.raw.tegola_bin__android_arm;
-                    case tegola_bin__x86: return R.raw.tegola_bin__android_x86;
-                    case tegola_bin__arm64: return R.raw.tegola_bin__android_arm64;
-                    case tegola_bin__x86_64: return R.raw.tegola_bin__android_x86_64;
-                    default: return null;
-                }
-            }
-
-            public static final TEGOLA_BIN get_for(final CPU_ABI for_cpu_abi) {
-                switch (for_cpu_abi) {
-                    case armeabi:
-                    case armeabi_v7a:   return tegola_bin__arm;
-
-                    case arm64_v8a:     return tegola_bin__arm64;
-
-                    case x86:
-                    case x86_64:        return tegola_bin__x86;
-
-                    case mips:          //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
-                    case mips64:        //not yet supported since not currently in list of supported platforms for golang; see https://gist.github.com/paulkramme/db58787a786a7b186396fc784ccf424b
-
-                    default:            return null;
-                }
-            }
-
-            private static String m_s_ver = "UNKNOWN";
-            public static void set_version_string(@NonNull final String s_ver) {
-                m_s_ver = s_ver;
-            }
-            public static String get_version_string() {
-                return m_s_ver;
             }
         }
 

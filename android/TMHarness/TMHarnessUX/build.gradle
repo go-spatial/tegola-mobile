@@ -1,18 +1,77 @@
 apply plugin: 'com.android.application'
 
 android {
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    aaptOptions {
+        cruncherEnabled = false
+    }
+
+    def vName = "_unknown_"
+    def vCode = "_unknown_"
+    def vMajor = "_unknown_"
+    def vMinor = "_unknown_"
+    def vSubMinor = "_unknown_"
+    def vBuild = "_unknown_"
+    def versionPropsFile = file('version.properties')
+    Properties versionProps = new Properties()
+    if (versionPropsFile.canRead()) {
+        versionProps.load(new FileInputStream(versionPropsFile))
+
+        vCode = versionProps['VERSION_CODE'].toInteger()
+        vMajor = versionProps['VERSION_MAJOR'].toInteger()
+        vMinor = versionProps['VERSION_MINOR'].toInteger()
+        vSubMinor = versionProps['VERSION_SUBMINOR'].toInteger()
+        vBuild = versionProps['VERSION_BUILD'].toInteger()
+
+        def b_isassemble = false
+        def assemble_type = "_unknown_"
+        List<String> runTasks = gradle.startParameter.getTaskNames()
+        for (String rt : runTasks) {
+            println "start runTask: \"" + rt + "\""
+            if (rt.contains("assemble")) {    //only rev. build and code numbers for assemble tasks
+                b_isassemble = true
+                vBuild++
+                if (rt.contains("Debug_proguard")) {
+                    println "assemble_type is: debug_proguard"
+                    assemble_type = "debug_proguard"
+                } else if (rt.contains("Debug")) {
+                    println "assemble_type is: debug"
+                    assemble_type = "debug"
+                } else if (rt.contains("Release")) {
+                    println "assemble_type is: release"
+                    assemble_type = "release"
+                }
+            }
+        }
+        vName = vMajor + "." + vMinor + "." + vSubMinor + "." + vBuild
+        versionProps['VERSION_CODE'] = vCode.toString()
+        versionProps['VERSION_MAJOR'] = vMajor.toString()
+        versionProps['VERSION_MINOR'] = vMinor.toString()
+        versionProps['VERSION_SUBMINOR'] = vSubMinor.toString()
+        versionProps['VERSION_BUILD'] = vBuild.toString()
+
+        if (b_isassemble)
+            project.logger.lifecycle("Assembling new " + assemble_type + " version " + vName.toString())
+    } else
+        throw new GradleException("Could not read version.properties!")
+
     //mbgl props dictates various aspects of build configs so we parse/validate it first
     def mbglPropsFile = file('mbgl.properties')
-    Properties mbglProps = null
-    String mbglapi_access_token = null
-    Integer mbgl_http_max_requests_per_host = null
-    Integer mbgl_http_connect_timeout = null
-    Integer mbgl_http_read_timeout = null
-    Integer mbgl_http_cache_size = null
-    Boolean mbgl_test_extern_mvt_server = null
-    String mbgl_test_extern_mvt_server_root_url = null
-    String mbgl_test_extern_mvt_server_endpoint = null
-    Boolean mbgl_debug_active = null
+    Properties mbglProps
+    String mbglapi_access_token
+    Integer mbgl_http_max_requests_per_host
+    Integer mbgl_http_connect_timeout
+    Integer mbgl_http_read_timeout
+    Integer mbgl_http_cache_size
+    String mbgl_default_remote_mvt_server_url
+    Boolean mbgl_debug_active
     if (mbglPropsFile.canRead()) {
         mbglProps = new Properties()
         mbglProps.load(new FileInputStream(mbglPropsFile))
@@ -23,7 +82,6 @@ android {
             throw new GradleException("failed read: mbgl.properties 'api_access_token' value is required")
         if (mbglapi_access_token.compareTo("YOUR_MAPBOX_API_ACCESS_TOKEN") == 0)
             throw new GradleException("mbgl.properties 'api_access_token' value not set! Please visit https://www.mapbox.com/account/access-tokens/ to create one and then set it in mbgl.properties file")
-
         String s_mbgl_http_connect_timeout = mbglProps['http_connect_timeout']
         if (s_mbgl_http_connect_timeout == null)
             throw new GradleException("failed read: mbgl.properties 'http_connect_timeout' value is required")
@@ -42,43 +100,36 @@ android {
         mbgl_http_cache_size = Integer.valueOf(s_mbgl_http_cache_size)
 
         //OPTIONAL PARAMS
-        String s_test_extern_mvt_server = mbglProps['test_extern_mvt_server']
-        mbgl_test_extern_mvt_server = s_test_extern_mvt_server != null ? Boolean.valueOf(s_test_extern_mvt_server) : false
-        mbgl_test_extern_mvt_server_root_url = mbglProps['test_extern_mvt_server_root_url']
-        if (mbgl_test_extern_mvt_server_root_url == null)
-            mbgl_test_extern_mvt_server_root_url = ""
-        mbgl_test_extern_mvt_server_endpoint = mbglProps['test_extern_mvt_server_endpoint']
-        if (mbgl_test_extern_mvt_server_endpoint == null)
-            mbgl_test_extern_mvt_server_endpoint = ""
+        mbgl_default_remote_mvt_server_url = mbglProps['default_remote_mvt_server_url']
+        if (mbgl_default_remote_mvt_server_url == null)
+            mbgl_default_remote_mvt_server_url = ""
         String s_mbgl_debug_active = mbglProps['debug_active']
         mbgl_debug_active = s_mbgl_debug_active != null ? Boolean.valueOf(s_mbgl_debug_active) : false
     } else
         throw new GradleException("Could not read mbgl.properties!")
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
+    def base_archive_name = "tegolamobile"
     defaultConfig {
+        applicationId "go_spatial.com.github.tegola.mobile.android.ux"
+        versionCode vCode
+        versionName vName
+        archivesBaseName = base_archive_name
+        minSdkVersion 16
+        targetSdkVersion 27
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
         buildConfigField "String", "mbglapi_access_token", "\"" + mbglapi_access_token + "\""
         buildConfigField "int", "mbgl_http_max_requests_per_host", mbgl_http_max_requests_per_host.toString()
         buildConfigField "int", "mbgl_http_connect_timeout", mbgl_http_connect_timeout.toString()
         buildConfigField "int", "mbgl_http_read_timeout", mbgl_http_read_timeout.toString()
         buildConfigField "int", "mbgl_http_cache_size", mbgl_http_cache_size.toString()
-        buildConfigField "boolean", "mbgl_test_extern_mvt_server", mbgl_test_extern_mvt_server.toString()
-        buildConfigField "String", "mbgl_test_extern_mvt_server_root_url", "\"" + mbgl_test_extern_mvt_server_root_url + "\""
-        buildConfigField "String", "mbgl_test_extern_mvt_server_endpoint", "\"" + mbgl_test_extern_mvt_server_endpoint + "\""
+        buildConfigField "String", "mbgl_default_remote_mvt_server_url", "\"" + mbgl_default_remote_mvt_server_url + "\""
         buildConfigField "boolean", "mbgl_debug_active", mbgl_debug_active.toString()
     }
 
     buildTypes {
         release {
-            buildConfigField "boolean", "mbgl_test_extern_mvt_server", "false"
-            buildConfigField "String", "mbgl_test_extern_mvt_server_root_url", "\"\""
-            buildConfigField "String", "mbgl_test_extern_mvt_server_endpoint", "\"\""
             buildConfigField "boolean", "mbgl_debug_active", "false"
-
             debuggable false
             minifyEnabled true
             shrinkResources true
@@ -91,13 +142,10 @@ android {
         }
         debug_proguard {
             initWith debug
-
             signingConfig signingConfigs.debug
-
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.debug.pro'
-
             matchingFallbacks = ['debug', 'release']
         }
     }
@@ -105,71 +153,57 @@ android {
     productFlavors {
     }
 
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
-    def versionPropsFile = file('version.properties')
-    def vName = "_unknown_"
-    if (versionPropsFile.canRead()) {
-        def Properties versionProps = new Properties()
-        versionProps.load(new FileInputStream(versionPropsFile))
+    //Map for the version code that gives each ABI a value.
+    def abiCodes = ['armeabi':1, 'armeabi-v7a':2, 'arm64-v8a':3, 'x86':4, 'x86_64':5]
+    splits {
+        // Configures multiple APKs based on ABI for release builds
+        abi {
+            def isReleaseBuild = false
 
-        def vCode = versionProps['VERSION_CODE'].toInteger()
-        def vMajor = versionProps['VERSION_MAJOR'].toInteger()
-        def vMinor = versionProps['VERSION_MINOR'].toInteger()
-        def vSubMinor = versionProps['VERSION_SUBMINOR'].toInteger()
-        def vBuild = versionProps['VERSION_BUILD'].toInteger()
-
-        List<String> runTasks = gradle.startParameter.getTaskNames();
-
-        def b_isassemble = false
-        def assemble_type = "_unknown_"
-        for (String rt : runTasks) {
-            println "current runTask: \"" + rt + "\""
-            if (rt.contains("assemble")) {    //only rev. build and code numbers for assemble tasks
-                b_isassemble = true
-                vBuild++
-                if (rt.contains("Debug_proguard")) {
-                    println "assemble_type is: debug_proguard"
-                    assemble_type = "debug_proguard"
-                } else if (rt.contains("Debug")) {
-                    println "assemble_type is: debug"
-                    assemble_type = "debug"
-                } else if (rt.contains("Release")) {
-                    println "assemble_type is: release"
-                    assemble_type = "release"
+            gradle.startParameter.taskNames.find {
+                // Enable split for release builds in different build flavors
+                // (assemblePaidRelease, assembleFreeRelease, etc.).
+                if (it.matches(".*:assemble.*Release")) {
+                    println "ABI filter for release build is enabled"
+                    isReleaseBuild = true
+                    return true // break
                 }
+
+                return false // continue
             }
-        }
-        vName = vMajor + "." + vMinor + "." + vSubMinor + "." + vBuild
-        if (b_isassemble) {
-            project.logger.lifecycle("Assembling new " + assemble_type + " version " + vName.toString())
-        }
 
-        versionProps['VERSION_CODE'] = vCode.toString()
-        versionProps['VERSION_MAJOR'] = vMajor.toString()
-        versionProps['VERSION_MINOR'] = vMinor.toString()
-        versionProps['VERSION_SUBMINOR'] = vSubMinor.toString()
-        versionProps['VERSION_BUILD'] = vBuild.toString()
-        versionProps.store(versionPropsFile.newWriter(), null)
+            // Enables building multiple APKs per ABI.
+            enable isReleaseBuild
 
-        def base_archive_name = "tegolamobile"
-        defaultConfig {
-            applicationId "go_spatial.com.github.tegola.mobile.android.ux"
-            versionCode vCode
-            versionName vName
-            archivesBaseName = base_archive_name
-            minSdkVersion 16
-            targetSdkVersion 27
-            testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        }
+            // By default all ABIs are included, so use reset() and include to specify that we only
+            // want APKs for x86, armeabi-v7a, and mips.
+            reset()
 
-        applicationVariants.all { variant ->
-            variant.outputs.all {
-                outputFileName = base_archive_name + "-" + vName + "-" + variant.buildType.name + ".apk"
-            }
+            // Specifies a list of ABIs that Gradle should create APKs for.
+            include "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+
+            // Specifies that we want to also generate a universal APK that includes all ABIs.
+            universalApk true
         }
-    } else {
-        throw new GradleException("Could not read version.properties!")
+    }
+
+    //if we're here, everything else has gone right... update version props file
+    versionProps.store(versionPropsFile.newWriter(), null)
+
+    //and now set final apk filename...
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            output ->
+                String apkfilename
+                if (variant.buildType.name.contains("release")) {
+                    // assigns a different version code for each output APK.
+                    def abiName = output.getFilter(com.android.build.OutputFile.ABI)
+                    output.versionCodeOverride = abiCodes.get(abiName, 0) * 100000 + variant.versionCode
+                    apkfilename = base_archive_name + "-" + vName + "-" + (abiName != null ? abiName + "-" : "") + variant.buildType.name + ".apk"
+                } else
+                    apkfilename = base_archive_name + "-" + vName + "-" + variant.buildType.name + ".apk"
+                outputFileName = apkfilename
+        }
     }
 }
 

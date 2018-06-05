@@ -84,14 +84,14 @@ Since tegola is written in Golang, we must use Golang and Gomobile build tools i
 		 - `$MY_GOLANG_WORKSPACE`
 	 2. Execute command-line: `docker pull trippiest1/tegola-android-xcompiler` - note that the image is approx 7GB, give or take, so the first time you pull this image from Docker Hub it will take some time... on the other hand, if you have already done so the effect of this command will either update the image if there have been any changes (or do nothing if there have been no changes to the image)
 	 3. Execute command-line:
-		 - `docker run --name="TM-tegola-bin-compiler" --privileged=true --rm=true -v  $MY_GOLANG_WORKSPACE/src/github.com/go-spatial/tegola:/usr/golang-workspace/src/github.com/go-spatial/tegola -v $MY_GOLANG_WORKSPACE/pkg/github.com/go-spatial/tegola:/usr/golang-workspace/pkg/github.com/go-spatial/tegola -v $MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android:/usr/android-studio-workspace/src/github.com/terranodo/tegola-mobile/android -e MY_ANDROID_STUDIO_WORKSPACE=/usr/android-studio-workspace -it trippiest1/tegola-android-xcompiler /bin/bash /usr/android-studio-workspace/src/github.com/terranodo/tegola-mobile/android/TMControllerSvcLib/TMControllerSvc/src/main/tegola-bin-buildscripts/linux/rebuild_tegola_android_all.sh`
-	 4. Provided android cross-compilation succeeds, tegola android-platform binaries will be placed within the raw resource directory of the Android Studio project
-		 - file location:  `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TMControllerSvcLib/TMControllerSvc/src/main/res/raw/`
-		 - filenames:
-			 - `tegola_bin__android_arm` (for CPU_ABIs: armeabi and armeabi-v7a)
-			 - `tegola_bin__android_arm64` (for CPU_ABI: arm64_v8a)
-			 - `tegola_bin__android_x86` (for CPU_ABI: x86)
-			 - `tegola_bin__android_x86_64` (for CPU_ABI: x86_64)
+		 - `docker run --name="TM-tegola-bin-compiler" --privileged=true --rm=true -v  $MY_GOLANG_WORKSPACE/src/github.com/go-spatial/tegola:/usr/golang-workspace/src/github.com/go-spatial/tegola -v $MY_GOLANG_WORKSPACE/pkg/github.com/go-spatial/tegola:/usr/golang-workspace/pkg/github.com/go-spatial/tegola -v $MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android:/usr/android-studio-workspace/src/github.com/terranodo/tegola-mobile/android -e MY_ANDROID_STUDIO_WORKSPACE=/usr/android-studio-workspace -it trippiest1/tegola-android-xcompiler /bin/bash /usr/android-studio-workspace/src/github.com/terranodo/tegola-mobile/android/TMControllerSvcLib/TMControllerSvc/src/main/tegola-bin-buildscripts/linux/rebuild_android_all.sh`
+	 4. Provided android cross-compilation succeeds, tegola android-platform binaries will be placed within the abi subddirectory of the libs folder of the TMControllerSvcLib project as follows
+		 - root:  `$MY_ANDROID_STUDIO_WORKSPACE/src/github.com/terranodo/tegola-mobile/android/TMControllerSvcLib/TMControllerSvc/src/main/libs/`
+		 - filenames --> subdirector(y/ies):
+			 - `tegola_bin__android_arm` --> /armeabi and /armeabi-v7a
+			 - `tegola_bin__android_arm64` --> /arm64_v8a
+			 - `tegola_bin__android_x86` --> /x86 and /x86_64
+			 - `tegola_bin__android_x86_64` --> NONE! (currently there is a bug in the NDK that renders the binary inoperable, so we use the x86 arch bin for x86_64 ABI)
 
 
 #### Build Tegola Mobile APK with Android Studio
