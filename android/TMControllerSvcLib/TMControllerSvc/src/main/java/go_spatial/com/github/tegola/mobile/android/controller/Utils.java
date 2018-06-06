@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.util.Patterns;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.Dispatcher;
@@ -88,7 +91,7 @@ public class Utils {
     }
 
     public static class Files {
-        private final static String TAG = Utils.Files.class.getName();
+        private final static String TAG = Utils.Files.class.getCanonicalName();
 
         public static class F_PUBLIC_ROOT_DIR extends File {
             private static F_PUBLIC_ROOT_DIR m_this = null;
@@ -252,10 +255,16 @@ public class Utils {
     }
 
     public static class HTTP {
-        private final static String TAG = Utils.HTTP.class.getName();
+        private final static String TAG = Utils.HTTP.class.getCanonicalName();
+
+        public static boolean isValidUrl(String url) {
+            Pattern p = Patterns.WEB_URL;
+            Matcher m = p.matcher(url.toLowerCase());
+            return m.matches();
+        }
 
         public static class Get {
-            private final static String TAG = Utils.HTTP.Get.class.getName();
+            private final static String TAG = Utils.HTTP.Get.class.getCanonicalName();
 
             public interface ContentHandler {
                 void onStartRead(long n_size);
@@ -362,7 +371,6 @@ public class Utils {
         }
 
         public static class AsyncGet {
-
             public static class HttpUrl_To_Local_File {
                 private final HttpUrl url;
                 public final HttpUrl get_url() {return url;}
@@ -439,7 +447,8 @@ public class Utils {
             }
 
             public static abstract class TaskStageHandler {
-                private final static String TAG = TaskStageHandler.class.getName();
+                private final static String TAG = "Utils.HTTP.AsyncGet" + TaskStageHandler.class.getSimpleName();
+
                 private HttpUrl_To_Local_File m_httpUrl_to_local_file = null;
                 private Task m_asyncgetfiletask = null;
                 private final Object m_asyncgetfiletask_sync_target = new Object();
@@ -469,7 +478,7 @@ public class Utils {
             }
 
             public static class Task extends AsyncTask <HttpUrl_To_Local_File, Void, Exception> {
-                private final static String TAG = Task.class.getName();
+                private final static String TAG = "Utils.HTTP.AsyncGet" + Task.class.getSimpleName();
 
                 private final TaskStageHandler m_asyncgetfiletask_stage_handler;
 
@@ -482,7 +491,8 @@ public class Utils {
                 }
 
                 private static class ChunkedResponseBody extends ResponseBody {
-                    private final static String TAG = Task.ChunkedResponseBody.class.getSimpleName();
+                    private final static String TAG = "Utils.HTTP.AsyncGet" + ChunkedResponseBody.class.getSimpleName();
+
                     private final ResponseBody m_responseBody;
                     private final TaskStageHandler m_asyncgetfiletask_stage_handler;
                     private BufferedSource m_bufferedSource;
@@ -820,8 +830,10 @@ public class Utils {
             public static abstract class TaskExecuteQueueListener {
                 private final LinkedHashMap<TaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map = new LinkedHashMap<TaskExecuteQueueItemExecutor, Exception>();
 
-                public abstract void onItemExecutor_PostExecute(final TaskExecuteQueueItemExecutor executor);
-                public abstract void onItemExecutor_Cancelled(final TaskExecuteQueueItemExecutor executor);
+                public abstract void onPreExecute();
+                    public abstract void onItemExecutor_PreExecute(final TaskExecuteQueueItemExecutor executor);
+                    public abstract void onItemExecutor_PostExecute(final TaskExecuteQueueItemExecutor executor);
+                    public abstract void onItemExecutor_Cancelled(final TaskExecuteQueueItemExecutor executor);
                 public abstract void onCancelled();
                 public abstract void onPostExecute(final LinkedHashMap<TaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map);
             }
@@ -851,6 +863,9 @@ public class Utils {
                     if (isEmpty())
                         throw new TaskExecuteQueueException("queue is empty");
 
+                    if (m_listener != null)
+                        m_listener.onPreExecute();
+
                     Iterator<TaskExecuteQueueItem> iterator_exec_queue_items = iterator();
                     while (iterator_exec_queue_items.hasNext()) {
                         TaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
@@ -860,7 +875,7 @@ public class Utils {
             }
 
             public static class TaskExecuteQueueItemExecutor extends Task {
-                private final static String TAG = TaskExecuteQueueItemExecutor.class.getSimpleName();
+                private final static String TAG = "Utils.HTTP.AsyncGet" + TaskExecuteQueueItemExecutor.class.getSimpleName();
 
                 private final TaskExecuteQueue m_queue;
 
@@ -870,13 +885,17 @@ public class Utils {
                 }
 
                 @Override
+                protected void onPreExecute() {
+                }
+
+                @Override
                 protected void onCancelled(Exception exception) {
-                    Log.d(TAG, "onCancelled: " + (exception != null ? exception.getClass().getName() : " no exception") +"; calling super.onCancelled(exception)...");
+                    Log.d(TAG, "onCancelled: exception is: " + (exception != null ? exception.getClass().getSimpleName() : "<no exception>") +"; calling super.onCancelled(exception)...");
                     super.onCancelled(exception);
                     --m_queue.m_n_pending;
                     if (m_queue.m_listener != null) {
                         if (exception != null) {
-                            Log.d(TAG, "onCancelled: adding " + exception.getClass().getName() + " for this executor to m_queue.m_listener.item_excutor_exception_map...");
+                            Log.d(TAG, "onCancelled: adding exception " + exception.getClass().getSimpleName() + " for this executor to m_queue.m_listener.item_excutor_exception_map...");
                             m_queue.m_listener.item_excutor_exception_map.put(this, exception);
                         }
                         Log.d(TAG, "onCancelled: canceling http get request (" + get_http_get_call().request().toString() + ")");
@@ -895,12 +914,12 @@ public class Utils {
 
                 @Override
                 protected void onPostExecute(Exception exception) {
-                    Log.d(TAG, "onPostExecute: " + (exception != null ? exception.getClass().getName() : " no exception") +"; calling super.onPostExecute(exception)...");
+                    Log.d(TAG, "onPostExecute: exception: " + (exception != null ? exception.getClass().getSimpleName() : "<no exception>") +"; calling super.onPostExecute(exception)...");
                     super.onPostExecute(exception);
                     --m_queue.m_n_pending;
                     if (m_queue.m_listener != null) {
                         if (exception != null) {
-                            Log.d(TAG, "onPostExecute: adding " + exception.getClass().getName() + " for this executor to m_queue.m_listener.item_excutor_exception_map...");
+                            Log.d(TAG, "onPostExecute: adding exception " + exception.getClass().getSimpleName() + " for this executor to m_queue.m_listener.item_excutor_exception_map...");
                             m_queue.m_listener.item_excutor_exception_map.put(this, exception);
                         }
                         Log.d(TAG, "onPostExecute: canceling http get request (" + get_http_get_call().request().toString() + ")");
@@ -922,7 +941,7 @@ public class Utils {
     }
 
     public final static class TEGOLA_BIN {
-        private final String TAG = TEGOLA_BIN.class.getName();
+        private final String TAG = TEGOLA_BIN.class.getCanonicalName();
 
         private static TEGOLA_BIN m_this = null;
         private final File f_tegola_bin;
@@ -1025,7 +1044,7 @@ public class Utils {
     }
 
     public static class Shell {
-        private final static String TAG = Utils.Shell.class.getName();
+        private final static String TAG = Utils.Shell.class.getCanonicalName();
 
         //caution: do not use for commands that produce "a lot" of output
         public static String[] run(final String cmd, final String grep_str) {

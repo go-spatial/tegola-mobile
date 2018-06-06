@@ -87,7 +87,7 @@ import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
 public class MainActivity extends AppCompatActivity implements MBGLFragment.OnFragmentInteractionListener {
-    private static final String TAG = MainActivity.class.getName();
+    private static final String TAG = MainActivity.class.getCanonicalName();
 
     private DrawerLayout m_drawerlayout = null;
     private LinearLayout m_drawerlayout_content__main = null;
@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements MBGLFragment.OnFr
 
     private View m_sect__remote_srvr_nfo = null;
     private EditText m_edt_val_root_url = null;
-//    private EditText m_edt_val_capabilities = null;
+    private ImageButton m_ibtn_url_reset_to_default = null;
     private Button m_btn_stream_tiles = null;
 
     private final MBGLFragment mb_frag = new MBGLFragment();
@@ -310,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements MBGLFragment.OnFr
 
         m_sect__remote_srvr_nfo = findViewById(R.id.sect__remote_srvr_nfo);
         m_edt_val_root_url = (EditText)findViewById(R.id.edt_val_root_url);
-//        m_edt_val_capabilities = (EditText)findViewById(R.id.edt_val_capabilities);
+        m_ibtn_url_reset_to_default = (ImageButton)findViewById(R.id.ibtn_url_reset_to_default);
         m_btn_stream_tiles = (Button)findViewById(R.id.btn_stream_tiles);
 
         //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
@@ -461,42 +461,65 @@ public class MainActivity extends AppCompatActivity implements MBGLFragment.OnFr
         m_spinner_val_gpkg_bundle_props_sel.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_gpkg_bundle_config_sel);
         m_btn_srvr_ctrl.setOnClickListener(OnClickListener__m_btn_srvr_ctrl);
 
+        m_ibtn_url_reset_to_default.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                m_edt_val_root_url.setText(BuildConfig.mbgl_default_remote_mvt_server_url);
+            }
+        });
+
         m_btn_stream_tiles.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (m_btn_stream_tiles.getText().toString().compareTo(getString(R.string.open_tile_stream)) == 0) {
                     String
                             root_url = m_edt_val_root_url.getText().toString(),
-                            //endpoint = m_edt_val_capabilities.getText().toString();
                             endpoint = "/capabilities";
                     if (root_url.endsWith(".json")) {
                         int i = root_url.lastIndexOf("/");
                         endpoint = root_url.substring(i);
                         root_url = root_url.substring(0, i);
                     }
-                    final String _root_url = root_url, _endpoint = endpoint;
-                    Log.d(TAG, "m_btn_stream_tiles.onClick: root_url==\"" + root_url + "\"; endpoint==\"" + endpoint + "\"");
-                    if (!root_url.isEmpty() && !endpoint.isEmpty()) {
-                        Log.d(TAG, "m_btn_stream_tiles.onClick: requesting capabilities from " + root_url + endpoint);
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
-                                intent_mvt_server_read_json.putExtra(
-                                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
-                                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
-                                );
-                                intent_mvt_server_read_json.putExtra(
-                                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING,
-                                    _root_url
-                                );
-                                intent_mvt_server_read_json.putExtra(
-                                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING,
-                                    _endpoint
-                                );
-                                sendBroadcast(intent_mvt_server_read_json);
-                            }
-                        }, 50);
+                    final String final_root_url = root_url, final_endpoint = endpoint, final_url = final_root_url + final_endpoint;
+                    //validate url first!
+                    if (Utils.HTTP.isValidUrl(final_url)) {
+                        Log.d(TAG, "m_btn_stream_tiles.onClick: root_url==\"" + final_root_url + "\"; endpoint==\"" + final_endpoint + "\"");
+                        if (!root_url.isEmpty() && !endpoint.isEmpty()) {
+                            Log.d(TAG, "m_btn_stream_tiles.onClick: requesting capabilities from " + final_root_url);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+                                    intent_mvt_server_read_json.putExtra(
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                                    );
+                                    intent_mvt_server_read_json.putExtra(
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING,
+                                        final_root_url
+                                    );
+                                    intent_mvt_server_read_json.putExtra(
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING,
+                                        final_endpoint
+                                    );
+                                    sendBroadcast(intent_mvt_server_read_json);
+                                }
+                            }, 50);
+                        }
+                    } else {
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.alert_dialog));
+                        alertDialogBuilder.setTitle("Cannot fetch from remote tile server!");
+                        alertDialogBuilder
+                            .setMessage("Malformed remote tile server URL: \"" + final_url + "\"")
+                            .setCancelable(false)
+                            .setPositiveButton(getString(R.string.OK), new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.dismiss();
+                                }
+                            });
+                        AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                        return;
                     }
                     if (m_vw_sect_content__mbgl_nfo.isExpanded()) {
                         m_vw_sect_content__mbgl_nfo.collapse();

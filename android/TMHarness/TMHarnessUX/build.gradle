@@ -196,7 +196,7 @@ android {
             output ->
                 String apkfilename
                 if (variant.buildType.name.contains("release")) {
-                    // assigns a different version code for each output APK.
+                    // assigns a different version code based on ABI - e.g. if vCode is 12 (from version.properties), then, for ABI armeabi-v7a, output.versionCodeOverride will be 200012
                     def abiName = output.getFilter(com.android.build.OutputFile.ABI)
                     output.versionCodeOverride = abiCodes.get(abiName, 0) * 100000 + variant.versionCode
                     apkfilename = base_archive_name + "-" + vName + "-" + (abiName != null ? abiName + "-" : "") + variant.buildType.name + ".apk"

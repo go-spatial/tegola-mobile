@@ -29,7 +29,7 @@ import java.util.HashSet;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
 public class ManageGpkgBundlesActivity extends AppCompatActivity {
-    private final static String TAG = ManageGpkgBundlesActivity.class.getName();
+    private final static String TAG = ManageGpkgBundlesActivity.class.getCanonicalName();
 
     private ImageButton m_btn_manage__geopackage_bundles__close = null;
     private Button m_btn_gpkg_bundle__install = null;
@@ -43,7 +43,7 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
     public static final int MNG_GPKG_BUNDLES_RESULT__UNCHANGED = -1;
 
     private class CheckableItemArrayAdapter extends ArrayAdapter<String> {
-        private final String TAG = CheckableItemArrayAdapter.class.getName();
+        private final String TAG = CheckableItemArrayAdapter.class.getCanonicalName();
 
         private final ArraySet<String> m_set_items = new ArraySet<String>();
         private final HashSet<String> m_set_checkeditems = new HashSet<String>();

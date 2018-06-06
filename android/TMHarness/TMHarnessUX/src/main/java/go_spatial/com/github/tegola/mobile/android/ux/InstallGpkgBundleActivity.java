@@ -3,6 +3,7 @@ package go_spatial.com.github.tegola.mobile.android.ux;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -34,7 +35,7 @@ import okhttp3.HttpUrl;
 import okio.Buffer;
 
 public class InstallGpkgBundleActivity extends AppCompatActivity {
-    private final static String TAG = InstallGpkgBundleActivity.class.getSimpleName();
+    private final static String TAG = InstallGpkgBundleActivity.class.getCanonicalName();
 
     private ImageButton m_btn_install_remote_gpkg_bundle__cancel = null;
     private TextView m_tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix = null;
@@ -191,7 +192,7 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
     };
 
     final class ShowReplaceGPKGBundleFileAlertDialog implements Runnable {
-        private final String TAG = ShowReplaceGPKGBundleFileAlertDialog.class.getName();
+        private final String TAG = ShowReplaceGPKGBundleFileAlertDialog.class.getCanonicalName();
 
         final private Context context;
         private Semaphore permit;
@@ -302,9 +303,39 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
         }
     };
 
+    private enum E_INSTALLATION_STATE {
+        IDLE,
+        IN_PROGRESS
+    }
+    private void OnInstallationStateChanged(@NonNull final E_INSTALLATION_STATE installation_state) {
+        Log.d(TAG, "OnInstallationStateChanged: state==" + installation_state.name());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                switch (installation_state) {
+                    case IDLE: {
+                        m_edt_remote_gpkg_bundle__root_url.setEnabled(true);
+                        m_edt_remote_gpkg_bundle__name.setEnabled(true);
+                        m_edt_remote_gpkg_bundle__ver_props.setEnabled(true);
+                        m_btn_install_remote_gpkg_bundle.setEnabled(true);
+                        break;
+                    }
+                    case IN_PROGRESS: {
+                        m_edt_remote_gpkg_bundle__root_url.setEnabled(false);
+                        m_edt_remote_gpkg_bundle__name.setEnabled(false);
+                        m_edt_remote_gpkg_bundle__ver_props.setEnabled(false);
+                        m_btn_install_remote_gpkg_bundle.setEnabled(false);
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
 
     private class AsyncGetGpkgBundleFileTaskStageHandler extends Utils.HTTP.AsyncGet.TaskStageHandler {
-        private final String TAG = AsyncGetGpkgBundleFileTaskStageHandler.class.getSimpleName();
+        private final String TAG = InstallGpkgBundleActivity.class.getSimpleName() + "." + AsyncGetGpkgBundleFileTaskStageHandler.class.getSimpleName();
+
         private boolean firstUpdate = true;
         private long content_length = 0;
         private long total_bytes_read = 0;
@@ -448,74 +479,247 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
     private final Utils.HTTP.AsyncGet.TaskExecuteQueue m_asyncgetgpkgbundlefiles_bootstrapper = new Utils.HTTP.AsyncGet.TaskExecuteQueue(
             new Utils.HTTP.AsyncGet.TaskExecuteQueueListener() {
+                private final String TAG = InstallGpkgBundleActivity.class.getSimpleName() + ".m_asyncgetbootstrapper.listener";
+
+                @Override
+                public void onPreExecute() {
+                    Log.d(TAG, "onPreExecute");
+                    OnInstallationStateChanged(E_INSTALLATION_STATE.IN_PROGRESS);
+                }
+
+                @Override
+                public void onItemExecutor_PreExecute(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
+                    Log.d(TAG, "onItemExecutor_PreExecute");
+                }
+
                 @Override
                 public void onItemExecutor_PostExecute(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
+                    Log.d(TAG, "onItemExecutor_PostExecute");
                 }
 
                 @Override
                 public void onItemExecutor_Cancelled(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
+                    Log.d(TAG, "onItemExecutor_Cancelled");
                 }
 
                 @Override
                 public void onCancelled() {
+                    Log.d(TAG, "onCancelled");
+                    OnInstallationStateChanged(E_INSTALLATION_STATE.IDLE);
                 }
 
                 @Override
                 public void onPostExecute(LinkedHashMap<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map) {
-                    Iterator<Utils.HTTP.AsyncGet.TaskExecuteQueueItem> iterator_exec_queue_items = m_asyncgetgpkgbundlefiles_bootstrapper.iterator();
-                    if (iterator_exec_queue_items.hasNext()) {//validate there is at least one actual task that was placed in the queue
-                        if (item_excutor_exception_map != null && item_excutor_exception_map.size() > 0) {//handle any exceptions that occurred, if any - note that if any have occurred this means that not all of the files that were wanted were successfully downloaded!
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
-                                    StringBuilder sb_alert_msg = new StringBuilder();
-                                    alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                    Set<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor> set_executors = item_excutor_exception_map.keySet();
-                                    for (Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor : set_executors) {
-                                        Exception exception = item_excutor_exception_map.get(executor);
-                                        if (exception instanceof Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) {
-                                            Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException typed_exception = (Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) exception;
-                                            sb_alert_msg.append(typed_exception.getMessage());
-                                        } else if (exception instanceof Utils.HTTP.AsyncGet.RemoteFile_SizeException) {
-                                            Utils.HTTP.AsyncGet.RemoteFile_SizeException typed_exception = (Utils.HTTP.AsyncGet.RemoteFile_SizeException) exception;
-                                            sb_alert_msg.append("Failed to retrieve file size of " + typed_exception.get_httpurl().uri().toString() + " - " + typed_exception.getMessage());
-                                        } else if (exception instanceof Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) {
-                                            sb_alert_msg.append("Local geopackage-bundle file ");
-                                            Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException typed_exception = (Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) exception;
-                                            sb_alert_msg.append(File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + typed_exception.get_httpUrl_to_local_file().get_file().getName());
-                                            sb_alert_msg.append(" already exists!\n\n");
-                                            sb_alert_msg.append("If you wish to reinstall or update local geopackage-bundle \"" + m_edt_local_gpkg_bundle__name.getText().toString() + "\", please uninstall it first!");
-                                        } else {
-                                            sb_alert_msg.append("Exception: " + exception.getMessage());
+                    try {
+                        Log.d(TAG, "onPostExecute");
+                        Iterator<Utils.HTTP.AsyncGet.TaskExecuteQueueItem> iterator_exec_queue_items = m_asyncgetgpkgbundlefiles_bootstrapper.iterator();
+                        if (iterator_exec_queue_items.hasNext()) {//validate there is at least one actual task that was placed in the queue
+                            if (item_excutor_exception_map != null && item_excutor_exception_map.size() > 0) {//handle any exceptions that occurred, if any - note that if any have occurred this means that not all of the files that were wanted were successfully downloaded!
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
+                                        StringBuilder sb_alert_msg = new StringBuilder();
+                                        alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
+                                        Set<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor> set_executors = item_excutor_exception_map.keySet();
+                                        for (Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor : set_executors) {
+                                            Exception exception = item_excutor_exception_map.get(executor);
+                                            if (exception instanceof Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) {
+                                                Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException typed_exception = (Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) exception;
+                                                sb_alert_msg.append(typed_exception.getMessage());
+                                            } else if (exception instanceof Utils.HTTP.AsyncGet.RemoteFile_SizeException) {
+                                                Utils.HTTP.AsyncGet.RemoteFile_SizeException typed_exception = (Utils.HTTP.AsyncGet.RemoteFile_SizeException) exception;
+                                                sb_alert_msg.append("Failed to retrieve file size of " + typed_exception.get_httpurl().uri().toString() + " - " + typed_exception.getMessage());
+                                            } else if (exception instanceof Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) {
+                                                sb_alert_msg.append("Local geopackage-bundle file ");
+                                                Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException typed_exception = (Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) exception;
+                                                sb_alert_msg.append(File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + typed_exception.get_httpUrl_to_local_file().get_file().getName());
+                                                sb_alert_msg.append(" already exists!\n\n");
+                                                sb_alert_msg.append("If you wish to reinstall or update local geopackage-bundle \"" + m_edt_local_gpkg_bundle__name.getText().toString() + "\", please uninstall it first!");
+                                            } else {
+                                                sb_alert_msg.append("Exception: " + exception.getMessage());
+                                            }
+                                            sb_alert_msg.append("\n\n\n\n");
                                         }
-                                        sb_alert_msg.append("\n\n\n\n");
+                                        alertDialog.setMessage(sb_alert_msg.toString());
+                                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                        InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
+                                                        InstallGpkgBundleActivity.this.finish();
+                                                    }
+                                                });
+                                        alertDialog.show();
                                     }
-                                    alertDialog.setMessage(sb_alert_msg.toString());
-                                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    dialog.dismiss();
-                                                    InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
-                                                    InstallGpkgBundleActivity.this.finish();
+                                });
+                            } else {//then all tasks were successfully executed - i.e. all files were successfully downloaded
+                                int index = -1;
+                                while (iterator_exec_queue_items.hasNext()) {
+                                    index++;
+                                    Utils.HTTP.AsyncGet.TaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
+                                    Utils.HTTP.AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
+                                    File file = httpUrl_to_local_file.get_file();
+                                    HttpUrl httpUrl = httpUrl_to_local_file.get_url();
+                                    String s_remote_gpkg_bundle = httpUrl.url().toString().substring(0, httpUrl.url().toString().lastIndexOf("/"));
+
+                                    //we expect one and only one version.properties download task!
+                                    if (index == 0) {
+                                        if (/*file.getName().compareTo(Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME) != 0*/ false) {
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
+                                                    StringBuilder sb_alert_msg = new StringBuilder();
+                                                    alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
+                                                    sb_alert_msg.append("Installation of geopckage-bundle " + s_remote_gpkg_bundle + " must be bootstrapped by first downloading its " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME
+                                                            + " file, but you have an encountered a bug wherein source-code is attempting to download " + httpUrl.url().toString() + " first!\n\n");
+                                                    sb_alert_msg.append("Please notify developer.\n\n");
+                                                    sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
+                                                    alertDialog.setMessage(sb_alert_msg.toString());
+                                                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                                            new DialogInterface.OnClickListener() {
+                                                                public void onClick(DialogInterface dialog, int which) {
+                                                                    dialog.dismiss();
+                                                                    InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
+                                                                    InstallGpkgBundleActivity.this.finish();
+                                                                }
+                                                            });
+                                                    alertDialog.show();
                                                 }
                                             });
-                                    alertDialog.show();
-                                }
-                            });
-                        } else {//then all tasks were successfully executed - i.e. all files were successfully downloaded
-                            int index = -1;
-                            while (iterator_exec_queue_items.hasNext()) {
-                                index++;
-                                Utils.HTTP.AsyncGet.TaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
-                                Utils.HTTP.AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
-                                File file = httpUrl_to_local_file.get_file();
-                                HttpUrl httpUrl = httpUrl_to_local_file.get_url();
-                                String s_remote_gpkg_bundle = httpUrl.url().toString().substring(0, httpUrl.url().toString().lastIndexOf("/"));
+                                        } else {//now process version.properties and proceed to download gpkg-bundle components based on its TOML_FILE and GPKG_FILES values
+                                            File
+                                                    f_gpkg_bundle = new File(file.getParentFile().getPath()), f_gpkg_bundle_ver_props = file;
 
-                                //we expect one and only one version.properties download task!
-                                if (index == 0) {
-                                    if (/*file.getName().compareTo(Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME) != 0*/ false) {
+                                            //process version.properties file for this gpk-bundle
+                                            FileInputStream f_inputstream_gpkg_bundle_ver_props = null;
+                                            String s_prop_val = "";
+                                            final Bundle bundle = new Bundle();
+
+                                            try {
+                                                //build gpkg-bundle toml file-download spec from version.props and queue it up
+                                                s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
+                                                Log.d(TAG, "onPostExecute: version prope (file " + f_gpkg_bundle_ver_props.getCanonicalPath() + "): " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + " = \"" + s_prop_val + "\"");
+                                                final File f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_prop_val);
+                                                if (f_gpkg_bundle__toml.exists())
+                                                    f_gpkg_bundle__toml.delete();
+                                                m_asyncgetgpkgbundlefileexecutequeue.add(
+                                                        new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
+                                                                new Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor(
+                                                                        new AsyncGetGpkgBundleFileTaskStageHandler()
+                                                                        , m_asyncgetgpkgbundlefileexecutequeue
+                                                                )
+                                                                , new Utils.HTTP.AsyncGet.HttpUrl_To_Local_File(HttpUrl.parse(s_remote_gpkg_bundle + "/" + s_prop_val), f_gpkg_bundle__toml)
+                                                        )
+                                                );
+
+                                                //build gpkg-bundle geopcackage file-download specs from version.props and queue them up
+                                                bundle.putBoolean("DOWNLOAD", true);
+                                                s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES);
+                                                Log.d(TAG, "onPostExecute: version prope (file " + f_gpkg_bundle_ver_props.getCanonicalPath() + "): " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + " = \"" + s_prop_val + "\"");
+                                                String[] s_list_geopcackage_names = s_prop_val.split(",");
+                                                if (s_list_geopcackage_names != null && s_list_geopcackage_names.length > 0) {
+                                                    for (int i = 0; i < s_list_geopcackage_names.length; i++) {
+                                                        String s_gpkg_name = s_list_geopcackage_names[i];
+                                                        final File f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_name);
+                                                        if (f_gpkg_bundle__gpkg.exists())
+                                                            f_gpkg_bundle__gpkg.delete();
+                                                        m_asyncgetgpkgbundlefileexecutequeue.add(
+                                                                new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
+                                                                        new Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor(
+                                                                                new AsyncGetGpkgBundleFileTaskStageHandler()
+                                                                                , m_asyncgetgpkgbundlefileexecutequeue
+                                                                        )
+                                                                        , new Utils.HTTP.AsyncGet.HttpUrl_To_Local_File(HttpUrl.parse(s_remote_gpkg_bundle + "/" + s_gpkg_name), f_gpkg_bundle__gpkg)
+                                                                )
+                                                        );
+                                                    }
+                                                } else {
+                                                    throw new FileNotFoundException("failed to retrieve list of geopackage files from gpkg-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath());
+                                                }
+
+                                                m_asyncgetgpkgbundlefileexecutequeue.execute();
+                                            } catch (FileNotFoundException e) {
+                                                e.printStackTrace();
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
+                                                        StringBuilder sb_alert_msg = new StringBuilder();
+                                                        alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
+                                                        sb_alert_msg.append(e.getMessage() + "\n\n");
+                                                        sb_alert_msg.append("Please notify developer.\n\n");
+                                                        sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
+                                                        alertDialog.setMessage(sb_alert_msg.toString());
+                                                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                                                new DialogInterface.OnClickListener() {
+                                                                    public void onClick(DialogInterface dialog, int which) {
+                                                                        dialog.dismiss();
+                                                                        InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
+                                                                        InstallGpkgBundleActivity.this.finish();
+                                                                    }
+                                                                });
+                                                        alertDialog.show();
+                                                    }
+                                                });
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
+                                                        StringBuilder sb_alert_msg = new StringBuilder();
+                                                        alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
+                                                        sb_alert_msg.append(e.getMessage() + "\n\n");
+                                                        sb_alert_msg.append("Please notify developer.\n\n");
+                                                        sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
+                                                        alertDialog.setMessage(sb_alert_msg.toString());
+                                                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                                                new DialogInterface.OnClickListener() {
+                                                                    public void onClick(DialogInterface dialog, int which) {
+                                                                        dialog.dismiss();
+                                                                        InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
+                                                                        InstallGpkgBundleActivity.this.finish();
+                                                                    }
+                                                                });
+                                                        alertDialog.show();
+                                                    }
+                                                });
+                                            } catch (Utils.HTTP.AsyncGet.TaskExecuteQueueException e) {
+                                                e.printStackTrace();
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
+                                                        StringBuilder sb_alert_msg = new StringBuilder();
+                                                        alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
+                                                        sb_alert_msg.append(e.getMessage() + "\n\n");
+                                                        sb_alert_msg.append("Please notify developer.\n\n");
+                                                        sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
+                                                        alertDialog.setMessage(sb_alert_msg.toString());
+                                                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                                                new DialogInterface.OnClickListener() {
+                                                                    public void onClick(DialogInterface dialog, int which) {
+                                                                        dialog.dismiss();
+                                                                        InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
+                                                                        InstallGpkgBundleActivity.this.finish();
+                                                                    }
+                                                                });
+                                                        alertDialog.show();
+                                                    }
+                                                });
+                                            } finally {
+                                                if (f_inputstream_gpkg_bundle_ver_props != null) {
+                                                    try {
+                                                        f_inputstream_gpkg_bundle_ver_props.close();
+                                                    } catch (IOException ioexception) {
+                                                        ioexception.printStackTrace();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {//gpkg-bundle installation-bootstrap spec has more than one download task!
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
@@ -538,235 +742,19 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                                 alertDialog.show();
                                             }
                                         });
-                                    } else {//now process version.properties and proceed to download gpkg-bundle components based on its TOML_FILE and GPKG_FILES values
-                                        File
-                                                f_gpkg_bundle = new File(file.getParentFile().getPath()), f_gpkg_bundle_ver_props = file;
-
-                                        //process version.properties file for this gpk-bundle
-                                        FileInputStream f_inputstream_gpkg_bundle_ver_props = null;
-                                        String s_prop_val = "";
-                                        final Bundle bundle = new Bundle();
-
-                                        try {
-                                            //build gpkg-bundle toml file-download spec from version.props and queue it up
-                                            s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
-                                            Log.d(TAG, "onPostExecute: version prope (file " + f_gpkg_bundle_ver_props.getCanonicalPath() + "): " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + " = \"" + s_prop_val + "\"");
-                                            final File f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_prop_val);
-                                            if (f_gpkg_bundle__toml.exists())
-                                                f_gpkg_bundle__toml.delete();
-                                            m_asyncgetgpkgbundlefileexecutequeue.add(
-                                                new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
-                                                    new Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor(
-                                                        new AsyncGetGpkgBundleFileTaskStageHandler()
-                                                        , m_asyncgetgpkgbundlefileexecutequeue
-                                                    )
-                                                    , new Utils.HTTP.AsyncGet.HttpUrl_To_Local_File(HttpUrl.parse(s_remote_gpkg_bundle + "/" + s_prop_val), f_gpkg_bundle__toml)
-                                                )
-                                            );
-
-                                            //build gpkg-bundle geopcackage file-download specs from version.props and queue them up
-                                            bundle.putBoolean("DOWNLOAD", true);
-                                            s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES);
-                                            Log.d(TAG, "onPostExecute: version prope (file " + f_gpkg_bundle_ver_props.getCanonicalPath() + "): " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + " = \"" + s_prop_val + "\"");
-                                            String[] s_list_geopcackage_names = s_prop_val.split(",");
-                                            if (s_list_geopcackage_names != null && s_list_geopcackage_names.length > 0) {
-                                                for (int i = 0; i < s_list_geopcackage_names.length; i++) {
-                                                    String s_gpkg_name = s_list_geopcackage_names[i];
-                                                    final File f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_name);
-                                                    if (f_gpkg_bundle__gpkg.exists())
-                                                        f_gpkg_bundle__gpkg.delete();
-                                                    m_asyncgetgpkgbundlefileexecutequeue.add(
-                                                        new Utils.HTTP.AsyncGet.TaskExecuteQueueItem(
-                                                            new Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor(
-                                                                new AsyncGetGpkgBundleFileTaskStageHandler()
-                                                                , m_asyncgetgpkgbundlefileexecutequeue
-                                                            )
-                                                            , new Utils.HTTP.AsyncGet.HttpUrl_To_Local_File(HttpUrl.parse(s_remote_gpkg_bundle + "/" + s_gpkg_name), f_gpkg_bundle__gpkg)
-                                                        )
-                                                    );
-                                                }
-                                            } else {
-                                                throw new FileNotFoundException("failed to retrieve list of geopackage files from gpkg-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath());
-                                            }
-
-                                            m_asyncgetgpkgbundlefileexecutequeue.execute();
-                                        } catch (FileNotFoundException e) {
-                                            e.printStackTrace();
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
-                                                    StringBuilder sb_alert_msg = new StringBuilder();
-                                                    alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                                    sb_alert_msg.append(e.getMessage() + "\n\n");
-                                                    sb_alert_msg.append("Please notify developer.\n\n");
-                                                    sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
-                                                    alertDialog.setMessage(sb_alert_msg.toString());
-                                                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                                            new DialogInterface.OnClickListener() {
-                                                                public void onClick(DialogInterface dialog, int which) {
-                                                                    dialog.dismiss();
-                                                                    InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
-                                                                    InstallGpkgBundleActivity.this.finish();
-                                                                }
-                                                            });
-                                                    alertDialog.show();
-                                                }
-                                            });
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
-                                                    StringBuilder sb_alert_msg = new StringBuilder();
-                                                    alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                                    sb_alert_msg.append(e.getMessage() + "\n\n");
-                                                    sb_alert_msg.append("Please notify developer.\n\n");
-                                                    sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
-                                                    alertDialog.setMessage(sb_alert_msg.toString());
-                                                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                                            new DialogInterface.OnClickListener() {
-                                                                public void onClick(DialogInterface dialog, int which) {
-                                                                    dialog.dismiss();
-                                                                    InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
-                                                                    InstallGpkgBundleActivity.this.finish();
-                                                                }
-                                                            });
-                                                    alertDialog.show();
-                                                }
-                                            });
-                                        } catch (Utils.HTTP.AsyncGet.TaskExecuteQueueException e) {
-                                            e.printStackTrace();
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
-                                                    StringBuilder sb_alert_msg = new StringBuilder();
-                                                    alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                                    sb_alert_msg.append(e.getMessage() + "\n\n");
-                                                    sb_alert_msg.append("Please notify developer.\n\n");
-                                                    sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
-                                                    alertDialog.setMessage(sb_alert_msg.toString());
-                                                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                                            new DialogInterface.OnClickListener() {
-                                                                public void onClick(DialogInterface dialog, int which) {
-                                                                    dialog.dismiss();
-                                                                    InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
-                                                                    InstallGpkgBundleActivity.this.finish();
-                                                                }
-                                                            });
-                                                    alertDialog.show();
-                                                }
-                                            });
-                                        } finally {
-                                            if (f_inputstream_gpkg_bundle_ver_props != null) {
-                                                try {
-                                                    f_inputstream_gpkg_bundle_ver_props.close();
-                                                } catch (IOException ioexception) {
-                                                    ioexception.printStackTrace();
-                                                }
-                                            }
-                                        }
                                     }
-                                } else {//gpkg-bundle installation-bootstrap spec has more than one download task!
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
-                                            StringBuilder sb_alert_msg = new StringBuilder();
-                                            alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                            sb_alert_msg.append("Installation of geopckage-bundle " + s_remote_gpkg_bundle + " must be bootstrapped by first downloading its " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.FNAME
-                                                    + " file, but you have an encountered a bug wherein source-code is attempting to download " + httpUrl.url().toString() + " first!\n\n");
-                                            sb_alert_msg.append("Please notify developer.\n\n");
-                                            sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
-                                            alertDialog.setMessage(sb_alert_msg.toString());
-                                            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                                    new DialogInterface.OnClickListener() {
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            dialog.dismiss();
-                                                            InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
-                                                            InstallGpkgBundleActivity.this.finish();
-                                                        }
-                                                    });
-                                            alertDialog.show();
-                                        }
-                                    });
                                 }
                             }
-                        }
-                    } else {//gpkg-bundle installation-bootstrap spec does not have any tasks at all!
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
-                                StringBuilder sb_alert_msg = new StringBuilder();
-                                alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                sb_alert_msg.append("You have an encountered a bug! GeoPackage-Bundle Installation bootstrap-spec does not contain any tasks!\n\n");
-                                sb_alert_msg.append("Please notify developer.\n\n");
-                                sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
-                                alertDialog.setMessage(sb_alert_msg.toString());
-                                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                dialog.dismiss();
-                                                InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
-                                                InstallGpkgBundleActivity.this.finish();
-                                            }
-                                        });
-                                alertDialog.show();
-                            }
-                        });
-                    }
-                }
-            }
-    );
-
-    private final Utils.HTTP.AsyncGet.TaskExecuteQueue m_asyncgetgpkgbundlefileexecutequeue = new Utils.HTTP.AsyncGet.TaskExecuteQueue(
-            new Utils.HTTP.AsyncGet.TaskExecuteQueueListener() {
-                @Override
-                public void onItemExecutor_PostExecute(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
-                }
-
-                @Override
-                public void onItemExecutor_Cancelled(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
-                }
-
-                @Override
-                public void onCancelled() {
-                }
-
-                @Override
-                public void onPostExecute(final LinkedHashMap<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map) {
-                    Iterator<Utils.HTTP.AsyncGet.TaskExecuteQueueItem> iterator_exec_queue_items = m_asyncgetgpkgbundlefileexecutequeue.iterator();
-                    if (iterator_exec_queue_items.hasNext()) {//validate there is at least one actual task that was placed in the queue
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                AlertDialog alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
-                                StringBuilder sb_alert_msg = new StringBuilder();
-                                if (item_excutor_exception_map != null && item_excutor_exception_map.size() > 0) {//handle any exceptions that occurred, if any - note that if any have occurred this means that not all of the files that were wanted to successfully downloaded!
+                        } else {//gpkg-bundle installation-bootstrap spec does not have any tasks at all!
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
+                                    StringBuilder sb_alert_msg = new StringBuilder();
                                     alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                    Set<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor> set_executors = item_excutor_exception_map.keySet();
-                                    for (Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor : set_executors) {
-                                        Exception exception = item_excutor_exception_map.get(executor);
-                                        if (exception instanceof Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) {
-                                            Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException typed_exception = (Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) exception;
-                                            sb_alert_msg.append(typed_exception.getMessage());
-                                        } else if (exception instanceof Utils.HTTP.AsyncGet.RemoteFile_SizeException) {
-                                            Utils.HTTP.AsyncGet.RemoteFile_SizeException typed_exception = (Utils.HTTP.AsyncGet.RemoteFile_SizeException) exception;
-                                            sb_alert_msg.append("Failed to retrieve file size of " + typed_exception.get_httpurl().uri().toString() + " - " + typed_exception.getMessage());
-                                        } else if (exception instanceof Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) {
-                                            sb_alert_msg.append("Local geopackage-bundle file ");
-                                            Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException typed_exception = (Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) exception;
-                                            sb_alert_msg.append(File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + typed_exception.get_httpUrl_to_local_file().get_file().getName());
-                                            sb_alert_msg.append(" already exists!\n\n");
-                                            sb_alert_msg.append("If you wish to reinstall or update local geopackage-bundle \"" + m_edt_local_gpkg_bundle__name.getText().toString() + "\", please uninstall it first!");
-                                        } else {
-                                            sb_alert_msg.append("Exception: " + exception.getMessage());
-                                        }
-                                        sb_alert_msg.append("\n\n\n\n");
-                                    }
+                                    sb_alert_msg.append("You have an encountered a bug! GeoPackage-Bundle Installation bootstrap-spec does not contain any tasks!\n\n");
+                                    sb_alert_msg.append("Please notify developer.\n\n");
+                                    sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
                                     alertDialog.setMessage(sb_alert_msg.toString());
                                     alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                                             new DialogInterface.OnClickListener() {
@@ -776,54 +764,142 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
                                                     InstallGpkgBundleActivity.this.finish();
                                                 }
                                             });
-                                } else {//then all tasks were successfully executed - i.e. all files were successfully downloaded
-                                    alertDialog.setTitle("GeoPackage-Bundle Installation SUCCESSFUL!");
-                                    while (iterator_exec_queue_items.hasNext()) {
-                                        Utils.HTTP.AsyncGet.TaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
-                                        Utils.HTTP.AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
-                                        File file = httpUrl_to_local_file.get_file();
-                                        sb_alert_msg
-                                                .append("Geopackage-bundle file ")
-                                                .append(httpUrl_to_local_file.get_url().toString())
-                                                .append(" has been successfully installed to: \n\n")
-                                                .append("\t" + File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + file.getName())
-                                                .append("\n\n\n");
+                                    alertDialog.show();
+                                }
+                            });
+                        }
+                    } catch (Exception e) {
+                        OnInstallationStateChanged(E_INSTALLATION_STATE.IDLE);
+                        throw e;
+                    }
+                }
+            }
+    );
+
+    private final Utils.HTTP.AsyncGet.TaskExecuteQueue m_asyncgetgpkgbundlefileexecutequeue = new Utils.HTTP.AsyncGet.TaskExecuteQueue(
+            new Utils.HTTP.AsyncGet.TaskExecuteQueueListener() {
+                private final String TAG = InstallGpkgBundleActivity.class.getSimpleName() + ".m_asyncgetfile.listener";
+
+                @Override
+                public void onPreExecute() {
+                    Log.d(TAG, "onPreExecute");
+                    OnInstallationStateChanged(E_INSTALLATION_STATE.IN_PROGRESS);
+                }
+
+                @Override
+                public void onItemExecutor_PreExecute(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
+                    Log.d(TAG, "onItemExecutor_PreExecute");
+                }
+
+                @Override
+                public void onItemExecutor_PostExecute(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
+                    Log.d(TAG, "onItemExecutor_PostExecute");
+                }
+
+                @Override
+                public void onItemExecutor_Cancelled(Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor) {
+                    Log.d(TAG, "onItemExecutor_Cancelled");
+                }
+
+                @Override
+                public void onCancelled() {
+                    Log.d(TAG, "onCancelled");
+                    OnInstallationStateChanged(E_INSTALLATION_STATE.IDLE);
+                }
+
+                @Override
+                public void onPostExecute(final LinkedHashMap<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor, Exception> item_excutor_exception_map) {
+                    try {
+                        Log.d(TAG, "onPostExecute: enter");
+                        Iterator<Utils.HTTP.AsyncGet.TaskExecuteQueueItem> iterator_exec_queue_items = m_asyncgetgpkgbundlefileexecutequeue.iterator();
+                        if (iterator_exec_queue_items.hasNext()) {//validate there is at least one actual task that was placed in the queue
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AlertDialog alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
+                                    StringBuilder sb_alert_msg = new StringBuilder();
+                                    if (item_excutor_exception_map != null && item_excutor_exception_map.size() > 0) {//handle any exceptions that occurred, if any - note that if any have occurred this means that not all of the files that were wanted to successfully downloaded!
+                                        alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
+                                        Set<Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor> set_executors = item_excutor_exception_map.keySet();
+                                        for (Utils.HTTP.AsyncGet.TaskExecuteQueueItemExecutor executor : set_executors) {
+                                            Exception exception = item_excutor_exception_map.get(executor);
+                                            if (exception instanceof Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) {
+                                                Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException typed_exception = (Utils.HTTP.AsyncGet.RemoteFileInvalidParameterException) exception;
+                                                sb_alert_msg.append(typed_exception.getMessage());
+                                            } else if (exception instanceof Utils.HTTP.AsyncGet.RemoteFile_SizeException) {
+                                                Utils.HTTP.AsyncGet.RemoteFile_SizeException typed_exception = (Utils.HTTP.AsyncGet.RemoteFile_SizeException) exception;
+                                                sb_alert_msg.append("Failed to retrieve file size of " + typed_exception.get_httpurl().uri().toString() + " - " + typed_exception.getMessage());
+                                            } else if (exception instanceof Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) {
+                                                sb_alert_msg.append("Local geopackage-bundle file ");
+                                                Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException typed_exception = (Utils.HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException) exception;
+                                                sb_alert_msg.append(File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + typed_exception.get_httpUrl_to_local_file().get_file().getName());
+                                                sb_alert_msg.append(" already exists!\n\n");
+                                                sb_alert_msg.append("If you wish to reinstall or update local geopackage-bundle \"" + m_edt_local_gpkg_bundle__name.getText().toString() + "\", please uninstall it first!");
+                                            } else {
+                                                sb_alert_msg.append("Exception: " + exception.getMessage());
+                                            }
+                                            sb_alert_msg.append("\n\n\n\n");
+                                        }
+                                        alertDialog.setMessage(sb_alert_msg.toString());
+                                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                        InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
+                                                        InstallGpkgBundleActivity.this.finish();
+                                                    }
+                                                });
+                                    } else {//then all tasks were successfully executed - i.e. all files were successfully downloaded
+                                        alertDialog.setTitle("GeoPackage-Bundle Installation SUCCESSFUL!");
+                                        while (iterator_exec_queue_items.hasNext()) {
+                                            Utils.HTTP.AsyncGet.TaskExecuteQueueItem exec_queue_item = iterator_exec_queue_items.next();
+                                            Utils.HTTP.AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file = exec_queue_item.get_httpUrl_to_local_file();
+                                            File file = httpUrl_to_local_file.get_file();
+                                            sb_alert_msg
+                                                    .append("Geopackage-bundle file ")
+                                                    .append(httpUrl_to_local_file.get_url().toString())
+                                                    .append(" has been successfully installed to: \n\n")
+                                                    .append("\t" + File.separator + m_edt_local_gpkg_bundle__name.getText().toString() + File.separator + file.getName())
+                                                    .append("\n\n\n");
+                                        }
+                                        alertDialog.setMessage(sb_alert_msg.toString());
+                                        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                        InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL);
+                                                        InstallGpkgBundleActivity.this.finish();
+                                                    }
+                                                });
                                     }
+                                    alertDialog.show();
+                                }
+                            });
+                        } else {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    AlertDialog alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
+                                    StringBuilder sb_alert_msg = new StringBuilder();
+                                    alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
+                                    sb_alert_msg.append("You have an encountered a bug! GeoPackage-Bundle Installation bootstrap-spec does not contain any tasks!\n\n");
+                                    sb_alert_msg.append("Please notify developer.\n\n");
+                                    sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
                                     alertDialog.setMessage(sb_alert_msg.toString());
                                     alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
                                             new DialogInterface.OnClickListener() {
                                                 public void onClick(DialogInterface dialog, int which) {
                                                     dialog.dismiss();
-                                                    InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__SUCCESSFUL);
+                                                    InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
                                                     InstallGpkgBundleActivity.this.finish();
                                                 }
                                             });
+                                    alertDialog.show();
                                 }
-                                alertDialog.show();
-                            }
-                        });
-                    } else {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                AlertDialog alertDialog = new AlertDialog.Builder(InstallGpkgBundleActivity.this).create();
-                                StringBuilder sb_alert_msg = new StringBuilder();
-                                alertDialog.setTitle("GeoPackage-Bundle Installation FAILED!");
-                                sb_alert_msg.append("You have an encountered a bug! GeoPackage-Bundle Installation bootstrap-spec does not contain any tasks!\n\n");
-                                sb_alert_msg.append("Please notify developer.\n\n");
-                                sb_alert_msg.append("GeoPackage-Bundle installation cannot continue.");
-                                alertDialog.setMessage(sb_alert_msg.toString());
-                                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                dialog.dismiss();
-                                                InstallGpkgBundleActivity.this.setResult(INSTALL_GPKG_BUNDLE_RESULT__FAILED);
-                                                InstallGpkgBundleActivity.this.finish();
-                                            }
-                                        });
-                                alertDialog.show();
-                            }
-                        });
+                            });
+                        }
+                    } finally {
+                        OnInstallationStateChanged(E_INSTALLATION_STATE.IDLE);
                     }
                 }
             }

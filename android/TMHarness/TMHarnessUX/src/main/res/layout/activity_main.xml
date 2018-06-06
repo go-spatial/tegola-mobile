@@ -228,6 +228,8 @@
                                     android:layout_width="50dp"
                                     android:layout_height="wrap_content"
                                     android:layout_centerVertical="true"
+                                    android:editable="false"
+                                    android:enabled="false"
                                     android:gravity="left"
                                     android:imeOptions="actionDone"
                                     android:inputType="number"
@@ -268,6 +270,8 @@
                                     android:layout_width="50dp"
                                     android:layout_height="wrap_content"
                                     android:layout_centerVertical="true"
+                                    android:editable="false"
+                                    android:enabled="false"
                                     android:gravity="left"
                                     android:imeOptions="actionDone"
                                     android:inputType="number"
@@ -308,6 +312,8 @@
                                     android:layout_width="50dp"
                                     android:layout_height="wrap_content"
                                     android:layout_centerVertical="true"
+                                    android:editable="false"
+                                    android:enabled="false"
                                     android:gravity="left"
                                     android:imeOptions="actionDone"
                                     android:inputType="number"
@@ -348,6 +354,8 @@
                                     android:layout_width="50dp"
                                     android:layout_height="wrap_content"
                                     android:layout_centerVertical="true"
+                                    android:editable="false"
+                                    android:enabled="false"
                                     android:gravity="left"
                                     android:imeOptions="actionDone"
                                     android:inputType="number"
@@ -654,6 +662,7 @@
                                         android:gravity="center_vertical"
                                         android:layout_marginRight="2dp"
                                         android:text="https://"/>
+
                                     <EditText
                                         android:id="@+id/edt_val_postgis_provider_config_sel__remote"
                                         style="@style/edittext"
@@ -665,10 +674,10 @@
                                         android:layout_toRightOf="@id/tv_lbl_postgis_provider_config_sel__https_prefix"
                                         android:layout_toStartOf="@id/btn_postgis_provider_config_sel_remote_apply_changes"
                                         android:gravity="center_vertical"
+                                        android:imeOptions="actionDone"
                                         android:inputType="textUri"
                                         android:singleLine="true"
-                                        android:imeOptions="actionDone"
-                                        android:text=""/>
+                                        android:text="" />
                                 </RelativeLayout>
                             </LinearLayout>
                             <!-- local srvr nfo section content - postgis provider CONFIG selection - END -->
@@ -850,62 +859,29 @@
                                 style="@style/Section_Content_Item_Label"
                                 android:text="@string/remote_srvr_capabilities_url" />
                             <RelativeLayout
-                                style="@style/Section_Content_Item_Content">
-                                <LinearLayout
+                                style="@style/Section_Content_Item_Content"
+                                android:layout_marginTop="5dp">
+
+                                <ImageButton
+                                    android:id="@+id/ibtn_url_reset_to_default"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:layout_alignParentRight="true"
+                                    android:layout_marginLeft="5dp"
+                                    android:src="@drawable/ic_restore_black_24dp" />
+
+                                <EditText
+                                    android:id="@+id/edt_val_root_url"
+                                    style="@style/edittext"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:orientation="vertical"
-                                    android:layout_alignParentLeft="true"
-                                    android:layout_alignParentRight="true"
-                                    android:layout_marginTop="5dp">
+                                    android:layout_centerVertical="true"
+                                    android:layout_toLeftOf="@id/ibtn_url_reset_to_default"
+                                    android:imeOptions="actionDone"
+                                    android:inputType="textUri"
+                                    android:singleLine="true"
+                                    android:text="" />
 
-                                    <TextView
-                                        android:id="@+id/tv_lbl_root_url"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Root URL"
-                                        android:visibility="gone" />
-
-                                    <EditText
-                                        android:id="@+id/edt_val_root_url"
-                                        style="@style/edittext"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:gravity="center_vertical"
-                                        android:imeOptions="actionDone"
-                                        android:inputType="textUri"
-                                        android:singleLine="true"
-                                        android:text="" />
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:id="@+id/endpoint_container"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentRight="true"
-                                    android:layout_marginLeft="10dp"
-                                    android:orientation="vertical"
-                                    android:visibility="gone">
-
-                                    <TextView
-                                        android:id="@+id/tv_lbl_endpoint"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Endpoint" />
-
-                                    <EditText
-                                        android:id="@+id/edt_val_capabilities"
-                                        style="@style/edittext"
-                                        android:layout_width="100dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_centerVertical="true"
-                                        android:gravity="center_vertical"
-                                        android:imeOptions="actionDone"
-                                        android:inputType="textUri"
-                                        android:singleLine="true"
-                                        android:text="" />
-                                </LinearLayout>
                             </RelativeLayout>
 
                             <RelativeLayout

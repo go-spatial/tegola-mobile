@@ -37,7 +37,7 @@ import java.util.Set;
 
 
 public class FGS extends Service {
-    private static final String TAG = FGS.class.getName();
+    private static final String TAG = FGS.class.getCanonicalName();
 
     private BroadcastReceiver m_br_client_control_request = null;
     private IntentFilter m_filter_br_client_control_request = null;

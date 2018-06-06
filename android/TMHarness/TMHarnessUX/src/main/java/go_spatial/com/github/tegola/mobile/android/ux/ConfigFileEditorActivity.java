@@ -20,7 +20,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 public class ConfigFileEditorActivity extends AppCompatActivity {
-    private static final String TAG = ConfigFileEditorActivity.class.getName();
+    private static final String TAG = ConfigFileEditorActivity.class.getCanonicalName();
 
     private MenuItem m_mnu_item__cfg_file_editor__edit = null;
     private MenuItem m_mnu_item__cfg_file_editor__commit_changes = null;

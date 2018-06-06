@@ -68,7 +68,7 @@ import static com.mapbox.mapboxsdk.maps.MapView.WILL_START_RENDERING_MAP;
  * create an instance of this fragment.
  */
 public class MBGLFragment extends android.support.v4.app.Fragment {
-    public static final String TAG = MBGLFragment.class.getName();
+    public static final String TAG = MBGLFragment.class.getCanonicalName();
 
     /**
      * This interface must be implemented by activities that contain this
