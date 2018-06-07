@@ -22,13 +22,25 @@
             app:layout_constraintBottom_toBottomOf="@id/cl_mv_container">
 
             <CheckBox
-                android:id="@+id/ctv_show_camera_updates"
+                android:id="@+id/ctv_show_camera_loc"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:checked="false"
-                android:text="Show Camera Location Updates"
+                android:text="Show Coordinates"
                 android:textColor="@color/mapbox_blue"
+                android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="@id/cl_ibtn_container" />
+
+            <CheckBox
+                android:id="@+id/ctv_sync_location"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_marginLeft="25dp"
+                android:checked="false"
+                android:text="Sync to My Location"
+                android:textColor="@color/mapbox_blue"
+                android:textSize="12sp"
+                app:layout_constraintStart_toEndOf="@id/ctv_show_camera_loc" />
 
             <android.support.v7.widget.AppCompatImageButton
                 android:id="@+id/ibtn_hide_mbgl_frag"
@@ -88,18 +100,18 @@
             app:mapbox_uiZoomControls="false">
 
             <LinearLayout
-                android:id="@+id/mv_sublayout_nav"
+                android:id="@+id/mv_sublayout_camera"
                 android:layout_width="40dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|right"
                 android:layout_marginTop="10dp"
+                android:layout_marginRight="5dp"
                 android:orientation="vertical"
-                android:visibility="invisible">
+                android:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
                     android:orientation="vertical">
 
                     <ImageButton
@@ -124,12 +136,43 @@
                         android:layout_height="wrap_content"
                         android:src="@drawable/ic_zoom_out_black_24dp"
                         android:tint="@color/mapbox_blue" />
+
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
+                    android:layout_marginTop="10dp"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/ibtn_rotate_up"
+                        style="@style/mapview_nav_imagebutton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_noun_arrow_rotate_up"
+                        android:tint="@color/mapbox_blue" />
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="2dp"
+                        android:layout_marginTop="2dp"
+                        android:background="@color/mapbox_blue" />
+
+                    <ImageButton
+                        android:id="@+id/ibtn_rotate_down"
+                        style="@style/mapview_nav_imagebutton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_noun_arrow_rotate_down"
+                        android:tint="@color/mapbox_blue" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:orientation="vertical">
 
@@ -146,12 +189,11 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
                     android:layout_marginTop="10dp"
                     android:orientation="vertical">
 
                     <ImageButton
-                        android:id="@+id/ibtn_center"
+                        android:id="@+id/ibtn_goto_map_ctr"
                         style="@style/mapview_nav_imagebutton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

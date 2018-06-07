@@ -86,7 +86,7 @@ import go_spatial.com.github.tegola.mobile.android.ux.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
-public class MainActivity extends AppCompatActivity implements MBGLFragment.OnFragmentInteractionListener {
+public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerActivity implements MBGLFragment.OnFragmentInteractionListener {
     private static final String TAG = MainActivity.class.getCanonicalName();
 
     private DrawerLayout m_drawerlayout = null;
@@ -1978,12 +1978,14 @@ public class MainActivity extends AppCompatActivity implements MBGLFragment.OnFr
                 @Override
                 public void run() {
                     Log.d(TAG, "mbgl_map_start: swapping drawer content to MBGLFragment");
+                    MBGLFragment mbgl_frag = MBGLFragment.newInstance(tegolaCapabilities, BuildConfig.mbgl_debug_active);
+                    LocationUpdatesManager.newInstance(MainActivity.this, mbgl_frag);
                     getSupportFragmentManager()
                             .beginTransaction()
                             .replace(
-                                    R.id.drawerlayout_content__drawer__frag_container,
-                                    MBGLFragment.newInstance(tegolaCapabilities, BuildConfig.mbgl_debug_active),
-                                    FRAG_DRAWER_CONTENT
+                                R.id.drawerlayout_content__drawer__frag_container,
+                                mbgl_frag,
+                                FRAG_DRAWER_CONTENT
                             )
                             .commit();
                     Log.d(TAG, "mbgl_map_start: adding drawerlistener m_drawerlayout_main__DrawerToggle to m_drawerlayout");

@@ -1,11 +1,13 @@
 package go_spatial.com.github.tegola.mobile.android.ux;
 
 import android.content.Context;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -67,9 +69,8 @@ import static com.mapbox.mapboxsdk.maps.MapView.WILL_START_RENDERING_MAP;
  * Use the {@link MBGLFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MBGLFragment extends android.support.v4.app.Fragment {
+public class MBGLFragment extends android.support.v4.app.Fragment implements LocationUpdatesManager.LocationUpdatesBrokerListener {
     public static final String TAG = MBGLFragment.class.getCanonicalName();
-
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -105,16 +106,20 @@ public class MBGLFragment extends android.support.v4.app.Fragment {
     private TextView m_tv_camera_loc = null;
 
     private CompassView m_cv = null;
-    private View m_nav_container = null;
+    private View m_cam_ctrl_container = null;
     private ImageButton m_ibtn_zoom_in = null;
+    private ImageButton m_ibtn_rotate_up = null;
+    private ImageButton m_ibtn_rotate_down = null;
     private ImageButton m_ibtn_zoom_out = null;
     private ImageButton m_ibtn_goto_loc = null;
-    private ImageButton m_ibtn_center = null;
+    private ImageButton m_ibtn_goto_map_ctr = null;
 
-    private CheckBox m_ctv_show_camera_updates = null;
+    private CheckBox m_ctv_show_camera_loc = null;
+    private CheckBox m_ctv_sync_location = null;
     private ImageButton ibtn_hide_mbgl_frag = null;
 
     private final double ZOOM_BY = .25;
+    private final double ROTATE_BY = 7.5; //degrees
 
     public MBGLFragment() {
         // Required empty public constructor
@@ -416,70 +421,97 @@ public class MBGLFragment extends android.support.v4.app.Fragment {
         m_tv_version = (TextView)this_frag_layout_view.findViewById(R.id.tv_tegola_version);
         m_tv_camera_loc = (TextView)this_frag_layout_view.findViewById(R.id.tv_camera_loc);
 
-        m_nav_container = (View)this_frag_layout_view.findViewById(R.id.mv_sublayout_nav);
+        m_cam_ctrl_container = (View)this_frag_layout_view.findViewById(R.id.mv_sublayout_camera);
         m_ibtn_zoom_in = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_zoom_in);
-        m_ibtn_zoom_in.setOnClickListener(new View.OnClickListener() {
+        m_ibtn_zoom_in.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                if (m_mapboxMap.getCameraPosition().zoom == m_mapboxMap.getMaxZoomLevel())
-                    Toast.makeText(getApplicationContext(), "Camera already at MAX zoom level (" + m_mapboxMap.getMaxZoomLevel() + ")! Cannot zoom in any further.", Toast.LENGTH_SHORT).show();
-                else {
-                    m_mapboxMap.easeCamera(
-                        CameraUpdateFactory.newCameraPosition(
-                            new CameraPosition.Builder()
-                                .zoom(m_mapboxMap.getCameraPosition().zoom + ZOOM_BY)
-                                .build()
-                        )
-                    );
-                }
+            public boolean onTouch(View v, MotionEvent event) {
+                move_camera(
+                        null,
+                        null,
+                        m_mapboxMap.getCameraPosition().zoom + ZOOM_BY,
+                        null,
+                        null
+                );
+                return true;
             }
         });
         m_ibtn_zoom_out = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_zoom_out);
-        m_ibtn_zoom_out.setOnClickListener(new View.OnClickListener() {
+        m_ibtn_zoom_out.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                if (m_mapboxMap.getCameraPosition().zoom == m_mapboxMap.getMinZoomLevel())
-                    Toast.makeText(getApplicationContext(), "Camera already at MIN zoom level (" + m_mapboxMap.getMinZoomLevel() + ")! Cannot zoom out any further.", Toast.LENGTH_SHORT).show();
-                else {
-                    m_mapboxMap.easeCamera(
-                        CameraUpdateFactory.newCameraPosition(
-                            new CameraPosition.Builder()
-                                .zoom(m_mapboxMap.getCameraPosition().zoom - ZOOM_BY)
-                                .build()
-                        )
-                    );
-                }
+            public boolean onTouch(View v, MotionEvent event) {
+                move_camera(
+                        null,
+                        null,
+                        m_mapboxMap.getCameraPosition().zoom - ZOOM_BY,
+                        null,
+                        null
+                );
+                return true;
+            }
+        });
+        m_ibtn_rotate_up = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_rotate_up);
+        m_ibtn_rotate_up.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                move_camera(
+                        null,
+                        null,
+                        null,
+                        null,
+                        m_mapboxMap.getCameraPosition().tilt + ROTATE_BY);
+                return true;
+            }
+        });
+        m_ibtn_rotate_down = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_rotate_down);
+        m_ibtn_rotate_down.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                move_camera(
+                        null,
+                        null,
+                        null,
+                        null,
+                        m_mapboxMap.getCameraPosition().tilt - ROTATE_BY);
+                return true;
             }
         });
         m_ibtn_goto_loc = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_goto_loc);
         m_ibtn_goto_loc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
             }
         });
-        m_ibtn_center = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_center);
-        m_ibtn_center.setOnClickListener(new View.OnClickListener() {
+        m_ibtn_goto_map_ctr = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_goto_map_ctr);
+        m_ibtn_goto_map_ctr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                m_mapboxMap.easeCamera(
-                    CameraUpdateFactory.newCameraPosition(
-                        new CameraPosition.Builder()
-                            .target(new LatLng(tegolaCapabilities.parsed.maps[0].center.latitude, tegolaCapabilities.parsed.maps[0].center.longitude))
-                            .zoom(tegolaCapabilities.parsed.maps[0].center.zoom)
-                            .bearing(0.0)
-                            .build()
-                    )
+                move_camera(
+                        tegolaCapabilities.parsed.maps[0].center.latitude,
+                        tegolaCapabilities.parsed.maps[0].center.longitude,
+                        tegolaCapabilities.parsed.maps[0].center.zoom,
+                        0.0,
+                        null
                 );
             }
         });
         m_cv = (CompassView)this_frag_layout_view.findViewById(com.mapbox.mapboxsdk.R.id.compassView);
 
-        m_ctv_show_camera_updates = (CheckBox)this_frag_layout_view.findViewById(R.id.ctv_show_camera_updates);
-        m_ctv_show_camera_updates.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        m_ctv_show_camera_loc = (CheckBox)this_frag_layout_view.findViewById(R.id.ctv_show_camera_loc);
+        m_ctv_show_camera_loc.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 m_tv_camera_loc.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            }
+        });
+        m_ctv_sync_location = (CheckBox)this_frag_layout_view.findViewById(R.id.ctv_sync_location);
+        m_ctv_sync_location.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked)
+                    LocationUpdatesManager.getInstance().start_updates();
+                else
+                    LocationUpdatesManager.getInstance().stop_updates();
             }
         });
         ibtn_hide_mbgl_frag = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_hide_mbgl_frag);
@@ -529,6 +561,7 @@ public class MBGLFragment extends android.support.v4.app.Fragment {
             Log.d(TAG, "(fragment) onMapReady: min zoom level: " + m_mapboxMap.getMinZoomLevel() + "; max zoom level: " + m_mapboxMap.getMaxZoomLevel());
 
             //adjust mb uisettings and attribution parsed from tegola capabilities before prefetching tiles
+            m_mapboxMap.getUiSettings().setAllGesturesEnabled(true);
             m_mapboxMap.getUiSettings().setCompassEnabled(true);
             m_mapboxMap.getUiSettings().setCompassFadeFacingNorth(false);
             StringBuilder sb_attribution = new StringBuilder()
@@ -547,12 +580,12 @@ public class MBGLFragment extends android.support.v4.app.Fragment {
 
 //            int
 //                    new_top = (m_cv.getVisibility() != View.GONE ? m_cv.getBottom() : 0),
-//                    translate_y = new_top - (m_nav_container.getTop() - 50);
-//            Log.d(TAG, "(fragment) onMapReady: moving top of m_nav_container by " + translate_y);
-//            m_nav_container.setTranslationY(translate_y);
+//                    translate_y = new_top - (m_cam_ctrl_container.getTop() - 50);
+//            Log.d(TAG, "(fragment) onMapReady: moving top of m_cam_ctrl_container by " + translate_y);
+//            m_cam_ctrl_container.setTranslationY(translate_y);
             show_nav(true);
-            m_ctv_show_camera_updates.setChecked(true);
-            m_ctv_show_camera_updates.callOnClick();
+            m_ctv_show_camera_loc.setChecked(true);
+            m_ctv_show_camera_loc.callOnClick();
 
             CameraPosition camera_pos = m_mapboxMap.getCameraPosition();
             Log.d(TAG, "(fragment) onMapReady: camera initial pos: "
@@ -561,22 +594,68 @@ public class MBGLFragment extends android.support.v4.app.Fragment {
                     + "; camera_pos.zoom: " + camera_pos.zoom
                     + "; camera_pos.bearing: " + camera_pos.bearing
             );
-            if (tegolaCapabilities.parsed.maps[0].center.latitude != -1.0 && tegolaCapabilities.parsed.maps[0].center.longitude != -1.0 && tegolaCapabilities.parsed.maps[0].center.zoom != -1.0) {
-                Log.d(TAG, "(fragment) onMapReady: setting camera to new pos (parsed from capabilities json): "
-                        + "camera_pos.target.getLatitude() := " + tegolaCapabilities.parsed.maps[0].center.latitude
-                        + "; camera_pos.target.getLongitude() := " + tegolaCapabilities.parsed.maps[0].center.longitude
-                        + "; camera_pos.zoom := " + tegolaCapabilities.parsed.maps[0].center.zoom
-                        + "; camera_pos.bearing := 0.0"
-                );
-                m_ibtn_center.callOnClick();
-            }
+            if (tegolaCapabilities.parsed.maps[0].center.latitude != -1.0 && tegolaCapabilities.parsed.maps[0].center.longitude != -1.0 && tegolaCapabilities.parsed.maps[0].center.zoom != -1.0)
+                m_ibtn_goto_map_ctr.callOnClick();
         }
     };
 
     private void show_nav(boolean show) {
-        m_nav_container.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+        m_cam_ctrl_container.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
     }
 
+    private void move_camera(Double lat, Double lon, Double zoom, Double bearing, Double tilt) {
+        CameraPosition.Builder camera_pos_builder = new CameraPosition.Builder();
+        if (lat == null)
+            lat = m_mapboxMap.getCameraPosition().target.getLatitude();
+        if (lon == null)
+            lon = m_mapboxMap.getCameraPosition().target.getLongitude();
+        if (zoom == null)
+            zoom = m_mapboxMap.getCameraPosition().zoom;
+        if (bearing == null)
+            bearing = m_mapboxMap.getCameraPosition().bearing;
+        if (tilt == null)
+            tilt = m_mapboxMap.getCameraPosition().tilt;
+        Log.d(TAG, "(fragment) move_camera: setting camera to new pos: "
+                + "lat := " + lat
+                + "; lon := " + lon
+                + "; zoom := " + zoom
+                + "; bearing := " + bearing
+                + "; tilt := " + tilt
+        );
+        m_mapboxMap.easeCamera(
+            CameraUpdateFactory.newCameraPosition(
+                new CameraPosition.Builder()
+                    .target(new LatLng(lat, lon))
+                    .zoom(zoom)
+                    .bearing(bearing)
+                    .tilt(tilt)
+                    .build()
+            )
+        );
+    }
+
+    @Override
+    public void onBrokerLocationUpdate(Location location) {
+        double
+                lat = location.getLatitude(),
+                lon = location.getLongitude(),
+                bearing = location.getBearing();
+        Log.d(TAG, "(fragment) onBrokerLocationUpdate: received location update from broker - easing camera to: "
+                + "lat: " + lat
+                + "; lon: " + lon
+                + "; bearing: " + bearing
+        );
+        m_mapboxMap.easeCamera(
+            CameraUpdateFactory.newCameraPosition(
+                new CameraPosition.Builder()
+                    .target(new LatLng(location.getLatitude(), location.getLongitude()))
+                    .bearing(location.getBearing())
+                    .build()
+            )
+        );
+    }
+
+    long last_min_zoom_time = 0, last_max_zoom_time = 0;
     final private MapboxMap.OnCameraMoveListener m_OnCameraMoveListener = new MapboxMap.OnCameraMoveListener() {
         @Override
         public void onCameraMove() {
@@ -587,6 +666,17 @@ public class MBGLFragment extends android.support.v4.app.Fragment {
 //                    + "; camera_pos.zoom: " + camera_pos.zoom
 //            );
             m_tv_camera_loc.setText(String.format("%.4f, %.4f, %.4f", camera_pos.target.getLatitude(), camera_pos.target.getLongitude(), camera_pos.zoom));
+            long now = System.currentTimeMillis();
+            if (m_mapboxMap.getCameraPosition().zoom == m_mapboxMap.getMinZoomLevel()) {
+                if (now - last_min_zoom_time >= 5000)
+                    Toast.makeText(getApplicationContext(), "Camera already at MIN zoom level (" + m_mapboxMap.getMinZoomLevel() + ")! Cannot zoom out any further.", Toast.LENGTH_SHORT).show();
+                last_min_zoom_time = now;
+            }
+            if (m_mapboxMap.getCameraPosition().zoom == m_mapboxMap.getMaxZoomLevel()) {
+                if (now - last_max_zoom_time >= 5000)
+                    Toast.makeText(getApplicationContext(), "Camera already at MAX zoom level (" + m_mapboxMap.getMaxZoomLevel() + ")! Cannot zoom in any further.", Toast.LENGTH_SHORT).show();
+                last_min_zoom_time = now;
+            }
         }
     };
 
@@ -654,6 +744,8 @@ public class MBGLFragment extends android.support.v4.app.Fragment {
             }
             m_okhttp_cache = null;
         }
+
+        LocationUpdatesManager.getInstance().stop_updates();
     }
 
     @Override
