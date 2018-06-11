@@ -31,6 +31,7 @@ public class SharedPrefsManager {
     }
 
     public interface Strings {
+        String TM_TILE_SOURCE__IS_LOCAL = "TM_TILE_SOURCE__IS_LOCAL";
         String TM_PROVIDER__IS_GEOPACKAGE = "TM_PROVIDER__IS_GEOPACKAGE";
         String TM_PROVIDER__GPKG_BUNDLE__SELECTION = "TM_PROVIDER__GPKG_BUNDLE__SELECTION";
         String TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION = "TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION";
@@ -115,13 +116,15 @@ public class SharedPrefsManager {
 
 
     public enum BOOLEAN_SHARED_PREF {
-        TM_PROVIDER__IS_GEOPACKAGE      //true: provider type is geopackage, else provider type is postgis
-        , TM_CONFIG_TOML__IS_REMOTE     //true: config toml file is hosted remotely (http), else config toml file is hosted locally on device
+        TM_TILE_SOURCE__IS_LOCAL            //true: use embedded/local tegola mvt server
+        , TM_PROVIDER__IS_GEOPACKAGE        //true: provider type is geopackage, else provider type is postgis
+        , TM_CONFIG_TOML__IS_REMOTE         //true: config toml file is hosted remotely (http), else config toml file is hosted locally on device
         ;
 
         @Override
         public String toString() {
             switch (this) {
+                case TM_TILE_SOURCE__IS_LOCAL: return Strings.TM_TILE_SOURCE__IS_LOCAL;
                 case TM_PROVIDER__IS_GEOPACKAGE: return Strings.TM_PROVIDER__IS_GEOPACKAGE;
                 case TM_CONFIG_TOML__IS_REMOTE: return Strings.TM_CONFIG_TOML__IS_REMOTE;
                 default: return null;

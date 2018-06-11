@@ -4,12 +4,12 @@
     <string name="ctrlr_info">Controller Info</string>
     <string name="ctrlr_status">Controller Status</string>
 
-    <string name="mbgl_info">Tile-Fetch Config</string>
+    <string name="mbgl_info">MapView Config</string>
+    <string name="mbgl_http_client_connect_timeout">Tile-Fetch: Connect Timeout</string>
+    <string name="mbgl_http_client_read_timeout">Tile-Fetch: Read Timeout</string>
+    <string name="mbgl_http_client_cache_size">Tile-Fetch: Cache Size</string>
+    <string name="mbgl_http_client_max_requests_per_host">Tile-Fetch: Max Requests/Host</string>
     <string name="mbgl_mvt_source">Tile Source</string>
-    <string name="mbgl_http_client_connect_timeout">Connect Timeout</string>
-    <string name="mbgl_http_client_read_timeout">Read Timeout</string>
-    <string name="mbgl_http_client_cache_size">Cache Size</string>
-    <string name="mbgl_http_client_max_requests_per_host">Max Requests/Host</string>
 
     <string name="provision_src__local">LOCAL</string>
     <string name="provision_src__remote">REMOTE</string>

@@ -21,7 +21,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.Spannable;
@@ -78,7 +77,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Set;
 
 import go_spatial.com.github.tegola.mobile.android.controller.Exceptions;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.REQUEST_CODES;
@@ -112,8 +110,6 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
     private Button m_btn_sect__mbgl_nfo__expand = null;
     private ExpandableRelativeLayout m_vw_sect_content__mbgl_nfo = null;
     private RadioGroup m_rg_val_mvt_source_sel = null;
-    private RadioButton m_rb_val_mvt_source_sel__remote = null;
-    private RadioButton m_rb_val_mvt_source_sel__local = null;
     private EditText m_edt_val_http_client_cfg__connect_timeout = null;
     private EditText m_edt_val_http_client_cfg__read_timeout = null;
     private EditText m_edt_val_http_client_cfg__cache_size = null;
@@ -277,8 +273,6 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         m_btn_sect__mbgl_nfo__expand = (Button)findViewById(R.id.btn_sect__mbgl_nfo__expand);
         m_vw_sect_content__mbgl_nfo = (ExpandableRelativeLayout)findViewById(R.id.sect_content__mbgl_nfo);
         m_rg_val_mvt_source_sel = (RadioGroup)findViewById(R.id.rg_val_mvt_source_sel);
-        m_rb_val_mvt_source_sel__local = (RadioButton)findViewById(R.id.rb_val_mvt_source_sel__local);
-        m_rb_val_mvt_source_sel__remote = (RadioButton)findViewById(R.id.rb_val_mvt_source_sel__remote);
         m_edt_val_http_client_cfg__connect_timeout = (EditText)findViewById(R.id.edt_val_http_client_cfg__connect_timeout);
         m_edt_val_http_client_cfg__read_timeout = (EditText)findViewById(R.id.edt_val_http_client_cfg__read_timeout);
         m_edt_val_http_client_cfg__cache_size = (EditText)findViewById(R.id.edt_val_http_client_cfg__cache_size);
@@ -330,26 +324,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 //        m_btn_sect__andro_dev_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
 //        m_btn_sect__ctrlr_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
         m_btn_sect__mbgl_nfo__expand.setOnClickListener(OnClickListener__btn_expandable_section);
-        m_rb_val_mvt_source_sel__local.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                //Log.d(TAG, "m_rb_val_mvt_source_sel__local.onCheckedChanged: isChecked== " + isChecked);
-                m_sect__remote_srvr_nfo.setVisibility(isChecked ? View.GONE : View.VISIBLE);
-                m_sect__local_srvr_nfo.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-                m_tv_tegola_console_output__scroll_max();
-                m_scvw_main__scroll_max();
-            }
-        });
-        m_rb_val_mvt_source_sel__remote.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                //Log.d(TAG, "m_rb_val_mvt_source_sel__remote.onCheckedChanged: isChecked== " + isChecked);
-                m_sect__local_srvr_nfo.setVisibility(isChecked ? View.GONE : View.VISIBLE);
-                m_sect__remote_srvr_nfo.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-                m_tv_tegola_console_output__scroll_max();
-                m_scvw_main__scroll_max();
-            }
-        });
+        m_rg_val_mvt_source_sel.setOnCheckedChangeListener(OnCheckedChangeListener__m_rg_val_mvt_source_sel);
         m_edt_val_http_client_cfg__connect_timeout.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -704,10 +679,6 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
                 Intent intent_query_mvt_server_listen_port = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING);
                 sendBroadcast(intent_query_mvt_server_listen_port);
 
-                //default to local MVT server for MBGL
-                m_rg_val_mvt_source_sel.clearCheck();
-                m_rg_val_mvt_source_sel.check(R.id.rb_val_mvt_source_sel__local);
-                m_rg_val_mvt_source_sel.callOnClick();
 
                 //reconcile expandable sections UI with initial "expanded" state
 //                m_vw_sect_content__andro_dev_nfo.callOnClick();
@@ -753,19 +724,14 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
                 }
                 m_edt_val_http_client_cfg__cache_size.setText(Integer.toString(SharedPrefsManager.INTEGER_SHARED_PREF.MBGL_CONFIG__CACHE_SIZE.getValue()));
 
-                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER__IS_GEOPACKAGE val
-                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue() == true) {
-                    m_rb_val_provider_type_sel__gpkg.setChecked(true);
-                } else {
-                    m_rb_val_provider_type_sel__postgis.setChecked(true);
-                }
-
-                //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TOML__IS_REMOTE val
-                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue() == true) {
-                    m_rb_val_config_type_sel__remote.setChecked(true);
-                } else {
-                    m_rb_val_config_type_sel__local.setChecked(true);
-                }
+                boolean tile_source_is_local = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_TILE_SOURCE__IS_LOCAL.getValue();
+                Log.d(TAG, "onResume.async.runnable.run: boolean shared pref " + SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_TILE_SOURCE__IS_LOCAL.toString() + " is: " + tile_source_is_local);
+                int rb_val_mvt_source_sel = (
+                    tile_source_is_local
+                        ? R.id.rb_val_mvt_source_sel__local
+                        : R.id.rb_val_mvt_source_sel__remote
+                );
+                m_rg_val_mvt_source_sel.check(rb_val_mvt_source_sel);
 
                 m_tv_tegola_console_output__scroll_max();
 
@@ -818,6 +784,40 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
                     reconcile_expandable_section(final_expandable_section);
                 }
             }, 50);
+        }
+    };
+
+    private final RadioGroup.OnCheckedChangeListener OnCheckedChangeListener__m_rg_val_mvt_source_sel = new RadioGroup.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(RadioGroup group, int checkedId) {
+            Log.d(TAG, "m_rg_val_mvt_source_sel.onCheckedChanged: checkedId: " + checkedId);
+            boolean
+                    want_local_tile_source = (checkedId == R.id.rb_val_mvt_source_sel__local)
+                    , setting_local_tile_source = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_TILE_SOURCE__IS_LOCAL.getValue();
+            Log.d(TAG, "m_rg_val_mvt_source_sel.onCheckedChanged: want_local_tile_source: " + want_local_tile_source + ", setting_local_tile_source: " + setting_local_tile_source);
+            if (want_local_tile_source != setting_local_tile_source) {
+                SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_TILE_SOURCE__IS_LOCAL.setValue(want_local_tile_source);
+                setting_local_tile_source = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_TILE_SOURCE__IS_LOCAL.getValue();
+                Log.d(TAG, "m_rg_val_mvt_source_sel.onCheckedChanged: changed shared pref setting " + SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_TILE_SOURCE__IS_LOCAL + " value to: " + setting_local_tile_source);
+            }
+            if (setting_local_tile_source) {//then get/update settings related to using local mvt server
+                //set srvr provider type (postGIS/geopackage) based on PersistentConfigSettingsManager.TM_PROVIDER__IS_GEOPACKAGE val
+                if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue() == true) {
+                    m_rb_val_provider_type_sel__gpkg.setChecked(true);
+                } else {
+                    m_rb_val_provider_type_sel__postgis.setChecked(true);
+                    //set srvr config selection type (local/remote) based on PersistentConfigSettingsManager.TM_CONFIG_TOML__IS_REMOTE val
+                    if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue() == true) {
+                        m_rb_val_config_type_sel__remote.setChecked(true);
+                    } else {
+                        m_rb_val_config_type_sel__local.setChecked(true);
+                    }
+                }
+            }
+            m_sect__remote_srvr_nfo.setVisibility(want_local_tile_source ? View.GONE : View.VISIBLE);
+            m_sect__local_srvr_nfo.setVisibility(want_local_tile_source ? View.VISIBLE : View.GONE);
+            m_tv_tegola_console_output__scroll_max();
+            m_scvw_main__scroll_max();
         }
     };
 

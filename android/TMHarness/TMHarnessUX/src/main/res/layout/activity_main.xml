@@ -365,55 +365,70 @@
                             </LinearLayout>
                         </LinearLayout>
                         <!-- mbgl nfo section content - http-client: max requests per host - END -->
-                        <!-- mbgl nfo section content - mvt source - BEGIN -->
-                        <LinearLayout
-                            android:id="@+id/sect_content__item__mvt_source"
-                            style="@style/Section_Content_Item"
-                            android:layout_below="@+id/sect_content__item__http_client_cfg__max_requests_per_host"
-                            android:layout_marginBottom="5dp">
-                            <TextView
-                                android:id="@+id/tv_lbl_mvt_source"
-                                style="@style/Section_Content_Item_Label"
-                                android:text="@string/mbgl_mvt_source"
-                                android:visibility="visible" />
-
-                            <RadioGroup
-                                android:id="@+id/rg_val_mvt_source_sel"
-                                style="@style/Section_Content_Item_Content"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <RadioButton
-                                    android:id="@+id/rb_val_mvt_source_sel__local"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="10dp"
-                                    android:layout_marginRight="10dp"
-                                    android:button="@null"
-                                    android:drawableLeft="@android:drawable/btn_radio"
-                                    android:drawableStart="@android:drawable/btn_radio"
-                                    android:inputType="textCapCharacters"
-                                    android:text="@string/provision_src__local"
-                                    android:textSize="14sp" />
-
-                                <RadioButton
-                                    android:id="@+id/rb_val_mvt_source_sel__remote"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:button="@null"
-                                    android:drawableLeft="@android:drawable/btn_radio"
-                                    android:drawableStart="@android:drawable/btn_radio"
-                                    android:inputType="textCapCharacters"
-                                    android:text="@string/provision_src__remote"
-                                    android:textSize="14sp" />
-                            </RadioGroup>
-                        </LinearLayout>
-                        <!-- mbgl nfo section content - mvt source - END -->
                     </com.github.aakira.expandablelayout.ExpandableRelativeLayout>
                     <!-- mbgl nfo section content: END -->
                 </LinearLayout>
                 <!-- mbgl info section: END -->
+                <!-- tile source section: BEGIN -->
+                <LinearLayout
+                    android:id="@+id/sect__tile_source_nfo"
+                    style="@style/Section">
+                    <!-- tile_source_nfo section heading: BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect__tile_source_nfo__heading"
+                        style="@style/Section_Heading">
+                        <RelativeLayout
+                            style="@style/Section_Heading_Content">
+                            <TextView
+                                android:id="@+id/tv_sect_heading_lbl_tile_source_nfo"
+                                style="@style/Section_Heading_Content_Label"
+                                android:text="@string/mbgl_mvt_source"/>
+                        </RelativeLayout>
+                        <View
+                            android:id="@+id/vw_sect_heading_underscore__tile_source_nfo"
+                            style="@style/Section_Heading_Underscore"/>
+                    </LinearLayout>
+                    <!-- tile_source_nfo section heading: END -->
+                    <!-- tile_source_nfo section content - mvt source - BEGIN -->
+                    <LinearLayout
+                        android:id="@+id/sect_content__item__mvt_source"
+                        style="@style/Section_Content_Item"
+                        android:layout_marginBottom="5dp">
+                        <RadioGroup
+                            android:id="@+id/rg_val_mvt_source_sel"
+                            style="@style/Section_Content_Item_Content"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/rb_val_mvt_source_sel__local"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="10dp"
+                                android:layout_marginRight="10dp"
+                                android:button="@null"
+                                android:drawableLeft="@android:drawable/btn_radio"
+                                android:drawableStart="@android:drawable/btn_radio"
+                                android:inputType="textCapCharacters"
+                                android:text="@string/provision_src__local"
+                                android:textSize="14sp" />
+
+                            <RadioButton
+                                android:id="@+id/rb_val_mvt_source_sel__remote"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:button="@null"
+                                android:drawableLeft="@android:drawable/btn_radio"
+                                android:drawableStart="@android:drawable/btn_radio"
+                                android:inputType="textCapCharacters"
+                                android:text="@string/provision_src__remote"
+                                android:textSize="14sp" />
+                        </RadioGroup>
+                    </LinearLayout>
+                    <!-- tile_source_nfo section content - mvt source - END -->
+                </LinearLayout>
+                <!-- tile source section: END -->
                 <!-- local srvr nfo section: BEGIN -->
                 <LinearLayout
                     android:id="@+id/sect__local_srvr_nfo"
