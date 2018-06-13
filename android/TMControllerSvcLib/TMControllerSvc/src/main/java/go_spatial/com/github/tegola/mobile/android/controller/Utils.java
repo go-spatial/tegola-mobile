@@ -35,6 +35,7 @@ import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -258,9 +259,12 @@ public class Utils {
         private final static String TAG = Utils.HTTP.class.getCanonicalName();
 
         public static boolean isValidUrl(String url) {
-            Pattern p = Patterns.WEB_URL;
-            Matcher m = p.matcher(url.toLowerCase());
-            return m.matches();
+            if (url.contains("/")) {
+                Pattern p = Patterns.WEB_URL;
+                Matcher m = p.matcher(url.toLowerCase());
+                return m.matches();
+            } else
+                return false;
         }
 
         public static class Get {
@@ -283,7 +287,8 @@ public class Utils {
                 if (s_url == null)
                     throw new NullPointerException("s_url cannot be null");
                 final OkHttpClient httpClient = new OkHttpClient.Builder().dispatcher(getDispatcher())
-                        .readTimeout(10, TimeUnit.SECONDS)
+                        .protocols(new ArrayList<Protocol>(){{add(Protocol.HTTP_1_1);}})    //restrict to HTTP 1.1
+                        .readTimeout(20, TimeUnit.SECONDS)
                         .build();
                 final Request http_get_request = new Request.Builder()
                         .url(s_url)
@@ -631,7 +636,7 @@ public class Utils {
                             }
                         }
                     } else {
-                        Log.e(TAG, "download_file: response body contains no content (zero bytes)!");
+                        Log.e(TAG, "download_file: response body contains no content (content-length/bytes: " + response.body().contentLength() + ")!");
                     }
                 }
 
@@ -690,6 +695,7 @@ public class Utils {
                     final Request http_request_file_download = new Request.Builder()
                             .url(http_url)
                             .get()
+                            .addHeader("Content-Type", "application/octet-stream")
                             .build();
                     Log.d(TAG, "request_file_download: new Request created: " + http_request_file_download.toString());
                     Headers request_headers = http_request_file_download.headers();
@@ -760,7 +766,9 @@ public class Utils {
                         if (httpUrl_to_local_file[0].get_file() == null)
                             throw new RemoteFileInvalidParameterException("HttpUrl_To_Local_File.file is null");
                         httpClient = new OkHttpClient.Builder().dispatcher(getDispatcher())
-                                .readTimeout(10, TimeUnit.SECONDS)
+                                .protocols(new ArrayList<Protocol>(){{add(Protocol.HTTP_1_1);}})    //restrict to HTTP 1.1
+                                .followRedirects(true)
+                                .readTimeout(20, TimeUnit.SECONDS)
                                 //network interceptor not currently needed - only application interceptor
     //                            .addNetworkInterceptor(new Interceptor() {
     //                                @Override public Response intercept(Chain chain) throws IOException {
@@ -782,11 +790,14 @@ public class Utils {
                                 .build();
                         //Log.d(TAG, "doInBackground: new OkHttpClient created");
                         HttpUrl http_url = httpUrl_to_local_file[0].get_url();
+                        //request_file_size(httpClient, http_url);
                         request_file_download(httpClient, http_url);
                     } catch (IOException e) {
                         exception = e;
                     } catch (RemoteFileInvalidParameterException e) {
                         exception = e;
+//                    } catch (RemoteFile_SizeException e) {
+//                        e.printStackTrace();
                     } finally {
                         if (httpClient != null)
                             httpClient.dispatcher().cancelAll();

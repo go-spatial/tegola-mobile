@@ -883,7 +883,10 @@
                                     android:layout_height="25dp"
                                     android:layout_alignParentRight="true"
                                     android:layout_marginLeft="5dp"
-                                    android:src="@drawable/ic_restore_black_24dp" />
+                                    android:background="?attr/colorButtonNormal"
+                                    android:contentDescription="reset to @string/gpkg_bundle__root_url__default"
+                                    android:src="@drawable/ic_restore_black_24dp"
+                                    android:tint="@android:color/white" />
 
                                 <EditText
                                     android:id="@+id/edt_val_root_url"

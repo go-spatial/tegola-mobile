@@ -503,13 +503,24 @@ public class FGS extends Service {
             Log.d(TAG, "start_tegola: found/using gpkg-bundle: " + f_gpkg_bundle.getName());
 
 //            //process version.properties file for this gpk-bundle
+            String s_prop_val = "";
             File f_gpkg_bundle_ver_props = new File(f_gpkg_bundle.getPath(), server_start_spec__gpkg_provider.gpkg_bundle_props);
             if (!f_gpkg_bundle_ver_props.exists())
                 throw new FileNotFoundException("geopcackage-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath() + " not found");
             Log.d(TAG, "start_tegola: found/using gpkg-bundle version.properties: " + f_gpkg_bundle_ver_props.getCanonicalPath());
             //get gpkg-bundle toml file spec from version.props, confirm existence, then build "--config" arg for tegola commandline
-            String s_gpkg_bundle__toml = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
-            f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_gpkg_bundle__toml);
+            s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
+            String
+                    s_toml_file_remote = s_prop_val,
+                    s_toml_file_local = s_toml_file_remote;
+            if (Utils.HTTP.isValidUrl(s_toml_file_remote)) {//then retrieve only last part for local file name
+                Log.d(TAG, "start_tegola: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + ":\"" + s_toml_file_remote + "\" IS a uri");
+                s_toml_file_local = s_toml_file_remote.substring(s_toml_file_remote.lastIndexOf("/") + 1);
+            } else {
+                Log.d(TAG, "start_tegola: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + ":\"" + s_toml_file_remote + "\" IS NOT a uri");
+            }
+            Log.d(TAG, "start_tegola: \t\tlocal: \"" + s_toml_file_local + "\"; remote: \"" + s_toml_file_remote + "\"");
+            f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_toml_file_local);
             Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + " == " + f_gpkg_bundle__toml.getCanonicalPath());
             if (!f_gpkg_bundle__toml.exists())
                 throw new FileNotFoundException("geopcackage-bundle toml file " + f_gpkg_bundle__toml.getCanonicalPath() + " not found");
@@ -522,12 +533,24 @@ public class FGS extends Service {
             Log.d(TAG, "start_tegola: \tset pb env " + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR + " to \"" + pb_env.get(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR) + "\"");
 
             //get gpkg-bundle geopcackages spec from version.props, then confirm existence
-            String[] s_list_geopcackage_files = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES).split(",");
-            String[] s_list_geopcackage_path_env_vars = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_PATH_ENV_VARS).split(",");
-            if (s_list_geopcackage_files != null && s_list_geopcackage_files.length > 0) {
-                for (int i = 0; i < s_list_geopcackage_files.length; i++) {
-                    String s_gpkg_file = s_list_geopcackage_files[i];
-                    f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_file);
+            s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES);
+            String[] s_list_gpkg_files = s_prop_val.split(",");
+            s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_PATH_ENV_VARS);
+            String[] s_list_geopcackage_path_env_vars = s_prop_val.split(",");
+            if (s_list_gpkg_files != null && s_list_gpkg_files.length > 0) {
+                for (int i = 0; i < s_list_gpkg_files.length; i++) {
+                    String
+                            s_gpkg_file_remote = s_list_gpkg_files[i],
+                            s_gpkg_file_local = s_gpkg_file_remote;
+                    Log.d(TAG, "start_tegola: \t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]=\"" + s_gpkg_file_remote + "\"");
+                    if (Utils.HTTP.isValidUrl(s_gpkg_file_remote)) {//then retrieve only last part for local file name
+                        Log.d(TAG, "start_tegola: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]:\"" + s_gpkg_file_remote + "\" IS uri");
+                        s_gpkg_file_local = s_gpkg_file_remote.substring(s_gpkg_file_remote.lastIndexOf("/") + 1);
+                    } else {
+                        Log.d(TAG, "start_tegola: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]:\"" + s_gpkg_file_remote + "\" IS NOT uri");
+                    }
+                    Log.d(TAG, "start_tegola: \t\tlocal: \"" + s_gpkg_file_local + "\"; remote: \"" + s_gpkg_file_remote + "\"");
+                    f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_file_local);
                     Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "] == " + f_gpkg_bundle__gpkg.getCanonicalPath());
                     if (!f_gpkg_bundle__gpkg.exists())
                         throw new FileNotFoundException("geopcackage-bundle gpkg file " + f_gpkg_bundle__gpkg.getCanonicalPath() + " not found");

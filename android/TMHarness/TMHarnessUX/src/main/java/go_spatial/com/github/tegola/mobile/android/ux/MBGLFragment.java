@@ -108,8 +108,10 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
     private CompassView m_cv = null;
     private View m_cam_ctrl_container = null;
     private ImageButton m_ibtn_zoom_in = null;
+    private ImageButton m_ibtn_rotate_left = null;
     private ImageButton m_ibtn_rotate_up = null;
     private ImageButton m_ibtn_rotate_down = null;
+    private ImageButton m_ibtn_rotate_right = null;
     private ImageButton m_ibtn_zoom_out = null;
     private ImageButton m_ibtn_goto_loc = null;
     private ImageButton m_ibtn_goto_map_ctr = null;
@@ -119,6 +121,7 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
     private ImageButton ibtn_hide_mbgl_frag = null;
 
     private final double ZOOM_BY = .25;
+    private final double TILT_BY = 7.5; //degrees
     private final double ROTATE_BY = 7.5; //degrees
 
     public MBGLFragment() {
@@ -450,6 +453,20 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
                 return true;
             }
         });
+        m_ibtn_rotate_left = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_rotate_left);
+        m_ibtn_rotate_left.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                //ROTATE_BY
+                move_camera(
+                        null,
+                        null,
+                        null,
+                        m_mapboxMap.getCameraPosition().bearing - ROTATE_BY,
+                        null);
+                return true;
+            }
+        });
         m_ibtn_rotate_up = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_rotate_up);
         m_ibtn_rotate_up.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -459,7 +476,7 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
                         null,
                         null,
                         null,
-                        m_mapboxMap.getCameraPosition().tilt + ROTATE_BY);
+                        m_mapboxMap.getCameraPosition().tilt + TILT_BY);
                 return true;
             }
         });
@@ -472,7 +489,21 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
                         null,
                         null,
                         null,
-                        m_mapboxMap.getCameraPosition().tilt - ROTATE_BY);
+                        m_mapboxMap.getCameraPosition().tilt - TILT_BY);
+                return true;
+            }
+        });
+        m_ibtn_rotate_right = (ImageButton)this_frag_layout_view.findViewById(R.id.ibtn_rotate_right);
+        m_ibtn_rotate_right.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                //ROTATE_BY
+                move_camera(
+                        null,
+                        null,
+                        null,
+                        m_mapboxMap.getCameraPosition().bearing + ROTATE_BY,
+                        null);
                 return true;
             }
         });
