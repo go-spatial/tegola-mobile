@@ -24,7 +24,7 @@ android:
     - $TEST_EMULATOR_SYS_IMAGE
 
   licenses:
-    - android-sdk-preview-license-52d11cd2
+    - android-sdk-preview-license-.+
     - android-sdk-license-.+
     - google-gdk-license-.+
 
@@ -45,7 +45,7 @@ before_script:
   - android list targets
   - echo creating test avd for target "$TEST_EMULATOR_ANDROID_API" abi "$TEST_EMULATOR_ANDROID_ABI"
   - echo no | android create avd --force -n test -t $TEST_EMULATOR_ANDROID_API --abi $TEST_EMULATOR_ANDROID_ABI
-  - emulator -avd test -no-skin -no-audio -no-window &
+  - emulator -avd test -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
