@@ -4,10 +4,10 @@ jdk: oraclejdk8
 
 env:
   matrix:
-    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a EMULATOR_ANDROID_API=google_apis-25 TARGET_TEST_SYS_IMAGE=sys-img-armeabi-v7a-google_apis-25
-    - ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a EMULATOR_ANDROID_API=google_apis-25 TARGET_TEST_SYS_IMAGE=sys-img-arm64-v8a-google_apis-25
-    - ANDROID_TARGET=android-27 ANDROID_ABI=x86 EMULATOR_ANDROID_API=google_apis-27 TARGET_TEST_SYS_IMAGE=sys-img-x86-google_apis-27
-    - ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 EMULATOR_ANDROID_API=google_apis-26 TARGET_TEST_SYS_IMAGE=sys-img-x86_64-google_apis-26
+    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a TEST_EMULATOR_SYS_IMAGE=sys-img-armeabi-v7a-google_apis-25 TEST_EMULATOR_ANDROID_API=android-25 TEST_EMULATOR_ANDROID_ABI=google_apis/armeabi-v7a
+    - ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a TEST_EMULATOR_SYS_IMAGE=sys-img-arm64-v8a-google_apis-25 TEST_EMULATOR_ANDROID_API=android-25 TEST_EMULATOR_ANDROID_ABI=google_apis/arm64-v8a
+    - ANDROID_TARGET=android-27 ANDROID_ABI=x86 TEST_EMULATOR_SYS_IMAGE=sys-img-x86-google_apis-27 TEST_EMULATOR_ANDROID_API=android-27 TEST_EMULATOR_ANDROID_ABI=google_apis/x86
+    - ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 TEST_EMULATOR_SYS_IMAGE=sys-img-x86_64-google_apis-26 TEST_EMULATOR_ANDROID_API=android-26 TEST_EMULATOR_ANDROID_ABI=google_apis/x86_64
 
   global:
     - secure: "qYgTealcuZyphZa8iePOsWd5yVSolO9BJmRqm3xMt0frukuzHCrNp/cdzIPFwj49SaQRfS0GI21DOYw15r4qLThCutLohU4fgycNEaXW+O2SOhNlB3vVS/GqPx3GSjWIvjSjTBtBqcdDacEdEmufRzw3twduSwHsFMYXLdLP7X4+rOtGF0hagW7PVwuFmTDs80bcUQ+DCYDA/JPXUIpNqcMjhFR51mRgwKJFG7eJUFRxkUGRM+ZL+D7vSh/sispRXj5bqMAnj4WVBgeWb7BEnyTW61YwaN12jqv+sNN0Q+RgLhp3L+rRDlUBRI9BxLoHay5HfRdBG4FnFqDbN2NIF7exMFcNqml0Iwnz7mJNg+DlfjTYCSXk1Mi59Sx7cNC7jbJpRpEw7W2P/eRIh/HDsB4Zbt//0uIJmiwQh82o7CrskZDI7BhdTO/WtoBrhwjWFh0rW6/bs1F1+rO6udtP7KqaCHKzHHyddQIkUWe9ErXgkUU+ZiY8emGv8aXCRGTCOsZE9XuV17p/m8ITPvk2wqFwmPgVCkMQbyXMLVoE2bC1gwVp/u4UAlvO8GBwkiAMFk9S30Dt0j5IVquzDL3ZkYYvjqpgMOJMJSiTFGlKlL1h4NaufF/k6HpEpDqX6tmYfluOW2xD9mBfZrC62N0KMvPKrh0TzuLqalzlrnEvwks="
@@ -21,7 +21,7 @@ android:
     - build-tools-27.0.3
     - android-27
     - extra-android-m2repository
-    - $TARGET_TEST_SYS_IMAGE
+    - $TEST_EMULATOR_SYS_IMAGE
 
   licenses:
     - android-sdk-preview-license-52d11cd2
@@ -43,8 +43,8 @@ before_script:
   #start avd/emulator appropriate for build target - see env.matrix
   #list available avd targets - uncomment and run this once to get an updated list of currently available targets for emulator
   - android list targets
-  - echo creating test avd for target "$EMULATOR_ANDROID_API" abi "$ANDROID_ABI"
-  - echo no | android create avd --force -n test -t $EMULATOR_ANDROID_API --abi $ANDROID_ABI
+  - echo creating test avd for target "$TEST_EMULATOR_ANDROID_API" abi "$TEST_EMULATOR_ANDROID_ABI"
+  - echo no | android create avd --force -n test -t $TEST_EMULATOR_ANDROID_API --abi $TEST_EMULATOR_ANDROID_ABI
   - emulator -avd test -no-skin -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
