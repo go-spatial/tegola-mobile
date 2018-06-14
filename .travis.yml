@@ -27,7 +27,6 @@ before_script:
   - export WRK_DIR=$(pwd)
   - echo WRK_DIR is $WRK_DIR
   - cd ${WRK_DIR}/android/TMHarness/TMHarnessUX
-  - echo MBGL_API_ACCESS_TOKEN is "${MBGL_API_ACCESS_TOKEN}"
   - sed -i "s/YOUR_MAPBOX_API_ACCESS_TOKEN/${MBGL_API_ACCESS_TOKEN}/g" mbgl.properties
   - cat mbgl.properties
   - cd ${WRK_DIR}/android/TMHarness
