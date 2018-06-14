@@ -3,6 +3,7 @@ package go_spatial.com.github.tegola.mobile.android.controller;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,11 +17,13 @@ import static org.junit.Assert.*;
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
+    private final String TAG = ExampleInstrumentedTest.class.getCanonicalName();
     @Test
     public void useAppContext() throws Exception {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("go_spatial.com.github.tegola.android.controllerlib", appContext.getPackageName());
+        Log.d(TAG, "useAppContext: appContext.getPackageName()==\"" + appContext.getPackageName() + "\"");
+        assertEquals("go_spatial.com.github.tegola.mobile.android.controller.test", appContext.getPackageName());
     }
 }
