@@ -140,13 +140,13 @@ public class FGS extends Service {
     }
 
     private void init() {
-        //check for existence in app private files directory of executable tegola binary for this device ABI
+        //check for existence (in app libs directory) of executable tegola binary for this device ABI
         File f_filesDir = getFilesDir();
         try {
             final Constants.Enums.CPU_ABI e_device_abi = Constants.Enums.CPU_ABI.fromDevice();
             if (e_device_abi == null)
                 throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
-            Utils.TEGOLA_BIN.getInstance(getApplicationContext());
+            Utils.TEGOLA_BIN.getInstance(getApplicationContext());  //mapping from ABI to tegola bin that supports it is done in the ctor of TEGOLA_BIN classß
             get__tegola_version();
         } catch (Exceptions.UnsupportedCPUABIException e) {
             e.printStackTrace();

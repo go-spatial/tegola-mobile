@@ -1,0 +1,28 @@
+language: android
+
+jdk: oraclejdk8
+
+env:
+  - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a
+
+android:
+  components:
+    - tools
+    - platform-tools
+    - tools
+    - build-tools-27.0.3
+    - android-27
+    - extra-android-m2repository
+    - sys-img-armeabi-v7a-android-27
+    - extra-android-support
+  licenses:
+    - android-sdk-preview-license-52d11cd2
+    - android-sdk-license-.+
+    - google-gdk-license-.+
+
+before_script:
+  - cd android/TMHarness
+  - chmod +x ./gradlew
+
+script:
+  - ./gradlew build

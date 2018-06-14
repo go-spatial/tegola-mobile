@@ -30,7 +30,7 @@ android {
                         if (i < (abis.length - 1))
                             sb_tegola_bin_abi_map.append(",")
                     }
-                    sb_tegola_bin_abi_map.append("}); ")
+                    sb_tegola_bin_abi_map.append("});")
                 }
             }
         }
