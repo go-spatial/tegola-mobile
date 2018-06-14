@@ -4,11 +4,11 @@ jdk: oraclejdk8
 
 env:
   matrix:
-    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a TARGET_TEST_SYS_IMAGE=sys-img-armeabi-v7a-google_apis-25
-    - ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a TARGET_TEST_SYS_IMAGE=sys-img-arm64-v8a-google_apis-25
-    - ANDROID_TARGET=android-27 ANDROID_ABI=x86 TARGET_TEST_SYS_IMAGE=sys-img-x86-google_apis-27
-    - ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 TARGET_TEST_SYS_IMAGE=sys-img-x86_64-google_apis-26
-    
+    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a EMULATOR_ANDROID_API=google_apis-25 TARGET_TEST_SYS_IMAGE=sys-img-armeabi-v7a-google_apis-25
+    - ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a EMULATOR_ANDROID_API=google_apis-25 TARGET_TEST_SYS_IMAGE=sys-img-arm64-v8a-google_apis-25
+    - ANDROID_TARGET=android-27 ANDROID_ABI=x86 EMULATOR_ANDROID_API=google_apis-27 TARGET_TEST_SYS_IMAGE=sys-img-x86-google_apis-27
+    - ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 EMULATOR_ANDROID_API=google_apis-26 TARGET_TEST_SYS_IMAGE=sys-img-x86_64-google_apis-26
+
   global:
     - secure: "qYgTealcuZyphZa8iePOsWd5yVSolO9BJmRqm3xMt0frukuzHCrNp/cdzIPFwj49SaQRfS0GI21DOYw15r4qLThCutLohU4fgycNEaXW+O2SOhNlB3vVS/GqPx3GSjWIvjSjTBtBqcdDacEdEmufRzw3twduSwHsFMYXLdLP7X4+rOtGF0hagW7PVwuFmTDs80bcUQ+DCYDA/JPXUIpNqcMjhFR51mRgwKJFG7eJUFRxkUGRM+ZL+D7vSh/sispRXj5bqMAnj4WVBgeWb7BEnyTW61YwaN12jqv+sNN0Q+RgLhp3L+rRDlUBRI9BxLoHay5HfRdBG4FnFqDbN2NIF7exMFcNqml0Iwnz7mJNg+DlfjTYCSXk1Mi59Sx7cNC7jbJpRpEw7W2P/eRIh/HDsB4Zbt//0uIJmiwQh82o7CrskZDI7BhdTO/WtoBrhwjWFh0rW6/bs1F1+rO6udtP7KqaCHKzHHyddQIkUWe9ErXgkUU+ZiY8emGv8aXCRGTCOsZE9XuV17p/m8ITPvk2wqFwmPgVCkMQbyXMLVoE2bC1gwVp/u4UAlvO8GBwkiAMFk9S30Dt0j5IVquzDL3ZkYYvjqpgMOJMJSiTFGlKlL1h4NaufF/k6HpEpDqX6tmYfluOW2xD9mBfZrC62N0KMvPKrh0TzuLqalzlrnEvwks="
 
@@ -41,7 +41,7 @@ before_script:
   # - cat mbgl.properties
 
   #start avd/emulator appropriate for build target - see env.matrix
-  - echo no | android create avd --force -n test -t $ANDROID_TARGET --abi $ANDROID_ABI
+  - echo no | android create avd --force -n test -t $EMULATOR_ANDROID_API --abi $ANDROID_ABI
   - emulator -avd test -no-skin -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
