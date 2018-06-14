@@ -29,7 +29,7 @@ android:
     - google-gdk-license-.+
 
 before_script:
-  # #list available components for sdk update (via second call to "- tools" above) - uncomment an run this once to get an updated list of currently available sys images for emulator, for example
+  # #list available components for sdk update (via second call to "- tools" above) - uncomment and run this once to get an updated list of currently available sys images for emulator, for example
   # - android list sdk --no-ui --all --extended
 
   - export WRK_DIR=$(pwd)
@@ -41,6 +41,9 @@ before_script:
   # - cat mbgl.properties
 
   #start avd/emulator appropriate for build target - see env.matrix
+  #list available avd targets - uncomment and run this once to get an updated list of currently available targets for emulator
+  - android list targets
+  - echo creating test avd for target "$EMULATOR_ANDROID_API" abi "$ANDROID_ABI"
   - echo no | android create avd --force -n test -t $EMULATOR_ANDROID_API --abi $ANDROID_ABI
   - emulator -avd test -no-skin -no-audio -no-window &
   - android-wait-for-emulator
