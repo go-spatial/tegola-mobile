@@ -28,7 +28,7 @@ before_script:
   - echo WRK_DIR is $WRK_DIR
   - cd ${WRK_DIR}/android/TMHarness/TMHarnessUX
   - sed -i "s/YOUR_MAPBOX_API_ACCESS_TOKEN/${api_access_token}/g" mbgl.properties
-  - cat mbgl.properties
+  #- cat mbgl.properties
   - cd ${WRK_DIR}/android/TMHarness
   - chmod +x ./gradlew
 
