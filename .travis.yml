@@ -3,7 +3,10 @@ language: android
 jdk: oraclejdk8
 
 env:
-  - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a
+  matrix:
+    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a
+  global:
+    secure: NactI45gDvx0D218aRueAPTEq8iVqBzs4L44451c3qWJhDqdCclubJTH+JWcjvbA9DK0I9HlSUHQLv395vxXmaKuNlgpiLB4pGBud0+VlHOxLr+PeAs/k465qdP63BxESFRRSdQ2FElLgbpBtvYbdX18Jyz+JKdJlmflXlKPy5b56GLSZbNdeBa7mtcG2KUu9awb5KqBJDpIsO+t/4szlDA5C9CVCJmO8RLP7v1x16u5KZRIwoGOeZKXOuv8XfK4z32g5ElCY92jqH6lK6E45f/ai3gXX4oGAVR04VZDWPACDKitCNcqiafbowOapNSoGxUfueRBU4rSapC/wOSgIO9KYoEopDDabuirxgOUfkwAjiphvttmjzcI3goUbeYcNWRmcdZE2l2f+d4+e4hClb433AXPcH82inZiOxYs1IddP8mHibh1TpmQAtQvfBHCHrO2AIa5IiP0SZ9sKmgjeNkokS+cS93xh6299NWtKPAEfKwk5OVUDoX8xDKNVv5z8BpptYiap9OiHAbO06N2GPu4LFs4LAZSChm6GR/Bz2iM9FvJ8CzgWmu/Bg+kUMSWK2yNzTDUeO2KwcRfqGbF83hjFHXigW9ItiWExCNJzZxAdKsUHxvgUELYw2MNgh7o8YGSWlhby0VjmDbsxPQiqt7xskKx24afw09bbmBa2mc=
 
 android:
   components:
@@ -21,8 +24,12 @@ android:
     - google-gdk-license-.+
 
 before_script:
-  - cd android/TMHarness
+  - export WRK_DIR=$(pwd)
+  - echo WRK_DIR is $WRK_DIR
+  - cd ${WRK_DIR}/android/TMHarness/TMHarnessUX
+  - sed -i 's/YOUR_MAPBOX_API_ACCESS_TOKEN/'"${api_access_token}"'/g' mbgl.properties
+  - cd ${WRK_DIR}/android/TMHarness
   - chmod +x ./gradlew
 
 script:
-  - ./gradlew build
+  - "./gradlew build"
