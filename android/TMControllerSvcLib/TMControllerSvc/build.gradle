@@ -3,9 +3,14 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        abortOnError false
     }
 
     def tm_abi_tegola_bin_mapping_PropsFile = file('tm_abi_tegola_version.properties')
