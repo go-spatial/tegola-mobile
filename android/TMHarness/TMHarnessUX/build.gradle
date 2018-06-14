@@ -86,6 +86,7 @@ android {
             throw new GradleException("failed read: mbgl.properties 'api_access_token' value is required")
         if (mbglapi_access_token.compareTo("YOUR_MAPBOX_API_ACCESS_TOKEN") == 0 || mbglapi_access_token.trim().isEmpty())
             throw new GradleException("mbgl.properties 'api_access_token' value not set! Please visit https://www.mapbox.com/account/access-tokens/ to create one and then set it in mbgl.properties file")
+        println "mbglapi_access_token non-null/non-empty check: PASS"
         String s_mbgl_http_connect_timeout = mbglProps['http_connect_timeout']
         if (s_mbgl_http_connect_timeout == null)
             throw new GradleException("failed read: mbgl.properties 'http_connect_timeout' value is required")
