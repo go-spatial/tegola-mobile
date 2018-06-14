@@ -4,10 +4,10 @@ jdk: oraclejdk8
 
 env:
   matrix:
-    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a TARGET_SYS_IMAGE=sys-img-armeabi-android-24
-    - ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a TARGET_SYS_IMAGE=sys-img-arm64-v8a-android-24
-    - ANDROID_TARGET=android-27 ANDROID_ABI=x86 TARGET_SYS_IMAGE=sys-img-x86-android-24
-    - ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 TARGET_SYS_IMAGE=sys-img-x86_64-android-24
+    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a TARGET_SYS_IMAGE=sys-img-armeabi-v7a-google_apis-25
+    - ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a TARGET_SYS_IMAGE=sys-img-arm64-v8a-google_apis-25
+    - ANDROID_TARGET=android-27 ANDROID_ABI=x86 TARGET_SYS_IMAGE=sys-img-x86-google_apis-27
+    - ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 TARGET_SYS_IMAGE=sys-img-x86_64-google_apis-26
   global:
     - secure: "qYgTealcuZyphZa8iePOsWd5yVSolO9BJmRqm3xMt0frukuzHCrNp/cdzIPFwj49SaQRfS0GI21DOYw15r4qLThCutLohU4fgycNEaXW+O2SOhNlB3vVS/GqPx3GSjWIvjSjTBtBqcdDacEdEmufRzw3twduSwHsFMYXLdLP7X4+rOtGF0hagW7PVwuFmTDs80bcUQ+DCYDA/JPXUIpNqcMjhFR51mRgwKJFG7eJUFRxkUGRM+ZL+D7vSh/sispRXj5bqMAnj4WVBgeWb7BEnyTW61YwaN12jqv+sNN0Q+RgLhp3L+rRDlUBRI9BxLoHay5HfRdBG4FnFqDbN2NIF7exMFcNqml0Iwnz7mJNg+DlfjTYCSXk1Mi59Sx7cNC7jbJpRpEw7W2P/eRIh/HDsB4Zbt//0uIJmiwQh82o7CrskZDI7BhdTO/WtoBrhwjWFh0rW6/bs1F1+rO6udtP7KqaCHKzHHyddQIkUWe9ErXgkUU+ZiY8emGv8aXCRGTCOsZE9XuV17p/m8ITPvk2wqFwmPgVCkMQbyXMLVoE2bC1gwVp/u4UAlvO8GBwkiAMFk9S30Dt0j5IVquzDL3ZkYYvjqpgMOJMJSiTFGlKlL1h4NaufF/k6HpEpDqX6tmYfluOW2xD9mBfZrC62N0KMvPKrh0TzuLqalzlrnEvwks="
 
@@ -27,13 +27,13 @@ android:
     - google-gdk-license-.+
 
 before_script:
-  #list available components for sdk update (via second call to "- tools" above)
-  - android list sdk --no-ui --all --extended
+  # #list available components for sdk update (via second call to "- tools" above)
+  # - android list sdk --no-ui --all --extended
   - export WRK_DIR=$(pwd)
   - echo WRK_DIR is $WRK_DIR
   - cd ${WRK_DIR}/android/TMHarness/TMHarnessUX
   - sed -i "s/YOUR_MAPBOX_API_ACCESS_TOKEN/${MBGL_API_ACCESS_TOKEN}/g" mbgl.properties
-  - cat mbgl.properties
+  # - cat mbgl.properties
   - cd ${WRK_DIR}/android/TMHarness
   - chmod +x ./gradlew
 
