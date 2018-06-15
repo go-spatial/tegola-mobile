@@ -1,18 +1,24 @@
 language: android
 
+sudo: required
+
 jdk: oraclejdk8
 
 env:
+  global:
+    - ANDROID_BUILD_TOOLS=27.0.3  #override in matrix if necessary
+    - ADB_INSTALL_TIMEOUT=5 #minutes
+    - secure: "qYgTealcuZyphZa8iePOsWd5yVSolO9BJmRqm3xMt0frukuzHCrNp/cdzIPFwj49SaQRfS0GI21DOYw15r4qLThCutLohU4fgycNEaXW+O2SOhNlB3vVS/GqPx3GSjWIvjSjTBtBqcdDacEdEmufRzw3twduSwHsFMYXLdLP7X4+rOtGF0hagW7PVwuFmTDs80bcUQ+DCYDA/JPXUIpNqcMjhFR51mRgwKJFG7eJUFRxkUGRM+ZL+D7vSh/sispRXj5bqMAnj4WVBgeWb7BEnyTW61YwaN12jqv+sNN0Q+RgLhp3L+rRDlUBRI9BxLoHay5HfRdBG4FnFqDbN2NIF7exMFcNqml0Iwnz7mJNg+DlfjTYCSXk1Mi59Sx7cNC7jbJpRpEw7W2P/eRIh/HDsB4Zbt//0uIJmiwQh82o7CrskZDI7BhdTO/WtoBrhwjWFh0rW6/bs1F1+rO6udtP7KqaCHKzHHyddQIkUWe9ErXgkUU+ZiY8emGv8aXCRGTCOsZE9XuV17p/m8ITPvk2wqFwmPgVCkMQbyXMLVoE2bC1gwVp/u4UAlvO8GBwkiAMFk9S30Dt0j5IVquzDL3ZkYYvjqpgMOJMJSiTFGlKlL1h4NaufF/k6HpEpDqX6tmYfluOW2xD9mBfZrC62N0KMvPKrh0TzuLqalzlrnEvwks="
+
   matrix:
-    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a TEST_EMULATOR_SYS_IMAGE=sys-img-armeabi-v7a-google_apis-25 TEST_EMULATOR_ANDROID_API=android-25 TEST_EMULATOR_ANDROID_ABI=google_apis/armeabi-v7a
-    - ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a TEST_EMULATOR_SYS_IMAGE=sys-img-arm64-v8a-google_apis-25 TEST_EMULATOR_ANDROID_API=android-25 TEST_EMULATOR_ANDROID_ABI=google_apis/arm64-v8a
+    #- ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a TEST_EMULATOR_SYS_IMAGE=sys-img-armeabi-v7a-google_apis-25 TEST_EMULATOR_ANDROID_API=android-25 TEST_EMULATOR_ANDROID_ABI=google_apis/armeabi-v7a
+    #try a non-googleapis test image
+    - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a TEST_EMULATOR_SYS_IMAGE=sys-img-armeabi-v7a-android-24 TEST_EMULATOR_ANDROID_API=android-24 TEST_EMULATOR_ANDROID_ABI=armeabi-v7a
+    #restrict to only one build in matrix until we can at least get that one to run instrumented test in emulator
+    #- ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a TEST_EMULATOR_SYS_IMAGE=sys-img-arm64-v8a-google_apis-25 TEST_EMULATOR_ANDROID_API=android-25 TEST_EMULATOR_ANDROID_ABI=google_apis/arm64-v8a
     #we MUST disable x86/x86_64 test since emu currently requires hardware acceleration and travis ci virtualization apparently does not support this currently
     #- ANDROID_TARGET=android-27 ANDROID_ABI=x86 TEST_EMULATOR_SYS_IMAGE=sys-img-x86-google_apis-26 TEST_EMULATOR_ANDROID_API=android-26 TEST_EMULATOR_ANDROID_ABI=google_apis/x86
     #- ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 TEST_EMULATOR_SYS_IMAGE=sys-img-x86_64-google_apis-26 TEST_EMULATOR_ANDROID_API=android-26 TEST_EMULATOR_ANDROID_ABI=google_apis/x86_64
-
-  global:
-    - ADB_INSTALL_TIMEOUT=5 #minutes
-    - secure: "qYgTealcuZyphZa8iePOsWd5yVSolO9BJmRqm3xMt0frukuzHCrNp/cdzIPFwj49SaQRfS0GI21DOYw15r4qLThCutLohU4fgycNEaXW+O2SOhNlB3vVS/GqPx3GSjWIvjSjTBtBqcdDacEdEmufRzw3twduSwHsFMYXLdLP7X4+rOtGF0hagW7PVwuFmTDs80bcUQ+DCYDA/JPXUIpNqcMjhFR51mRgwKJFG7eJUFRxkUGRM+ZL+D7vSh/sispRXj5bqMAnj4WVBgeWb7BEnyTW61YwaN12jqv+sNN0Q+RgLhp3L+rRDlUBRI9BxLoHay5HfRdBG4FnFqDbN2NIF7exMFcNqml0Iwnz7mJNg+DlfjTYCSXk1Mi59Sx7cNC7jbJpRpEw7W2P/eRIh/HDsB4Zbt//0uIJmiwQh82o7CrskZDI7BhdTO/WtoBrhwjWFh0rW6/bs1F1+rO6udtP7KqaCHKzHHyddQIkUWe9ErXgkUU+ZiY8emGv8aXCRGTCOsZE9XuV17p/m8ITPvk2wqFwmPgVCkMQbyXMLVoE2bC1gwVp/u4UAlvO8GBwkiAMFk9S30Dt0j5IVquzDL3ZkYYvjqpgMOJMJSiTFGlKlL1h4NaufF/k6HpEpDqX6tmYfluOW2xD9mBfZrC62N0KMvPKrh0TzuLqalzlrnEvwks="
 
 android:
   components:
@@ -20,11 +26,9 @@ android:
     - platform-tools
     #call "- tools" again to update to latest tools
     - tools
-    - build-tools-27.0.3
-    - android-27  #for android target
-    #add addl. sdk platforms below as necessary to satisfy dependencies for emulator targets
-    - android-26
-    - android-25
+    - build-tools-$ANDROID_BUILD_TOOLS
+    - $ANDROID_TARGET
+    - $TEST_EMULATOR_ANDROID_API
     #further "extra" components
     - extra-android-m2repository
     #and finally the sys image for the test emulator
@@ -38,6 +42,11 @@ android:
 before_script:
   #list available components for sdk update (via second call to "- tools" above)
   - android list sdk --no-ui --all --extended
+
+  #update sdk platform for emulator
+  - echo "y" | android update sdk -a --no-ui --filter $TEST_EMULATOR_ANDROID_API
+  #update the emulator sys image
+  - echo "y" | android update sdk -a --no-ui --filter $TEST_EMULATOR_SYS_IMAGE
 
   - export WRK_DIR=$(pwd)
   - echo WRK_DIR is $WRK_DIR
@@ -53,7 +62,7 @@ before_script:
   - echo creating test avd for target "$TEST_EMULATOR_ANDROID_API" abi "$TEST_EMULATOR_ANDROID_ABI"
   - echo no | android create avd --force -n test -t $TEST_EMULATOR_ANDROID_API --abi $TEST_EMULATOR_ANDROID_ABI
   #- emulator -avd test -no-audio -no-window &    #"-no-audio" option is currently not understood by qemu
-  - emulator -avd test -no-window &
+  - QEMU_AUDIO_DRV=none emulator -avd test -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
@@ -62,8 +71,6 @@ before_script:
   - chmod +x ./gradlew
 
 script:
-  - ./gradlew clean
-  # - ./gradlew assembleDebug
   # - ./gradlew assembleDebugAndroidTest
   #calling gradlew script w/ connectedCheck arg will execute instrumentation tests located in src/androidTests/
   # - ./gradlew build connectedCheck -PdisablePreDex --stacktrace   #only do DebugAndroidTest for now, uncomment this later to build complete set of build variants
