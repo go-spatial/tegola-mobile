@@ -62,5 +62,8 @@ before_script:
   - chmod +x ./gradlew
 
 script:
+  - ./gradlew clean
+  - ./gradlew assembleDebug
+  - ./gradlew assembleDebugAndroidTest
   #calling gradlew script w/ connectedCheck arg will execute instrumentation tests located in src/androidTests/
-  - "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
+  - ./gradlew connectedCheck -PdisablePreDex --stacktrace
