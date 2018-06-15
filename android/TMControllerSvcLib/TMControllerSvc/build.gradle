@@ -14,7 +14,7 @@ android {
     }
 
     // This enables long timeouts required on slow environments, e.g. Travis
-    int adb_timeout_min = 5
+    int adb_timeout_min = 10
     adbOptions {
         timeOutInMs adb_timeout_min * 60 * 1000
         installOptions "-d","-t"
