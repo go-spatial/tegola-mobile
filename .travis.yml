@@ -65,21 +65,21 @@ before_script:
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
-  #make sure gradle scripts are executable
-  - cd ${WRK_DIR}/android/TMControllerSvcLib
-  - chmod +x ./gradlew
-  - cd ${WRK_DIR}/android/TMHarness
-  - chmod +x ./gradlew
-
 script:
   #note - calling gradlew script w/ connectedCheck arg will execute instrumentation tests located in src/androidTests/
 
-  #execute instrumented tests in emu for controller first
-  - cd ${WRK_DIR}/android/TMControllerSvcLib
-  - ./gradlew connectedCheck -PdisablePreDex --stacktrace
+  #sincec TMHarness executes TMControllerSvc's instrumented tasks, we don't need to execute them separately; besides, TMControllerSvc does not yet have a connectedCheck task defined
+  # #execute instrumented tests in emu for controller first
+  # - cd ${WRK_DIR}/android/TMControllerSvcLib
+  # - chmod +x ./gradlew
+  # - ./gradlew clean --stacktrace
+  # - ./gradlew connectedCheck -PdisablePreDex --stacktrace
 
   - cd ${WRK_DIR}/android/TMHarness
-  - ./gradlew clean connectedCheck -PdisablePreDex --stacktrace
+  - chmod +x ./gradlew
+  # - ./gradlew clean --stacktrace
+  - ./gradlew connectedCheck -PdisablePreDex --stacktrace
 
   #finally, if we are here then all we have remaining to do is ensure TMHarness Release assembles
-  - ./gradlew clean assembleRelease --stacktrace
+  - ./gradlew clean --stacktrace
+  - ./gradlew assembleRelease -PdisablePreDex --stacktrace
