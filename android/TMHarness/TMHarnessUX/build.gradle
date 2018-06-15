@@ -17,6 +17,13 @@ android {
         cruncherEnabled = false
     }
 
+    // This enables long timeouts required on slow environments, e.g. Travis
+    int adb_timeout_min = 1
+    adbOptions {
+        timeOutInMs adb_timeout_min * 60 * 1000
+        installOptions "-d","-t"
+    }
+
     def vName = "_unknown_"
     def vCode = "_unknown_"
     def vMajor = "_unknown_"

@@ -13,6 +13,13 @@ android {
         abortOnError false
     }
 
+    // This enables long timeouts required on slow environments, e.g. Travis
+    int adb_timeout_min = 1
+    adbOptions {
+        timeOutInMs adb_timeout_min * 60 * 1000
+        installOptions "-d","-t"
+    }
+
     def tm_abi_tegola_bin_mapping_PropsFile = file('tm_abi_tegola_version.properties')
     Properties tm_abi_tegola_bin_mapping_Props = new Properties()
     StringBuilder sb_tegola_bin_abi_map = new StringBuilder()
