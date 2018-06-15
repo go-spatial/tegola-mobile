@@ -6,8 +6,9 @@ env:
   matrix:
     - ANDROID_TARGET=android-27 ANDROID_ABI=armeabi-v7a TEST_EMULATOR_SYS_IMAGE=sys-img-armeabi-v7a-google_apis-25 TEST_EMULATOR_ANDROID_API=android-25 TEST_EMULATOR_ANDROID_ABI=google_apis/armeabi-v7a
     - ANDROID_TARGET=android-27 ANDROID_ABI=arm64-v8a TEST_EMULATOR_SYS_IMAGE=sys-img-arm64-v8a-google_apis-25 TEST_EMULATOR_ANDROID_API=android-25 TEST_EMULATOR_ANDROID_ABI=google_apis/arm64-v8a
-    - ANDROID_TARGET=android-27 ANDROID_ABI=x86 TEST_EMULATOR_SYS_IMAGE=sys-img-x86-google_apis-27 TEST_EMULATOR_ANDROID_API=android-27 TEST_EMULATOR_ANDROID_ABI=google_apis/x86
-    - ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 TEST_EMULATOR_SYS_IMAGE=sys-img-x86_64-google_apis-26 TEST_EMULATOR_ANDROID_API=android-26 TEST_EMULATOR_ANDROID_ABI=google_apis/x86_64
+    - ANDROID_TARGET=android-27 ANDROID_ABI=x86 TEST_EMULATOR_SYS_IMAGE=sys-img-x86-google_apis-26 TEST_EMULATOR_ANDROID_API=android-26 TEST_EMULATOR_ANDROID_ABI=google_apis/x86
+    #we MUST disable x86_64 test since x86_64 virtualization currently requires hardware acceleration and travis ci virtualization apparently does not support this currently
+    #- ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 TEST_EMULATOR_SYS_IMAGE=sys-img-x86_64-google_apis-26 TEST_EMULATOR_ANDROID_API=android-26 TEST_EMULATOR_ANDROID_ABI=google_apis/x86_64
 
   global:
     - ADB_INSTALL_TIMEOUT=2 #minutes
