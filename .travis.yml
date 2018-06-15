@@ -10,6 +10,7 @@ env:
     - ANDROID_TARGET=android-27 ANDROID_ABI=x86_64 TEST_EMULATOR_SYS_IMAGE=sys-img-x86_64-google_apis-26 TEST_EMULATOR_ANDROID_API=android-26 TEST_EMULATOR_ANDROID_ABI=google_apis/x86_64
 
   global:
+    - ADB_INSTALL_TIMEOUT=2 #minutes
     - secure: "qYgTealcuZyphZa8iePOsWd5yVSolO9BJmRqm3xMt0frukuzHCrNp/cdzIPFwj49SaQRfS0GI21DOYw15r4qLThCutLohU4fgycNEaXW+O2SOhNlB3vVS/GqPx3GSjWIvjSjTBtBqcdDacEdEmufRzw3twduSwHsFMYXLdLP7X4+rOtGF0hagW7PVwuFmTDs80bcUQ+DCYDA/JPXUIpNqcMjhFR51mRgwKJFG7eJUFRxkUGRM+ZL+D7vSh/sispRXj5bqMAnj4WVBgeWb7BEnyTW61YwaN12jqv+sNN0Q+RgLhp3L+rRDlUBRI9BxLoHay5HfRdBG4FnFqDbN2NIF7exMFcNqml0Iwnz7mJNg+DlfjTYCSXk1Mi59Sx7cNC7jbJpRpEw7W2P/eRIh/HDsB4Zbt//0uIJmiwQh82o7CrskZDI7BhdTO/WtoBrhwjWFh0rW6/bs1F1+rO6udtP7KqaCHKzHHyddQIkUWe9ErXgkUU+ZiY8emGv8aXCRGTCOsZE9XuV17p/m8ITPvk2wqFwmPgVCkMQbyXMLVoE2bC1gwVp/u4UAlvO8GBwkiAMFk9S30Dt0j5IVquzDL3ZkYYvjqpgMOJMJSiTFGlKlL1h4NaufF/k6HpEpDqX6tmYfluOW2xD9mBfZrC62N0KMvPKrh0TzuLqalzlrnEvwks="
 
 android:
@@ -19,8 +20,13 @@ android:
     #call "- tools" again to update to latest tools
     - tools
     - build-tools-27.0.3
-    - android-27
+    - android-27  #for android target
+    #add addl. sdk platforms below as necessary to satisfy dependencies for emulator targets
+    - android-26
+    - android-25
+    #further "extra" components
     - extra-android-m2repository
+    #and finally the sys image for the test emulator
     - $TEST_EMULATOR_SYS_IMAGE
 
   licenses:
@@ -46,7 +52,7 @@ before_script:
   - echo creating test avd for target "$TEST_EMULATOR_ANDROID_API" abi "$TEST_EMULATOR_ANDROID_ABI"
   - echo no | android create avd --force -n test -t $TEST_EMULATOR_ANDROID_API --abi $TEST_EMULATOR_ANDROID_ABI
   - emulator -avd test -no-audio -no-window &
-  - android-wait-for-emulator
+  #- android-wait-for-emulator  #this travis command is not working currently
   - adb shell input keyevent 82 &
 
   #make sure gradle script is executable
