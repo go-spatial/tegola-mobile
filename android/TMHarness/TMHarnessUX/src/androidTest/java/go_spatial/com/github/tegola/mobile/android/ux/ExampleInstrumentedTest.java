@@ -1,4 +1,4 @@
-package go_spatial.com.github.tegola.android.exampleclient;
+package go_spatial.com.github.tegola.mobile.android.ux;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("go_spatial.com.github.tegola.android.exampleclient", appContext.getPackageName());
+        assertEquals("go_spatial.com.github.tegola.mobile.android.ux", appContext.getPackageName());
     }
 }
