@@ -1,10 +1,8 @@
 package go_spatial.com.github.tegola.mobile.android.ux;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -78,13 +76,18 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
+import go_spatial.com.github.tegola.mobile.android.controller.ClientAPI;
 import go_spatial.com.github.tegola.mobile.android.controller.Exceptions;
+import go_spatial.com.github.tegola.mobile.android.controller.FGS;
+import go_spatial.com.github.tegola.mobile.android.controller.NotificationBroadcastReceiver;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.REQUEST_CODES;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
 import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
-public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerActivity implements MBGLFragment.OnFragmentInteractionListener {
+public class MainActivity
+        extends LocationUpdatesManager.LocationUpdatesBrokerActivity
+        implements NotificationBroadcastReceiver.Listener, MBGLFragment.OnFragmentInteractionListener {
     private static final String TAG = MainActivity.class.getCanonicalName();
 
     private DrawerLayout m_drawerlayout = null;
@@ -159,8 +162,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 
     private final MBGLFragment mb_frag = new MBGLFragment();
 
-    private BroadcastReceiver m_br_ctrlr_notifications = null;
-    private IntentFilter m_br_ctrlr_notifications_filter = null;
+    private ClientAPI.Client m_controllerClient = null;
     private boolean m_controller_running = false;
 
 //    private DriveId m_google_drive_id;
@@ -176,7 +178,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 //            drawable_cloud_download.setBounds(0, 0, w, h);
 //            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_download);
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_green_light));
-//            Log.i(TAG, "onConnected: GoogleApiClient flow handler: connection success");
+//            Log.i(TAG, "onConnected: GoogleApiClient flow rcvr_hndlr: connection success");
 //            Toast.makeText(getApplicationContext(), "GoogleApiClient successfully connected", Toast.LENGTH_SHORT).show();
 //        }
 //
@@ -189,7 +191,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 //            drawable_cloud_disconnected.setBounds(0, 0, w, h);
 //            m_btn_config_sel_local_import__googledrive.setImageDrawable(drawable_cloud_disconnected);
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
-//            Log.i(TAG, "onConnectionSuspended: GoogleApiClient flow handler: connection suspended");
+//            Log.i(TAG, "onConnectionSuspended: GoogleApiClient flow rcvr_hndlr: connection suspended");
 //            Toast.makeText(getApplicationContext(), "GoogleApiClient connection suspended", Toast.LENGTH_SHORT).show();
 //        }
 //
@@ -198,17 +200,17 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 //        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 //            m_btn_config_sel_local_import__googledrive.setBackgroundColor(ContextCompat.getColor(MainActivity.this, android.R.color.holo_red_dark));
 //            if (!connectionResult.hasResolution()) {
-//                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: abnormal termination :(");
+//                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control rcvr_hndlr: abnormal termination :(");
 //                Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed with no reported resolution!", Toast.LENGTH_SHORT).show();
 //                GoogleApiAvailability.getInstance().getErrorDialog(MainActivity.this, connectionResult.getErrorCode(), 0).show();
 //                return;
 //            }
-//            Log.i(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: starting GoogleApiClient connection resolution for this result...");
+//            Log.i(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control rcvr_hndlr: starting GoogleApiClient connection resolution for this result...");
 //            Toast.makeText(getApplicationContext(), "GoogleApiClient connection failed -- starting resolution flow...", Toast.LENGTH_SHORT).show();
 //            try {
 //                connectionResult.startResolutionForResult(MainActivity.this, REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE);
 //            } catch (IntentSender.SendIntentException e) {
-//                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control handler: IntentSender failed to send intent; abnormal termination :(", e);
+//                Log.e(TAG, "onConnectionFailed: GoogleApiClient connection failed: " + connectionResult.toString() + " -- flow control rcvr_hndlr: IntentSender failed to send intent; abnormal termination :(", e);
 //                Toast.makeText(getApplicationContext(), "GoogleApiClient connection-failure resolution flow abnormally terminated!", Toast.LENGTH_SHORT).show();
 //            }
 //        }
@@ -464,20 +466,11 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
-                                    intent_mvt_server_read_json.putExtra(
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                                    m_controllerClient.mvt_server__get_json(
+                                        final_root_url,
+                                        final_endpoint,
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
                                     );
-                                    intent_mvt_server_read_json.putExtra(
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING,
-                                        final_root_url
-                                    );
-                                    intent_mvt_server_read_json.putExtra(
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING,
-                                        final_endpoint
-                                    );
-                                    sendBroadcast(intent_mvt_server_read_json);
                                 }
                             }, 50);
                         }
@@ -514,123 +507,17 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 
 //        m_google_api_callbacks = new MyGoogleApiClientCallbacks();
 
-
-        //set up BR to listen to notifications from ControllerLib
-        m_br_ctrlr_notifications_filter = new IntentFilter();
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STARTING.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.RUNNING.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPING.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPED.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STARTING.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING);
-        m_br_ctrlr_notifications_filter.addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING);
-        m_br_ctrlr_notifications = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent != null) {
-                    Log.d(TAG, "m_br_ctrlr_notifications received: " + intent.getAction());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Constants.Enums.E_INTENT_ACTION__NOTIFICATION e_ctrlr_notification = Constants.Enums.E_INTENT_ACTION__NOTIFICATION.fromString(intent != null ? intent.getAction() : null);
-                            switch (e_ctrlr_notification) {
-                                case FGS_STATE_STARTING: {
-                                    OnControllerStarting();
-                                    break;
-                                }
-                                case FGS_STATE_RUNNING: {
-                                    OnControllerRunning();
-                                    break;
-                                }
-                                case FGS_STATE_STOPPING: {
-                                    OnControllerStopping();
-                                    break;
-                                }
-                                case FGS_STATE_STOPPED: {
-                                    OnControllerStopped();
-                                    break;
-                                }
-                                case MVT_SERVER_STATE_STARTING: {
-                                    OnMVTServerStarting();
-                                    break;
-                                }
-                                case MVT_SERVER_STATE_START_FAILED: {
-                                    OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING));
-                                    break;
-                                }
-                                case MVT_SERVER_STATE_RUNNING: {
-                                    OnMVTServerRunning(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.EXTRA_KEY.PID.STRING, -1));
-                                    break;
-                                }
-                                case MVT_SERVER_STATE_LISTENING: {
-                                    OnMVTServerListening(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.EXTRA_KEY.PORT.STRING, 8080));
-                                    break;
-                                }
-                                case MVT_SERVER_MONITOR_LOGCAT_OUTPUT: {
-                                    OnMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.EXTRA_KEY.LINE.STRING));
-                                    break;
-                                }
-                                case MVT_SERVER_MONITOR_STDERR_OUTPUT: {
-                                    OnMVTServerOutputStdErr(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.EXTRA_KEY.LINE.STRING));
-                                    break;
-                                }
-                                case MVT_SERVER_MONITOR_STDOUT_OUTPUT: {
-                                    OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.EXTRA_KEY.LINE.STRING));
-                                    break;
-                                }
-                                case MVT_SERVER_HTTP_URL_API_READ_JSON: {
-                                    OnMVTServerJSONRead(
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.CONTENT.STRING),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING)
-                                    );
-                                    break;
-                                }
-                                case MVT_SERVER_HTTP_URL_API_READ_JSON_FAILED: {
-                                    OnMVTServerJSONReadFailed(
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.ROOT_URL.STRING),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.ENDPOINT.STRING),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.PURPOSE.STRING),
-                                        intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.REASON.STRING)
-                                    );
-                                    break;
-                                }
-                                case MVT_SERVER_STATE_STOPPING: {
-                                    OnMVTServerStopping();
-                                    break;
-                                }
-                                case MVT_SERVER_STATE_STOPPED: {
-                                    OnMVTServerStopped();
-                                    break;
-                                }
-                                default: {
-                                    Log.e(TAG, "m_br_ctrlr_notifications received: " + intent.getAction() + " but NO HANDLER IS DEFINED!");
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                } else {
-                    Log.e(TAG, "m_br_ctrlr_notifications received null intent!");
-                }
-            }
-        };
-        registerReceiver(m_br_ctrlr_notifications, m_br_ctrlr_notifications_filter, null, new Handler(getMainLooper()));
+        m_controllerClient = ClientAPI.initClient(
+            MainActivity.this,
+            MainActivity.this,
+            new Handler(getMainLooper())
+        );
     }
 
     @Override
     protected void onDestroy() {
-        Log.d(TAG, "onDestroy: unregisterReceiver(m_br_ctrlr_notifications)");
-        unregisterReceiver(m_br_ctrlr_notifications);
+        Log.d(TAG, "onDestroy: ClientAPI.uninitClient(m_controllerClient)");
+        ClientAPI.uninitClient(m_controllerClient);
         super.onDestroy();
     }
 
@@ -673,20 +560,15 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
             @Override
             public void run() {
                 if (savedInstanceState == null || !savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false))
-                    start_controller_fgs();
-                Intent intent_query_mvt_server_is_running = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING);
-                sendBroadcast(intent_query_mvt_server_is_running);
-                Intent intent_query_mvt_server_listen_port = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING);
-                sendBroadcast(intent_query_mvt_server_listen_port);
-
+                    m_controllerClient.controller__start(MainActivity.class.getName());
+                m_controllerClient.mvt_server__query_state__is_running();
+                m_controllerClient.mvt_server__query_state__listen_port();
 
                 //reconcile expandable sections UI with initial "expanded" state
 //                m_vw_sect_content__andro_dev_nfo.callOnClick();
 //                m_vw_sect_content__ctrlr_nfo.callOnClick();
                 m_vw_sect_content__mbgl_nfo.callOnClick();
-
                 m_tv_tegola_console_output__scroll_max();
-
                 //adjust main scroll view (since expandable sections may or may not have been expanded/collapsed based on initial settings)
                 m_scvw_main__scroll_max();
             }
@@ -1114,7 +996,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 //            Log.i(TAG, "import_config_toml__from_google_drive: calling select_and_download_files() for Filter Filters.contains(SearchableField.TITLE, \".toml\")...");
 //            GoogleDriveFileDownloadManager.getInstance().select_and_download_files(this, Filters.contains(SearchableField.TITLE, ".toml"), REQUEST_CODES.REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE);
 //        } else {
-//            Log.i(TAG, "import_config_toml__from_google_drive: GoogleApiClient was not connected -- flow control was transferred to appropriate handler");
+//            Log.i(TAG, "import_config_toml__from_google_drive: GoogleApiClient was not connected -- flow control was transferred to appropriate rcvr_hndlr");
 //        }
 //    }
 
@@ -1500,7 +1382,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
     }
 
 
-    //result handler for both SD-card and GoogleDrive Tegola config TOML file selection (and any other requests to be handled via startActivityForResult)...
+    //result rcvr_hndlr for both SD-card and GoogleDrive Tegola config TOML file selection (and any other requests to be handled via startActivityForResult)...
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         switch (requestCode) {
@@ -1546,7 +1428,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 //                switch (resultCode) {
 //                    case RESULT_OK: {
 //                        m_google_drive_id = (DriveId)data.getParcelableExtra(OpenFileActivityBuilder.EXTRA_RESPONSE_DRIVE_ID);
-//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_OK -- flow control handler: selected Google Drive file id " + m_google_drive_id.getResourceId() + "; calling GoogleDriveFileDownloadManager.download_file_contents() for this file...");
+//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_OK -- flow control rcvr_hndlr: selected Google Drive file id " + m_google_drive_id.getResourceId() + "; calling GoogleDriveFileDownloadManager.download_file_contents() for this file...");
 //                        GoogleDriveFileDownloadManager.getInstance().download_file_contents(this, m_google_drive_id, DriveFile.MODE_READ_ONLY, new GoogleDriveFileDownloadManager.FileContentsHandler() {
 //                            @Override
 //                            public void onProgress(long bytesDownloaded, long bytesExpected) {
@@ -1579,7 +1461,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 //                        break;
 //                    }
 //                    case RESULT_CANCELED: {
-//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_CANCELED -- flow control handler: user canceled -- normal flow termination");
+//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__SELECT_TOML_FILES_FOR_IMPORT__GOOGLEDRIVE | resultCode: RESULT_CANCELED -- flow control rcvr_hndlr: user canceled -- normal flow termination");
 //                        super.onActivityResult(requestCode, resultCode, data);
 //                        break;
 //                    }
@@ -1594,12 +1476,12 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 //            case REQUEST_CODES.REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE: {
 //                switch (resultCode) {
 //                    case RESULT_OK: {
-//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_OK -- flow control handler: validating GoogleApiClient connection...");
+//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_OK -- flow control rcvr_hndlr: validating GoogleApiClient connection...");
 //                        GoogleDriveFileDownloadManager.getInstance().validate_connect_api_client(this);
 //                        break;
 //                    }
 //                    case RESULT_CANCELED: {
-//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_CANCELED -- flow control handler: abnormal flow termination :(");
+//                        Log.i(TAG, "onActivityResult: requestCode: REQUEST_CODE__GOOGLEAPICLIENT__RESOLVE_CONNECTION_FAILURE | resultCode: RESULT_CANCELED -- flow control rcvr_hndlr: abnormal flow termination :(");
 //                        super.onActivityResult(requestCode, resultCode, data);
 //                        break;
 //                    }
@@ -1677,7 +1559,7 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         }
     }
 
-    //supporting functions for above result handler
+    //supporting functions for above result rcvr_hndlr
     private class local__file__import__result {
         public String src_name = "";
         public String src_path = "";
@@ -1749,11 +1631,12 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
 
 
     //ControllerLib-related stuff
-    private void OnControllerStarting() {
+    @Override
+    public void OnControllerStarting() {
 //        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
     }
-
-    private void OnControllerRunning() {
+    @Override
+    public void OnControllerRunning() {
         m_controller_running = true;
         Log.d(TAG, "OnControllerRunning: set m_controller_running == " + m_controller_running);
         try {
@@ -1769,20 +1652,24 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         }
     }
 
-    private void OnControllerStopping() {
+    @Override
+    public void OnControllerStopping() {
 //        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
     }
 
-    private void OnControllerStopped() {
+    @Override
+    public void OnControllerStopped() {
 //        m_tv_val_ctrlr_status.setText(getString(R.string.stopped));
     }
 
-    private void OnMVTServerStarting() {
+    @Override
+    public void OnMVTServerStarting() {
         m_tv_val_srvr_status.setText(getString(R.string.starting));
         m_sect_content__item__srvr_console_output.setVisibility(View.VISIBLE);
     }
 
-    private void OnMVTServerStartFailed(final String reason) {
+    @Override
+    public void OnMVTServerStartFailed(final String reason) {
         OnMVTServerStopped();
     }
 
@@ -1793,7 +1680,8 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         str.setSpan(new ForegroundColorSpan(color), i, i + subtext.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
-    private void OnMVTServerRunning(final int pid) {
+    @Override
+    public void OnMVTServerRunning(final int pid) {
         final StringBuilder sb_srvr_status = new StringBuilder();
         sb_srvr_status.append(getString(R.string.running));
         if (pid != -1)
@@ -1807,13 +1695,16 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
     }
 
     //process stream-output (STDOUT/STDERR) and logcat-output helper functions associated w/ server-started state
-    private void OnMVTServerOutputLogcat(final String logcat_line) {
+    @Override
+    public void OnMVTServerOutputLogcat(final String logcat_line) {
         sv_append_mvt_server_console_output("LOGCAT", logcat_line);
     }
-    private void OnMVTServerOutputStdErr(final String stderr_line) {
+    @Override
+    public void OnMVTServerOutputStdErr(final String stderr_line) {
         sv_append_mvt_server_console_output("STDERR", stderr_line);
     }
-    private void OnMVTServerOutputStdOut(final String stdout_line) {
+    @Override
+    public void OnMVTServerOutputStdOut(final String stdout_line) {
         sv_append_mvt_server_console_output("STDOUT", stdout_line);
     }
     private void m_tv_tegola_console_output__scroll_max() {
@@ -1860,22 +1751,16 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         m_scvw_main__scroll_max();
     }
 
-    private void OnMVTServerListening(final int port) {
+    @Override
+    public void OnMVTServerListening(final int port) {
         Boolean srvr_started = (Boolean)m_btn_srvr_ctrl.getTag(R.id.TAG__SRVR_RUNNING);
         if (srvr_started != null && srvr_started == true) {
             String s_srvr_status = m_tv_val_srvr_status.getText().toString() + "\n\t\tlistening on port " + port;
             textview_setColorizedText(m_tv_val_srvr_status, s_srvr_status, getString(R.string.running), Color.GREEN);
-            mbgl_map_start();
+            m_controllerClient.mvt_server__get_capabilities(
+                Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+            );
         }
-    }
-
-    private void mbgl_map_start() {
-        Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
-        intent_mvt_server_read_json.putExtra(
-            Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
-            Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
-        );
-        sendBroadcast(intent_mvt_server_read_json);
     }
 
     private TegolaCapabilities parse_tegola_capabilities_json(final String s_tegola_tile_server_url__root, final String json) throws JSONException {
@@ -2002,14 +1887,15 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         }
     }
 
-    private void OnMVTServerJSONRead(final String s_tegola_url_root, final String json_url_endpoint, final String json, final String purpose) {
+    @Override
+    public void OnMVTServerJSONRead(final String s_tegola_url_root, final String json_url_endpoint, final String json, final String purpose) {
         Log.d(TAG, "OnMVTServerJSONRead: s_tegola_url_root: " + s_tegola_url_root + "; json_url_endpoint: " + json_url_endpoint + "; purpose: " + purpose);
         switch (json_url_endpoint) {
             case "/capabilities": {
                 try {
                     final TegolaCapabilities tegolaCapabilities = parse_tegola_capabilities_json(s_tegola_url_root, json);
                     switch (purpose) {
-                        case Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                        case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
                             if (tegolaCapabilities.parsed.maps.length > 0) {
                                 mbgl_map_start(tegolaCapabilities);
                                 if (!s_tegola_url_root.contains("localhost"))
@@ -2024,19 +1910,20 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
                 break;
             }
             default: {
-
+                break;
             }
         }
     }
 
-    private void OnMVTServerJSONReadFailed(final String s_tegola_url_root, final String json_url_endpoint, final String purpose, final String s_reason) {
+    @Override
+    public void OnMVTServerJSONReadFailed(final String s_tegola_url_root, final String json_url_endpoint, final String purpose, final String s_reason) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                 StringBuilder sb_alert_msg = new StringBuilder();
                 switch (purpose) {
-                    case Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                    case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
                         alertDialog.setTitle("Failed loading maps!");
                         sb_alert_msg.append("Could not parse/read mbgl style json from " + s_tegola_url_root + json_url_endpoint);
                         break;
@@ -2062,7 +1949,8 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         });
     }
 
-    private void OnMVTServerStopping() {
+    @Override
+    public void OnMVTServerStopping() {
         textview_setColorizedText(m_tv_val_srvr_status, getString(R.string.stopping), getString(R.string.stopping), Color.YELLOW);
     }
 
@@ -2094,7 +1982,8 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         });
     }
 
-    private void OnMVTServerStopped() {
+    @Override
+    public void OnMVTServerStopped() {
         mbgl_map_stop();
 
         Log.d(TAG, "OnMVTServerStopped: updating status-related UX");
@@ -2106,57 +1995,34 @@ public class MainActivity extends LocationUpdatesManager.LocationUpdatesBrokerAc
         m_sect_content__item__srvr_console_output.setVisibility(View.GONE);
     }
 
-    private void start_controller_fgs() {
-//        m_tv_val_ctrlr_status.setText(getString(R.string.starting));
-        Intent intent_start_controller_fgs = new Intent(MainActivity.this, go_spatial.com.github.tegola.mobile.android.controller.FGS.class);
-        intent_start_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.START.STRING);
-        intent_start_controller_fgs.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.START.EXTRA_KEY.HARNESS_CLASS_NAME.STRING, MainActivity.class.getName());
-        startService(intent_start_controller_fgs);
-    }
-
-    private void stop_controller_fgs() {
-//        m_tv_val_ctrlr_status.setText(getString(R.string.stopping));
-        Intent intent_stop_controller_fgs = new Intent(MainActivity.this, go_spatial.com.github.tegola.mobile.android.controller.FGS.class);
-        intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.STOP.STRING);
-        stopService(intent_stop_controller_fgs);
-    }
-
     private void start_mvt_server() {
-        Intent intent_start_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.STRING);
-        String s_config_toml = null;
-        boolean gpkg_provider = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue();
-        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.STRING, gpkg_provider);
-        if (gpkg_provider) {
-            intent_start_mvt_server.putExtra(
-                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.BUNDLE.STRING,
-                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue()
-            );
-            intent_start_mvt_server.putExtra(
-                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.PROVIDER.GPKG.BUNDLE.PROPS.STRING,
+        if (SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_PROVIDER__IS_GEOPACKAGE.getValue() == true) {
+            m_controllerClient.mvt_server__start(
+                new FGS.MVT_SERVER_START_SPEC__GPKG_PROVIDER(
+                    SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue(),
                     SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue()
+                )
             );
         } else {
             boolean remote_config = SharedPrefsManager.BOOLEAN_SHARED_PREF.TM_CONFIG_TOML__IS_REMOTE.getValue();
-            intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.CONFIG.REMOTE.STRING, remote_config);
+            String s_config_toml = "";
             if (!remote_config) {
                 File
                         f_filesDir = getFilesDir()
                         , f_postgis_toml = new File(f_filesDir.getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__LOCAL__SELECTION.getValue());
                 s_config_toml = f_postgis_toml.getPath();
                 if (!f_postgis_toml.exists()) {
-                    Log.e(TAG, "start_mvt_server: failed to start mvt server for provider type postgis since toml file " + s_config_toml + " does not exist!");
+                    Log.e(TAG, "mvt_server__start: failed to start mvt server for provider type postgis since toml file " + s_config_toml + " does not exist!");
                     return;
                 }
             } else
                 s_config_toml = SharedPrefsManager.STRING_SHARED_PREF.TM_CONFIG_TOML__REMOTE__SELECTION.getValue();
+            m_controllerClient.mvt_server__start(new FGS.MVT_SERVER_START_SPEC__POSTGIS_PROVIDER(remote_config, s_config_toml));
         }
-        intent_start_mvt_server.putExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.EXTRA__KEY.CONFIG.PATH.STRING, s_config_toml);
-        sendBroadcast(intent_start_mvt_server);
     }
 
     private void stop_mvt_server() {
         mbgl_map_stop();
-        Intent intent_stop_mvt_server = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING);
-        sendBroadcast(intent_stop_mvt_server);
+        m_controllerClient.mvt_server__stop();
     }
 }

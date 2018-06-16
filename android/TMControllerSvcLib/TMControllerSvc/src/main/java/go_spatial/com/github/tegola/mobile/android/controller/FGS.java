@@ -9,13 +9,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -31,9 +29,7 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 
 public class FGS extends Service {
@@ -41,10 +37,7 @@ public class FGS extends Service {
 
     private BroadcastReceiver m_br_client_control_request = null;
     private IntentFilter m_filter_br_client_control_request = null;
-    private final boolean m_br_client_control_request_onReceive_in_worker_thread = true;  //change to false if you want this to run on the main UI thread (but this is not a good idea as it will slow down the UI since all the work will be done there)
     private HandlerThread m_handlerthread_br_client_control_request = null;
-    private Looper m_looper_handler_br_client_control_request = null;
-    private Handler m_handler_br_client_control_request = null;
 
 
     //statically load native libraries here
@@ -89,6 +82,15 @@ public class FGS extends Service {
 
                         Log.d(TAG, "onStartCommand: ASN dispatched and FGS started - init'ing...");
                         init();
+
+                        m_handlerthread_br_client_control_request = new HandlerThread("Thread_BroadcastReceiver_CliCtrlRequest_TCS");
+                        m_handlerthread_br_client_control_request.start();
+                        getApplicationContext().registerReceiver(
+                            m_br_client_control_request,
+                            m_filter_br_client_control_request,
+                            null,
+                            new Handler(m_handlerthread_br_client_control_request.getLooper())
+                        );
                     } else {
                         Log.d(TAG, "onStartCommand: FGS is already running/init'ed - skipping startup sequence");
                     }
@@ -98,19 +100,40 @@ public class FGS extends Service {
                     sendBroadcast(intent_notify_service_started);
                     break;
                 }
-                case FGS_COMMAND_STOP: {
-                    Log.i(TAG, "Received STOP request");
-                    stop_tegola();
-                    stopForeground(true);
-                    stopSelf();
-                    m_is_running = false;
-                }
                 default: {
                     break;
                 }
             }
         }
         return START_REDELIVER_INTENT;
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "onDestroy: FGS is being destroyed (stopService) - notifying harness...");
+        Intent intent_notify_service_stopping = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPING.STRING);
+        sendBroadcast(intent_notify_service_stopping);
+
+        stop_tegola();
+        Log.d(TAG, "onDestroy: stopForeground");
+        stopForeground(true);
+        Log.d(TAG, "onDestroy: stopSelf");
+        stopSelf();
+        Log.d(TAG, "onDestroy: unregisterReceiver(m_br_client_control_request)");
+        getApplicationContext().unregisterReceiver(m_br_client_control_request);
+        Log.d(TAG, "onDestroy: stopping m_handlerthread_br_client_control_request...");
+        m_handlerthread_br_client_control_request.getLooper().quit();
+        m_handlerthread_br_client_control_request.interrupt();
+        try {
+            m_handlerthread_br_client_control_request.join(1000);
+        } catch (InterruptedException e) {
+            //e.printStackTrace();
+        }
+        m_is_running = false;
+
+        Log.d(TAG, "onDestroy: controller stopped - notifying harness...");
+        Intent intent_notify_service_stopped = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPED.STRING);
+        sendBroadcast(intent_notify_service_stopped);
     }
 
     private Notification fgs_asn__prepare(final String s_title, final String s_status) {
@@ -180,7 +203,7 @@ public class FGS extends Service {
         m_filter_br_client_control_request = new IntentFilter();
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.STRING);
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING);
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.STRING);
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING);
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING);
         m_br_client_control_request = new BroadcastReceiver() {
@@ -207,36 +230,36 @@ public class FGS extends Service {
                             break;
                         }
                         case MVT_SERVER_HTTP_URL_API_READ_JSON: {
-                            String s_purpose = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING);
+                            String s_purpose = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.STRING);
                             if (s_purpose == null || s_purpose.isEmpty()) {
-                                s_purpose = Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING;
-                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_READ_JSON): "
-                                    + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING
+                                s_purpose = Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING;
+                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_GOT_JSON): "
+                                    + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.STRING
                                     + " string extra is null or empty - setting s_purpose==\"" + s_purpose + "\""
                                 );
                             }
-                            String s_root_url = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING);
+                            String s_root_url = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ROOT_URL.STRING);
                             if (s_root_url == null || s_root_url.isEmpty()) {
                                 s_root_url = "http://localhost:" + m_i_tegola_listen_port;
-                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_READ_JSON): "
-                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING
+                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_GOT_JSON): "
+                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ROOT_URL.STRING
                                         + " string extra is null or empty - setting s_root_url==\"" + s_root_url + "\""
                                 );
                             }
-                            String s_endpoint = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING);
+                            String s_endpoint = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ENDPOINT.STRING);
                             if (s_endpoint == null || s_endpoint.isEmpty()) {
                                 s_endpoint = "/capabilities";
-                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_READ_JSON): "
-                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING
+                                Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_GOT_JSON): "
+                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ENDPOINT.STRING
                                         + " string extra is null or empty - setting s_endpoint==\"" + s_endpoint + "\""
                                 );
                             }
                             switch (s_purpose) {
-                                case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                                case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
                                     read_tegola_json(
                                         s_root_url,
                                         s_endpoint,
-                                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
                                     );
                                     break;
                                 }
@@ -292,14 +315,6 @@ public class FGS extends Service {
                 }
             }
         };
-        if (m_br_client_control_request_onReceive_in_worker_thread) {
-            m_handlerthread_br_client_control_request = new HandlerThread("Thread_BroadcastReceiver_CliCtrlRequest_TCS");
-            m_handlerthread_br_client_control_request.start();
-            m_looper_handler_br_client_control_request = m_handlerthread_br_client_control_request.getLooper();
-        } else
-            m_looper_handler_br_client_control_request = getApplicationContext().getMainLooper();  //then this is the looper for the main ui thread - hence onReceive() of broadcast receiver runs in main ui's thread
-        m_handler_br_client_control_request = new Handler(m_looper_handler_br_client_control_request);
-        getApplicationContext().registerReceiver(m_br_client_control_request, m_filter_br_client_control_request, null, m_handler_br_client_control_request);
     }
 
     private Process m_process_tegola = null;
@@ -392,7 +407,7 @@ public class FGS extends Service {
         }
     }
 
-    private abstract class MVT_SERVER_START_SPEC {
+    public static abstract class MVT_SERVER_START_SPEC {
         public final boolean provider__is_gpkg;
         public final boolean config_toml__is_remote;
         private MVT_SERVER_START_SPEC(final boolean provider__is_gpkg, final boolean config_toml__is_remote) {
@@ -400,14 +415,14 @@ public class FGS extends Service {
             this.config_toml__is_remote = config_toml__is_remote;
         }
     }
-    private class MVT_SERVER_START_SPEC__POSTGIS_PROVIDER extends MVT_SERVER_START_SPEC {
+    public static class MVT_SERVER_START_SPEC__POSTGIS_PROVIDER extends MVT_SERVER_START_SPEC {
         public final String config_toml;
         public MVT_SERVER_START_SPEC__POSTGIS_PROVIDER(final boolean config_toml__is_remote, @NonNull final String config_toml) {
             super(false, config_toml__is_remote);
             this.config_toml = config_toml;
         }
     }
-    private class MVT_SERVER_START_SPEC__GPKG_PROVIDER extends MVT_SERVER_START_SPEC {
+    public static class MVT_SERVER_START_SPEC__GPKG_PROVIDER extends MVT_SERVER_START_SPEC {
         public final String gpkg_bundle;
         public final String gpkg_bundle_props;
         public MVT_SERVER_START_SPEC__GPKG_PROVIDER(final String gpkg_bundle, final String gpkg_bundle_props) {
@@ -988,21 +1003,21 @@ public class FGS extends Service {
                 public void onReadError(long n_remaining, Exception e) {
                     Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onReadError: n_remaining: " + n_remaining + "; error: " + e.getMessage());
                     e.printStackTrace();
-                    Intent intent_notify_mvt_server_json_read_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.STRING);
+                    Intent intent_notify_mvt_server_json_read_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.STRING);
                     intent_notify_mvt_server_json_read_failed.putExtra(
-                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.PURPOSE.STRING,
+                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.PURPOSE.STRING,
                         purpose
                     );
                     intent_notify_mvt_server_json_read_failed.putExtra(
-                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.ROOT_URL.STRING,
+                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.ROOT_URL.STRING,
                         tegolaJSON.root_url
                     );
                     intent_notify_mvt_server_json_read_failed.putExtra(
-                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.ENDPOINT.STRING,
+                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.ENDPOINT.STRING,
                         tegolaJSON.json_url_endpoint
                     );
                     intent_notify_mvt_server_json_read_failed.putExtra(
-                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.EXTRA_KEY.REASON.STRING,
+                        Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.REASON.STRING,
                         e.getMessage()
                     );
                     sendBroadcast(intent_notify_mvt_server_json_read_failed);
@@ -1015,21 +1030,21 @@ public class FGS extends Service {
                         tegolaJSON.json_string = baos.toString();
                         Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onReadComplete: json content is:\n" + tegolaJSON.json_string);
                         baos.close();
-                        Intent intent_notify_mvt_server_json_read = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING);
+                        Intent intent_notify_mvt_server_json_read = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.STRING);
                         intent_notify_mvt_server_json_read.putExtra(
-                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.PURPOSE.STRING,
+                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.PURPOSE.STRING,
                             purpose
                         );
                         intent_notify_mvt_server_json_read.putExtra(
-                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ROOT_URL.STRING,
+                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.ROOT_URL.STRING,
                             tegolaJSON.root_url
                         );
                         intent_notify_mvt_server_json_read.putExtra(
-                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.ENDPOINT.STRING,
+                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.ENDPOINT.STRING,
                             tegolaJSON.json_url_endpoint
                         );
                         intent_notify_mvt_server_json_read.putExtra(
-                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.EXTRA_KEY.CONTENT.STRING,
+                            Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.CONTENT.STRING,
                             tegolaJSON.json_string
                         );
                         sendBroadcast(intent_notify_mvt_server_json_read);

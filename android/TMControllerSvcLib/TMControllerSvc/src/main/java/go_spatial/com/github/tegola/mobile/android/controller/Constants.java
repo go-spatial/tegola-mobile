@@ -2,7 +2,6 @@ package go_spatial.com.github.tegola.mobile.android.controller;
 
 
 import android.os.Build;
-import android.support.annotation.NonNull;
 
 import static go_spatial.com.github.tegola.mobile.android.controller.Constants.Strings.PKG;
 
@@ -106,10 +105,10 @@ public class Constants {
                         }
                         interface HTTP_URL_API {
                             String STRING = MVT_SERVER.STRING + "." + "HTTP_URL_API";
-                            interface READ_JSON {
-                                String STRING = HTTP_URL_API.STRING + "." + "READ_JSON";
+                            interface GET_JSON {
+                                String STRING = HTTP_URL_API.STRING + "." + "GET_JSON";
                                 interface EXTRA_KEY {
-                                    String STRING = READ_JSON.STRING + "." + "EXTRA_KEY";
+                                    String STRING = GET_JSON.STRING + "." + "EXTRA_KEY";
                                     interface PURPOSE {
                                         String STRING = EXTRA_KEY.STRING + "." + "PURPOSE";
                                         interface VALUE {
@@ -120,10 +119,10 @@ public class Constants {
                                         }
                                     }
                                     interface ROOT_URL {
-                                        String STRING = READ_JSON.STRING + "." + "ROOT_URL";
+                                        String STRING = GET_JSON.STRING + "." + "ROOT_URL";
                                     }
                                     interface ENDPOINT {
-                                        String STRING = READ_JSON.STRING + "." + "ENDPOINT";
+                                        String STRING = GET_JSON.STRING + "." + "ENDPOINT";
                                     }
                                 }
                             }
@@ -233,10 +232,10 @@ public class Constants {
                         }
                         interface HTTP_URL_API {
                             String STRING = MVT_SERVER.STRING + "." + "HTTP_URL_API";
-                            interface READ_JSON {
-                                String STRING = HTTP_URL_API.STRING + "." + "READ_JSON";
+                            interface GOT_JSON {
+                                String STRING = HTTP_URL_API.STRING + "." + "GOT_JSON";
                                 interface EXTRA_KEY {
-                                    String STRING = READ_JSON.STRING + "." + "EXTRA_KEY";
+                                    String STRING = GOT_JSON.STRING + "." + "EXTRA_KEY";
                                     interface PURPOSE {
                                         String STRING = EXTRA_KEY.STRING + "." + "PURPOSE";
                                         interface VALUE {
@@ -247,31 +246,31 @@ public class Constants {
                                         }
                                     }
                                     interface ROOT_URL {
-                                        String STRING = READ_JSON.STRING + "." + "ROOT_URL";
+                                        String STRING = GOT_JSON.STRING + "." + "ROOT_URL";
                                     }
                                     interface ENDPOINT {
-                                        String STRING = READ_JSON.STRING + "." + "ENDPOINT";
+                                        String STRING = GOT_JSON.STRING + "." + "ENDPOINT";
                                     }
                                     interface CONTENT {
-                                        String STRING = READ_JSON.STRING + "." + "CONTENT";
+                                        String STRING = GOT_JSON.STRING + "." + "CONTENT";
                                     }
                                 }
                             }
-                            interface READ_JSON_FAILED {
-                                String STRING = HTTP_URL_API.STRING + "." + "READ_JSON_FAILED";
+                            interface GET_JSON_FAILED {
+                                String STRING = HTTP_URL_API.STRING + "." + "GET_JSON_FAILED";
                                 interface EXTRA_KEY {
-                                    String STRING = READ_JSON.STRING + "." + "EXTRA_KEY";
+                                    String STRING = GET_JSON_FAILED.STRING + "." + "EXTRA_KEY";
                                     interface PURPOSE {
                                         String STRING = EXTRA_KEY.STRING + "." + "PURPOSE";
                                     }
                                     interface ROOT_URL {
-                                        String STRING = READ_JSON.STRING + "." + "ROOT_URL";
+                                        String STRING = GET_JSON_FAILED.STRING + "." + "ROOT_URL";
                                     }
                                     interface ENDPOINT {
-                                        String STRING = READ_JSON.STRING + "." + "ENDPOINT";
+                                        String STRING = GET_JSON_FAILED.STRING + "." + "ENDPOINT";
                                     }
                                     interface REASON {
-                                        String STRING = READ_JSON.STRING + "." + "REASON";
+                                        String STRING = GET_JSON_FAILED.STRING + "." + "REASON";
                                     }
                                 }
                             }
@@ -333,7 +332,7 @@ public class Constants {
                     case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING: return MVT_SERVER_CONTROL_STOP;
                     case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING: return MVT_SERVER_STATE_IS_RUNNING;
                     case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING: return MVT_SERVER_STATE_LISTEN_PORT;
-                    case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING: return MVT_SERVER_HTTP_URL_API_READ_JSON;
+                    case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.STRING: return MVT_SERVER_HTTP_URL_API_READ_JSON;
                     default: return null;
                 }
             }
@@ -347,7 +346,7 @@ public class Constants {
                     case MVT_SERVER_CONTROL_STOP: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING;
                     case MVT_SERVER_STATE_IS_RUNNING: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING;
                     case MVT_SERVER_STATE_LISTEN_PORT: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING;
-                    case MVT_SERVER_HTTP_URL_API_READ_JSON: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING;
+                    case MVT_SERVER_HTTP_URL_API_READ_JSON: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.STRING;
                     default: return null;
                 }
             }
@@ -365,8 +364,8 @@ public class Constants {
             , MVT_SERVER_MONITOR_LOGCAT_OUTPUT
             , MVT_SERVER_MONITOR_STDERR_OUTPUT
             , MVT_SERVER_MONITOR_STDOUT_OUTPUT
-            , MVT_SERVER_HTTP_URL_API_READ_JSON
-            , MVT_SERVER_HTTP_URL_API_READ_JSON_FAILED
+            , MVT_SERVER_HTTP_URL_API_GOT_JSON
+            , MVT_SERVER_HTTP_URL_API_GET_JSON_FAILED
             , MVT_SERVER_STATE_STOPPING
             , MVT_SERVER_STATE_STOPPED
             ;
@@ -384,8 +383,8 @@ public class Constants {
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.STRING: return MVT_SERVER_MONITOR_LOGCAT_OUTPUT;
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING: return MVT_SERVER_MONITOR_STDERR_OUTPUT;
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING: return MVT_SERVER_MONITOR_STDOUT_OUTPUT;
-                    case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING: return MVT_SERVER_HTTP_URL_API_READ_JSON;
-                    case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.STRING: return MVT_SERVER_HTTP_URL_API_READ_JSON_FAILED;
+                    case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.STRING: return MVT_SERVER_HTTP_URL_API_GOT_JSON;
+                    case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.STRING: return MVT_SERVER_HTTP_URL_API_GET_JSON_FAILED;
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING: return MVT_SERVER_STATE_STOPPING;
                     case Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING: return MVT_SERVER_STATE_STOPPED;
                     default: return null;
@@ -406,8 +405,8 @@ public class Constants {
                     case MVT_SERVER_MONITOR_LOGCAT_OUTPUT: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.STRING;
                     case MVT_SERVER_MONITOR_STDERR_OUTPUT: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING;
                     case MVT_SERVER_MONITOR_STDOUT_OUTPUT: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING;
-                    case MVT_SERVER_HTTP_URL_API_READ_JSON: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON.STRING;
-                    case MVT_SERVER_HTTP_URL_API_READ_JSON_FAILED: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.READ_JSON_FAILED.STRING;
+                    case MVT_SERVER_HTTP_URL_API_GOT_JSON: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.STRING;
+                    case MVT_SERVER_HTTP_URL_API_GET_JSON_FAILED: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.STRING;
                     case MVT_SERVER_STATE_STOPPING: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING;
                     case MVT_SERVER_STATE_STOPPED: return Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING;
                     default: return null;
