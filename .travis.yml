@@ -83,7 +83,7 @@ script:
   - cd ${WRK_DIR}/android/TMHarness
   - chmod +x ./gradlew
   # - ./gradlew clean --stacktrace
-  - ./gradlew connectedCheck -PdisablePreDex --stacktrace
+  - ./gradlew connectedAndroidTest -PdisablePreDex --stacktrace
 
   #comment out for now to speed up builds
   # #finally, if we are here then all we have remaining to do is ensure TMHarness Release assembles

@@ -56,6 +56,8 @@
                 <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
+        <activity android:name=".ManageGpkgBundlesActivity" />
+        <activity android:name=".InstallGpkgBundleActivity" />
 
         <provider
             android:name=".TMLocalStorageProvider"
@@ -68,9 +70,6 @@
                 <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
             </intent-filter>
         </provider>
-
-        <activity android:name=".ManageGpkgBundlesActivity" />
-        <activity android:name=".InstallGpkgBundleActivity" />
     </application>
 
 </manifest>
