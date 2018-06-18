@@ -4,10 +4,14 @@ sudo: required
 
 jdk: oraclejdk8
 
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -qq lynx
+
 env:
   global:
     - ANDROID_BUILD_TOOLS=27.0.3  #override in matrix if necessary
-    - ADB_INSTALL_TIMEOUT=5 #minutes
+    - ADB_INSTALL_TIMEOUT=8 #minutes
     - secure: "qYgTealcuZyphZa8iePOsWd5yVSolO9BJmRqm3xMt0frukuzHCrNp/cdzIPFwj49SaQRfS0GI21DOYw15r4qLThCutLohU4fgycNEaXW+O2SOhNlB3vVS/GqPx3GSjWIvjSjTBtBqcdDacEdEmufRzw3twduSwHsFMYXLdLP7X4+rOtGF0hagW7PVwuFmTDs80bcUQ+DCYDA/JPXUIpNqcMjhFR51mRgwKJFG7eJUFRxkUGRM+ZL+D7vSh/sispRXj5bqMAnj4WVBgeWb7BEnyTW61YwaN12jqv+sNN0Q+RgLhp3L+rRDlUBRI9BxLoHay5HfRdBG4FnFqDbN2NIF7exMFcNqml0Iwnz7mJNg+DlfjTYCSXk1Mi59Sx7cNC7jbJpRpEw7W2P/eRIh/HDsB4Zbt//0uIJmiwQh82o7CrskZDI7BhdTO/WtoBrhwjWFh0rW6/bs1F1+rO6udtP7KqaCHKzHHyddQIkUWe9ErXgkUU+ZiY8emGv8aXCRGTCOsZE9XuV17p/m8ITPvk2wqFwmPgVCkMQbyXMLVoE2bC1gwVp/u4UAlvO8GBwkiAMFk9S30Dt0j5IVquzDL3ZkYYvjqpgMOJMJSiTFGlKlL1h4NaufF/k6HpEpDqX6tmYfluOW2xD9mBfZrC62N0KMvPKrh0TzuLqalzlrnEvwks="
 
   matrix:
@@ -64,7 +68,7 @@ before_script:
   - QEMU_AUDIO_DRV=none emulator -avd test -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
-  - adb -e logcat *:W | tee logcat.log > /dev/null 2>&1 &
+  #- adb -e logcat *:W | tee logcat.log > /dev/null 2>&1 &
 
 script:
   #note - calling gradlew script w/ connectedCheck arg will execute instrumentation tests located in src/androidTests/
@@ -87,15 +91,11 @@ script:
   # - ./gradlew assembleRelease -PdisablePreDex --stacktrace
 
 after_script:
-  - echo " LOGCAT "; echo "========"; cat logcat.log; pkill -KILL -f adb
-
-after_failure:
-  # output log on failure
+  #- echo " LOGCAT "; echo "========"; cat logcat.log; pkill -KILL -f adb
   - export ANDROID_TEST_MODULE_NAME="TMHarnessUX"
   - export ANDROID_TETS_LOG_DIR="$(pwd)/${ANDROID_TEST_MODULE_NAME}/build/outputs/reports/androidTests/connected/"
-  - pwd && cd "${MY_LOG_DIR:-.}" && pwd && ls -al
-  - sudo apt-get update
-  - sudo apt-get install -qq lynx && lynx --dump index.html > android_test__index.log
+  - pwd && cd "${ANDROID_TETS_LOG_DIR:-.}" && pwd && ls -al
+  - lynx --dump index.html > android_test__index.log
   - lynx --dump com.android.builder.testing.ConnectedDevice.html > android_test__connected_device.log
   - lynx --dump com.android.builder.testing.html > android_test__testing.log
   - for file in *.log; do echo "$file"; echo "====================="; cat "$file"; done || true
