@@ -30,6 +30,8 @@ public class InstrumentedTests {
     private class TestNotificationBroadcastReceiverListener implements NotificationBroadcastReceiver.Listener {
         final private String TAG = TestNotificationBroadcastReceiverListener.class.getSimpleName();
 
+        final private int WAIT_TIMEOUT_MS = 5000;   //hardcode to 5 sec
+
         final public Object mon_ctrlr_running = new Object();
         public boolean ctrlr_running = false;
 
@@ -165,7 +167,7 @@ public class InstrumentedTests {
         controllerClient.controller__start(controllerClient.getContext().getClass().getName());
         try {
             synchronized (listener.mon_ctrlr_running) {
-                listener.mon_ctrlr_running.wait(1000);
+                listener.mon_ctrlr_running.wait(listener.WAIT_TIMEOUT_MS);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -175,7 +177,7 @@ public class InstrumentedTests {
         controllerClient.controller__stop();
         try {
             synchronized (listener.mon_ctrlr_running) {
-                listener.mon_ctrlr_running.wait(1000);
+                listener.mon_ctrlr_running.wait(listener.WAIT_TIMEOUT_MS);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -204,7 +206,7 @@ public class InstrumentedTests {
         controllerClient.controller__start(controllerClient.getContext().getClass().getName());
         try {
             synchronized (listener.mon_ctrlr_running) {
-                listener.mon_ctrlr_running.wait(1000);
+                listener.mon_ctrlr_running.wait(listener.WAIT_TIMEOUT_MS);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -214,7 +216,7 @@ public class InstrumentedTests {
         controllerClient.controller__stop();
         try {
             synchronized (listener.mon_ctrlr_running) {
-                listener.mon_ctrlr_running.wait(1000);
+                listener.mon_ctrlr_running.wait(listener.WAIT_TIMEOUT_MS);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
