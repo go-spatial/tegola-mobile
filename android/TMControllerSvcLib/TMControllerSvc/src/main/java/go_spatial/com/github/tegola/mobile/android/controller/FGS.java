@@ -110,30 +110,29 @@ public class FGS extends Service {
 
     @Override
     public void onDestroy() {
-        Log.i(TAG, "onDestroy: FGS is being destroyed (stopService) - notifying harness...");
-        Intent intent_notify_service_stopping = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPING.STRING);
-        sendBroadcast(intent_notify_service_stopping);
-
-        stop_tegola();
-        Log.d(TAG, "onDestroy: stopForeground");
-        stopForeground(true);
-        Log.d(TAG, "onDestroy: stopSelf");
-        stopSelf();
-        Log.d(TAG, "onDestroy: unregisterReceiver(m_br_client_control_request)");
-        getApplicationContext().unregisterReceiver(m_br_client_control_request);
-        Log.d(TAG, "onDestroy: stopping m_handlerthread_br_client_control_request...");
-        m_handlerthread_br_client_control_request.getLooper().quit();
-        m_handlerthread_br_client_control_request.interrupt();
         try {
+            Log.i(TAG, "onDestroy: FGS is being destroyed (stopService) - notifying harness...");
+            Intent intent_notify_service_stopping = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPING.STRING);
+            sendBroadcast(intent_notify_service_stopping);
+            stop_tegola();
+            Log.d(TAG, "onDestroy: stopForeground");
+            stopForeground(true);
+            Log.d(TAG, "onDestroy: stopSelf");
+            stopSelf();
+            Log.d(TAG, "onDestroy: unregisterReceiver(m_br_client_control_request)");
+            getApplicationContext().unregisterReceiver(m_br_client_control_request);
+            Log.d(TAG, "onDestroy: stopping m_handlerthread_br_client_control_request...");
+            m_handlerthread_br_client_control_request.getLooper().quit();
+            m_handlerthread_br_client_control_request.interrupt();
             m_handlerthread_br_client_control_request.join(1000);
         } catch (InterruptedException e) {
             //e.printStackTrace();
+        } finally {
+            m_is_running = false;
+            Log.d(TAG, "onDestroy: controller stopped - notifying harness...");
+            Intent intent_notify_service_stopped = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPED.STRING);
+            sendBroadcast(intent_notify_service_stopped);
         }
-        m_is_running = false;
-
-        Log.d(TAG, "onDestroy: controller stopped - notifying harness...");
-        Intent intent_notify_service_stopped = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPED.STRING);
-        sendBroadcast(intent_notify_service_stopped);
     }
 
     private Notification fgs_asn__prepare(final String s_title, final String s_status) {

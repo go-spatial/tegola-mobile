@@ -24,21 +24,58 @@ import static org.junit.Assert.*;
 public class InstrumentedTests {
     final private String TAG = InstrumentedTests.class.getCanonicalName();
 
+    private class MonitorObject extends Object {
+        final private String TAG = MonitorObject.class.getCanonicalName();
+
+        private int m_notified = 0;
+        final public Integer getNotified() {
+            synchronized (this) {
+                return m_notified;
+            }
+        }
+        final public void setNotified(final int notified) {
+            synchronized (this) {
+                Log.d(TAG, "setNotified: " + notified);
+                m_notified = notified;
+            }
+        }
+
+        public MonitorObject() {}
+
+        public void track_notify() {
+            synchronized (this) {
+                int notified = getNotified();
+                Log.d(TAG, "track_notify: getNotified(): " + notified + "; increment to: " + (notified + 1));
+                setNotified(notified + 1);
+                notify();
+            }
+        }
+
+        public void track_notifyAll() {
+            synchronized (this) {
+                int notified = getNotified();
+                Log.d(TAG, "track_notifyAll: getNotified(): " + notified + "; increment to: " + (notified + 1));
+                setNotified(notified + 1);
+                notifyAll();
+            }
+        }
+    }
+
 //    @Rule
 //    public ActivityTestRule<MainActivity> activityRule = new ActivityTestRule<>(MainActivity.class);
 
     private class TestNotificationBroadcastReceiverListener implements NotificationBroadcastReceiver.Listener {
         final private String TAG = TestNotificationBroadcastReceiverListener.class.getSimpleName();
 
-        final private int WAIT_TIMEOUT_MS = 5000;   //hardcode to 5 sec
+        final private int WAIT_TIMEOUT_MS = 10000;   //hardcode to 10 sec
 
-        final public Object mon_ctrlr_running = new Object();
+        final public MonitorObject mon_ctrlr_running = new MonitorObject();
         public boolean ctrlr_running = false;
 
-        final public Object mon_mvt_srvr_running = new Object();
+        final public MonitorObject mon_mvt_srvr_running = new MonitorObject();
         public boolean mvt_srvr_running = false;
 
-        final public Object mon_mvt_srvr_listening = new Object();
+        final public MonitorObject mon_mvt_srvr_listening = new MonitorObject();
         public boolean mvt_srvr_listening = false;
 
         @Override
@@ -51,7 +88,7 @@ public class InstrumentedTests {
             Log.d(TAG, "OnControllerRunning");
             synchronized (mon_ctrlr_running) {
                 ctrlr_running = true;
-                mon_ctrlr_running.notifyAll();
+                mon_ctrlr_running.track_notifyAll();
             }
         }
 
@@ -65,7 +102,7 @@ public class InstrumentedTests {
             Log.d(TAG, "OnControllerStopped");
             synchronized (mon_ctrlr_running) {
                 ctrlr_running = false;
-                mon_ctrlr_running.notifyAll();
+                mon_ctrlr_running.track_notifyAll();
             }
         }
 
@@ -79,7 +116,7 @@ public class InstrumentedTests {
             Log.d(TAG, "OnMVTServerStartFailed");
             synchronized (mon_mvt_srvr_running) {
                 mvt_srvr_running = false;
-                mon_mvt_srvr_running.notifyAll();
+                mon_mvt_srvr_running.track_notifyAll();
             }
         }
 
@@ -88,7 +125,7 @@ public class InstrumentedTests {
             Log.d(TAG, "OnMVTServerRunning");
             synchronized (mon_mvt_srvr_running) {
                 mvt_srvr_running = true;
-                mon_mvt_srvr_running.notifyAll();
+                mon_mvt_srvr_running.track_notifyAll();
             }
         }
 
@@ -97,7 +134,7 @@ public class InstrumentedTests {
             Log.d(TAG, "OnMVTServerListening");
             synchronized (mon_mvt_srvr_listening) {
                 mvt_srvr_listening = true;
-                mon_mvt_srvr_listening.notifyAll();
+                mon_mvt_srvr_listening.track_notifyAll();
             }
         }
 
@@ -136,7 +173,7 @@ public class InstrumentedTests {
             Log.d(TAG, "OnMVTServerStopped");
             synchronized (mon_mvt_srvr_running) {
                 mvt_srvr_running = false;
-                mon_mvt_srvr_running.notifyAll();
+                mon_mvt_srvr_running.track_notifyAll();
             }
         }
     };
@@ -172,6 +209,9 @@ public class InstrumentedTests {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Log.d(TAG, "testClientAPI__br_main_looper: listener.mon_ctrlr_running.getNotified(): " + listener.mon_ctrlr_running.getNotified());
+        assertTrue(listener.mon_ctrlr_running.getNotified() == 1);
+        listener.mon_ctrlr_running.setNotified(0);
         assertTrue(listener.ctrlr_running);
 
         controllerClient.controller__stop();
@@ -182,6 +222,9 @@ public class InstrumentedTests {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Log.d(TAG, "testClientAPI__br_main_looper: listener.mon_ctrlr_running.getNotified(): " + listener.mon_ctrlr_running.getNotified());
+        assertTrue(listener.mon_ctrlr_running.getNotified() == 1);
+        listener.mon_ctrlr_running.setNotified(0);
         assertTrue(!listener.ctrlr_running);
 
         ClientAPI.uninitClient(controllerClient);
@@ -211,6 +254,9 @@ public class InstrumentedTests {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Log.d(TAG, "testClientAPI__br_wrk_thrd_looper: listener.mon_ctrlr_running.getNotified(): " + listener.mon_ctrlr_running.getNotified());
+        assertTrue(listener.mon_ctrlr_running.getNotified() == 1);
+        listener.mon_ctrlr_running.setNotified(0);
         assertTrue(listener.ctrlr_running);
 
         controllerClient.controller__stop();
@@ -221,6 +267,9 @@ public class InstrumentedTests {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Log.d(TAG, "testClientAPI__br_wrk_thrd_looper: listener.mon_ctrlr_running.getNotified(): " + listener.mon_ctrlr_running.getNotified());
+        assertTrue(listener.mon_ctrlr_running.getNotified() == 1);
+        listener.mon_ctrlr_running.setNotified(0);
         assertTrue(!listener.ctrlr_running);
 
         ClientAPI.uninitClient(controllerClient);
