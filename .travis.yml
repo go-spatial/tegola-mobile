@@ -80,6 +80,17 @@ script:
   # - ./gradlew clean --stacktrace
   - ./gradlew connectedCheck -PdisablePreDex --stacktrace
 
-  #finally, if we are here then all we have remaining to do is ensure TMHarness Release assembles
-  - ./gradlew clean --stacktrace
-  - ./gradlew assembleRelease -PdisablePreDex --stacktrace
+  #comment out for now to speed up builds
+  # #finally, if we are here then all we have remaining to do is ensure TMHarness Release assembles
+  # - ./gradlew clean --stacktrace
+  # - ./gradlew assembleRelease -PdisablePreDex --stacktrace
+
+after_failure:
+  # output log on failure
+  - export ANDROID_TEST_MODULE_NAME="TMHarnessUX"
+  - export ANDROID_TETS_LOG_DIR="$(pwd)/${ANDROID_TEST_MODULE_NAME}/build/outputs/reports/androidTests/connected/"
+  - pwd && cd "${MY_LOG_DIR:-.}" && pwd && ls -al
+  - sudo apt-get install -qq lynx && lynx --dump index.html > myIndex.log
+  - lynx --dump com.android.builder.testing.ConnectedDevice.html > myConnectedDevice.log
+  - lynx --dump com.android.builder.testing.html > myTesting.log
+  - for file in *.log; do echo "$file"; echo "====================="; cat "$file"; done || true
