@@ -79,7 +79,6 @@ import java.util.ArrayList;
 import go_spatial.com.github.tegola.mobile.android.controller.ClientAPI;
 import go_spatial.com.github.tegola.mobile.android.controller.Exceptions;
 import go_spatial.com.github.tegola.mobile.android.controller.FGS;
-import go_spatial.com.github.tegola.mobile.android.controller.NotificationBroadcastReceiver;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.REQUEST_CODES;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
@@ -87,7 +86,7 @@ import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
 public class MainActivity
         extends LocationUpdatesManager.LocationUpdatesBrokerActivity
-        implements NotificationBroadcastReceiver.Listener, MBGLFragment.OnFragmentInteractionListener {
+        implements ClientAPI.ControllerNotificationsListener, MBGLFragment.OnFragmentInteractionListener {
     private static final String TAG = MainActivity.class.getCanonicalName();
 
     private DrawerLayout m_drawerlayout = null;

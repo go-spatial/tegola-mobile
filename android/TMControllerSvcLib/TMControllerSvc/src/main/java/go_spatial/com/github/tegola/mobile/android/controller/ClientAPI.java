@@ -10,12 +10,30 @@ import android.util.Log;
 final public class ClientAPI {
     final static private String TAG = ClientAPI.class.getCanonicalName();
 
+    public interface ControllerNotificationsListener {
+        void OnControllerStarting();
+        void OnControllerRunning();
+        void OnControllerStopping();
+        void OnControllerStopped();
+        void OnMVTServerStarting();
+        void OnMVTServerStartFailed(@NonNull final String reason);
+        void OnMVTServerRunning(final int pid);
+        void OnMVTServerListening(final int port);
+        void OnMVTServerOutputLogcat(@NonNull final String logcat_line);
+        void OnMVTServerOutputStdErr(@NonNull final String stderr_line);
+        void OnMVTServerOutputStdOut(@NonNull final String stdout_line);
+        void OnMVTServerJSONRead(@NonNull final String tegola_url_root, @NonNull final String json_url_endpoint, @NonNull final String json, @NonNull final String purpose);
+        void OnMVTServerJSONReadFailed(@NonNull final String tegola_url_root, @NonNull final String json_url_endpoint, @NonNull final String purpose, @NonNull final String reason);
+        void OnMVTServerStopping();
+        void OnMVTServerStopped();
+    }
+
     //client factory methods...
-    static final public Client initClient(@NonNull final Context context, @NonNull final NotificationBroadcastReceiver.Listener listener, final Handler rcvr_handler) {
+    static final public Client initClient(@NonNull final Context context, @NonNull final ControllerNotificationsListener controllerNotificationsListener, final Handler rcvr_handler) {
         Client client = new Client();
-        client.context = context;   //beware that using the same context for multiple client instance can cause duplicate notifications send to listener
-        client.listener = listener;
-        client.notificationBroadcastReceiver = new NotificationBroadcastReceiver(client.listener);
+        client.context = context;   //beware that using the same context for multiple client instance can cause duplicate notifications send to controllerNotificationsListener
+        client.controllerNotificationsListener = controllerNotificationsListener;
+        client.notificationBroadcastReceiver = new NotificationBroadcastReceiver(client.controllerNotificationsListener);
         if (rcvr_handler == null) {
             Log.d(TAG, "initClient: starting client.rcvr_hndlr_wrkr_thrd");
             client.rcvr_hndlr_wrkr_thrd = new HandlerThread("Thread_BroadcastReceiver_CtrlrNotifications");
@@ -33,8 +51,8 @@ final public class ClientAPI {
         Log.d(TAG, "initClient: client.registerReceiverStickyIntent: " + (client.registerReceiverStickyIntent != null ? client.registerReceiverStickyIntent.getAction() : "<null>"));
         return client;
     }
-    static final public Client initClient(@NonNull final Context context, @NonNull final NotificationBroadcastReceiver.Listener listener) {
-        return initClient(context, listener, null);
+    static final public Client initClient(@NonNull final Context context, @NonNull final ControllerNotificationsListener controllerNotificationsListener) {
+        return initClient(context, controllerNotificationsListener, null);
     }
 
     static final public void uninitClient(@NonNull Client client) {
@@ -64,8 +82,8 @@ final public class ClientAPI {
         private Intent registerReceiverStickyIntent = null;
         public Intent getRegisterReceiverStickyIntent() {return registerReceiverStickyIntent;}
 
-        private NotificationBroadcastReceiver.Listener listener = null;
-        public NotificationBroadcastReceiver.Listener getNotificationListener() {return listener;}
+        private ControllerNotificationsListener controllerNotificationsListener = null;
+        public ControllerNotificationsListener getNotificationListener() {return controllerNotificationsListener;}
 
         private HandlerThread rcvr_hndlr_wrkr_thrd = null;
         public HandlerThread getRcvr_hndlr_wrkr_thrd() {return rcvr_hndlr_wrkr_thrd;}

@@ -12,16 +12,16 @@
 -printusage unused.txt
 -printmapping mapping.txt
 
--assumenosideeffects class android.util.Log {
-   public static boolean isLoggable(java.lang.String, int);
-   public static int v(...);
-   public static int i(...);
-   #keep log warnings
-   #public static int w(...);
-   public static int d(...);
-   #keep log errors
-   #public static int e(...);
-}
+#-assumenosideeffects class android.util.Log {
+#   public static boolean isLoggable(java.lang.String, int);
+#   public static int v(...);
+#   public static int i(...);
+#   #keep log warnings
+#   #public static int w(...);
+#   public static int d(...);
+#   #keep log errors
+#   #public static int e(...);
+#}
 
 -keep public class * extends android.app.Activity
 -keep public class * extends android.support.v7.app.AppCompatActivity

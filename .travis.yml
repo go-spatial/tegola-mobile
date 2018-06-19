@@ -82,9 +82,9 @@ script:
   - cd ${WRK_DIR}/android/TMHarness
   - adb -e logcat *:W | tee test_logcat.log > /dev/null 2>&1 &
   - chmod +x ./gradlew
-  - ./gradlew connectedAndroidTest -PdisablePreDex --stacktrace
-  
-  - echo " LOGCAT "; echo "========"; cat logcat.log; pkill -KILL -f adb
+  - ./gradlew connectedAndroidTest mergeAndroidReports --continue -PdisablePreDex --stacktrace
+
+  - echo " LOGCAT "; echo "========"; cat test_logcat.log; pkill -KILL -f adb
   # - export ANDROID_TEST_MODULE_NAME="TMHarnessUX"
   # - export ANDROID_TETS_LOG_DIR="$(pwd)/${ANDROID_TEST_MODULE_NAME}/build/outputs/reports/androidTests/connected/"
   # - pwd && cd "${ANDROID_TETS_LOG_DIR:-.}" && pwd && ls -al

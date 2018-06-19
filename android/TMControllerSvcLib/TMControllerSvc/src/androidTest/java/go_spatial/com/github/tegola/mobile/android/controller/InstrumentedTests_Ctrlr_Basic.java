@@ -16,8 +16,8 @@ import static org.junit.Assert.*;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 @RunWith(AndroidJUnit4.class)
-public class InstrumentedTests {
-    private final String TAG = InstrumentedTests.class.getCanonicalName();
+public class InstrumentedTests_Ctrlr_Basic {
+    private final String TAG = InstrumentedTests_Ctrlr_Basic.class.getCanonicalName();
     @Test
     public void useAppContext() throws Exception {
         // Context of the app under test.

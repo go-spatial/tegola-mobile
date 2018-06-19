@@ -33,15 +33,15 @@ android {
         Set<String> tegola_bin_fnames = tm_abi_tegola_bin_mapping_Props.keySet()
         if (tegola_bin_fnames != null && tegola_bin_fnames.size() > 0) {
             for (String tegola_bin_fname : tegola_bin_fnames) {
-                println tm_abi_tegola_bin_mapping_PropsFile.getName() + " - found key (tegola_bin_fname): " + tegola_bin_fname
+                //println tm_abi_tegola_bin_mapping_PropsFile.getName() + " - found key (tegola_bin_fname): " + tegola_bin_fname
                 String abi_list = tm_abi_tegola_bin_mapping_Props[tegola_bin_fname]
-                println "\tabi_list:"
+                //println "\tabi_list:"
                 String[] abis = abi_list.split(",")
                 if (abis != null && abis.length > 0) {
                     sb_tegola_bin_abi_map.append("put(\"" + tegola_bin_fname + "\", new String[]{")
                     for (int i = 0; i < abis.length; i++) {
                         String abi = abis[i]
-                        println "\t\t" + abi
+                        //println "\t\t" + abi
                         sb_tegola_bin_abi_map.append("\"" + abi + "\"")
                         if (i < (abis.length - 1))
                             sb_tegola_bin_abi_map.append(",")
@@ -51,7 +51,7 @@ android {
             }
         }
         sb_tegola_bin_abi_map.append("}}")
-        println "tegola_bin_abi_map hashmap string: " + sb_tegola_bin_abi_map.toString()
+        //println "tegola_bin_abi_map hashmap string: " + sb_tegola_bin_abi_map.toString()
     } else
         throw new GradleException("Could not read tm_abi_tegola_version.properties! Did you run ./src/main/tegola-bin-buildscripts/linux/rebuild_tegola_android_all.sh ?")
 
@@ -87,7 +87,6 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.debug.pro'
-            matchingFallbacks = ['debug', 'release']
         }
     }
 }

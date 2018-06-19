@@ -10,24 +10,7 @@ import android.util.Log;
 final public class NotificationBroadcastReceiver extends BroadcastReceiver {
     final private String TAG = NotificationBroadcastReceiver.class.getCanonicalName();
 
-    public interface Listener {
-        void OnControllerStarting();
-        void OnControllerRunning();
-        void OnControllerStopping();
-        void OnControllerStopped();
-        void OnMVTServerStarting();
-        void OnMVTServerStartFailed(@NonNull final String reason);
-        void OnMVTServerRunning(final int pid);
-        void OnMVTServerListening(final int port);
-        void OnMVTServerOutputLogcat(@NonNull final String logcat_line);
-        void OnMVTServerOutputStdErr(@NonNull final String stderr_line);
-        void OnMVTServerOutputStdOut(@NonNull final String stdout_line);
-        void OnMVTServerJSONRead(@NonNull final String tegola_url_root, @NonNull final String json_url_endpoint, @NonNull final String json, @NonNull final String purpose);
-        void OnMVTServerJSONReadFailed(@NonNull final String tegola_url_root, @NonNull final String json_url_endpoint, @NonNull final String purpose, @NonNull final String reason);
-        void OnMVTServerStopping();
-        void OnMVTServerStopped();
-    }
-    final private Listener listener;
+    final private ClientAPI.ControllerNotificationsListener controllerNotificationsListener;
 
     private final IntentFilter default_intent_filter = new IntentFilter() {{
         addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STARTING.STRING);
@@ -48,8 +31,8 @@ final public class NotificationBroadcastReceiver extends BroadcastReceiver {
     }};
     final public IntentFilter getDefaultIntentFilter() {return default_intent_filter;}
 
-    public NotificationBroadcastReceiver(@NonNull final Listener listener) {
-        this.listener = listener;
+    public NotificationBroadcastReceiver(@NonNull final ClientAPI.ControllerNotificationsListener controllerNotificationsListener) {
+        this.controllerNotificationsListener = controllerNotificationsListener;
     }
 
     @Override
@@ -59,51 +42,51 @@ final public class NotificationBroadcastReceiver extends BroadcastReceiver {
             Constants.Enums.E_INTENT_ACTION__NOTIFICATION e_ctrlr_notification = Constants.Enums.E_INTENT_ACTION__NOTIFICATION.fromString(intent != null ? intent.getAction() : null);
             switch (e_ctrlr_notification) {
                 case FGS_STATE_STARTING: {
-                    listener.OnControllerStarting();
+                    controllerNotificationsListener.OnControllerStarting();
                     break;
                 }
                 case FGS_STATE_RUNNING: {
-                    listener.OnControllerRunning();
+                    controllerNotificationsListener.OnControllerRunning();
                     break;
                 }
                 case FGS_STATE_STOPPING: {
-                    listener.OnControllerStopping();
+                    controllerNotificationsListener.OnControllerStopping();
                     break;
                 }
                 case FGS_STATE_STOPPED: {
-                    listener.OnControllerStopped();
+                    controllerNotificationsListener.OnControllerStopped();
                     break;
                 }
                 case MVT_SERVER_STATE_STARTING: {
-                    listener.OnMVTServerStarting();
+                    controllerNotificationsListener.OnMVTServerStarting();
                     break;
                 }
                 case MVT_SERVER_STATE_START_FAILED: {
-                    listener.OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING));
+                    controllerNotificationsListener.OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING));
                     break;
                 }
                 case MVT_SERVER_STATE_RUNNING: {
-                    listener.OnMVTServerRunning(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.EXTRA_KEY.PID.STRING, -1));
+                    controllerNotificationsListener.OnMVTServerRunning(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.EXTRA_KEY.PID.STRING, -1));
                     break;
                 }
                 case MVT_SERVER_STATE_LISTENING: {
-                    listener.OnMVTServerListening(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.EXTRA_KEY.PORT.STRING, 8080));
+                    controllerNotificationsListener.OnMVTServerListening(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.EXTRA_KEY.PORT.STRING, 8080));
                     break;
                 }
                 case MVT_SERVER_MONITOR_LOGCAT_OUTPUT: {
-                    listener.OnMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.EXTRA_KEY.LINE.STRING));
+                    controllerNotificationsListener.OnMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.EXTRA_KEY.LINE.STRING));
                     break;
                 }
                 case MVT_SERVER_MONITOR_STDERR_OUTPUT: {
-                    listener.OnMVTServerOutputStdErr(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.EXTRA_KEY.LINE.STRING));
+                    controllerNotificationsListener.OnMVTServerOutputStdErr(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.EXTRA_KEY.LINE.STRING));
                     break;
                 }
                 case MVT_SERVER_MONITOR_STDOUT_OUTPUT: {
-                    listener.OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.EXTRA_KEY.LINE.STRING));
+                    controllerNotificationsListener.OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.EXTRA_KEY.LINE.STRING));
                     break;
                 }
                 case MVT_SERVER_HTTP_URL_API_GOT_JSON: {
-                    listener.OnMVTServerJSONRead(
+                    controllerNotificationsListener.OnMVTServerJSONRead(
                         intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.ROOT_URL.STRING),
                         intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.ENDPOINT.STRING),
                         intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.CONTENT.STRING),
@@ -112,7 +95,7 @@ final public class NotificationBroadcastReceiver extends BroadcastReceiver {
                     break;
                 }
                 case MVT_SERVER_HTTP_URL_API_GET_JSON_FAILED: {
-                    listener.OnMVTServerJSONReadFailed(
+                    controllerNotificationsListener.OnMVTServerJSONReadFailed(
                         intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.ROOT_URL.STRING),
                         intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.ENDPOINT.STRING),
                         intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.PURPOSE.STRING),
@@ -121,11 +104,11 @@ final public class NotificationBroadcastReceiver extends BroadcastReceiver {
                     break;
                 }
                 case MVT_SERVER_STATE_STOPPING: {
-                    listener.OnMVTServerStopping();
+                    controllerNotificationsListener.OnMVTServerStopping();
                     break;
                 }
                 case MVT_SERVER_STATE_STOPPED: {
-                    listener.OnMVTServerStopped();
+                    controllerNotificationsListener.OnMVTServerStopped();
                     break;
                 }
                 default: {
