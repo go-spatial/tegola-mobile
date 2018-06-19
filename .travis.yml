@@ -7,7 +7,7 @@ jdk: oraclejdk8
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
-  
+
 cache:
   directories:
     - $HOME/.gradle/caches/
@@ -88,12 +88,12 @@ script:
   #note that we should now have reports output to
 
   #- echo " LOGCAT "; echo "========"; cat test_logcat.log; pkill -KILL -f adb
-  - export ANDROID_TEST_LOG_DIR="${WRK_DIR}/android/build/"
-  - pwd && cd "${ANDROID_TEST_LOG_DIR:-.}" && pwd && ls -al
-  - lynx --dump index.html > android_test__index.log
-  # - lynx --dump com.android.builder.testing.ConnectedDevice.html > android_test__connected_device.log
-  # - lynx --dump com.android.builder.testing.html > android_test__testing.log
-  - for file in *.log; do echo "$file"; echo "====================="; cat "$file"; done || true
+  - export ANDROID_TEST_LOG_DIR="${WRK_DIR}/android/build/reports"
+  - cd "${ANDROID_TEST_LOG_DIR:-.}" && pwd && ls -al
+  - for file in *.html; do lynx --dump "$file" > ${file}.log; echo "================ TEST RESULTS: ${ANDROID_TEST_LOG_DIR}/${file} ================"; cat ${file}.log; echo ""; done || true
+  - export ANDROID_TEST_LOG_DIR="${WRK_DIR}/android/build/androidTest-results"
+  - cd "${ANDROID_TEST_LOG_DIR:-.}" && pwd && ls -al
+  - for file in *.html; do lynx --dump "$file" > ${file}.log; echo "================ TEST RESULTS: ${ANDROID_TEST_LOG_DIR}/${file} ================"; cat ${file}.log; echo ""; done || true
 
   #comment out for now to speed up builds
   # #finally, if we are here then all we have remaining to do is ensure TMHarness Release assembles
