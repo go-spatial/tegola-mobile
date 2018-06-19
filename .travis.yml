@@ -70,19 +70,11 @@ before_script:
   - adb shell input keyevent 82 &
 
 script:
-  #note - calling gradlew script w/ connectedCheck arg will execute instrumentation tests located in src/androidTests/
-
-  #sincec TMHarness executes TMControllerSvc's instrumented tasks, we don't need to execute them separately; besides, TMControllerSvc does not yet have a connectedCheck task defined
-  # #execute instrumented tests in emu for controller first
-  # - cd ${WRK_DIR}/android/TMControllerSvcLib
-  # - chmod +x ./gradlew
-  # - ./gradlew clean --stacktrace
-  # - ./gradlew connectedCheck -PdisablePreDex --stacktrace
-
-  - cd ${WRK_DIR}/android/TMHarness
+  - cd ${WRK_DIR}/android
   - adb -e logcat *:W | tee test_logcat.log > /dev/null 2>&1 &
   - chmod +x ./gradlew
   - ./gradlew connectedAndroidTest mergeAndroidReports --continue -PdisablePreDex --stacktrace
+  #note that we should now have reports output to
 
   - echo " LOGCAT "; echo "========"; cat test_logcat.log; pkill -KILL -f adb
   # - export ANDROID_TEST_MODULE_NAME="TMHarnessUX"
