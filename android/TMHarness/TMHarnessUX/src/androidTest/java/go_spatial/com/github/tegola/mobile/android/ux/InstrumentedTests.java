@@ -4,9 +4,11 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -63,6 +65,8 @@ public class InstrumentedTests {
 
 //    @Rule
 //    public ActivityTestRule<MainActivity> activityRule = new ActivityTestRule<>(MainActivity.class);
+//    @Rule
+//    public ActivityTestRule<InstallGpkgBundleActivity> activityRule = new ActivityTestRule<>(InstallGpkgBundleActivity.class);
 
     private class TestNotificationBroadcastReceiverListener implements NotificationBroadcastReceiver.Listener {
         final private String TAG = TestNotificationBroadcastReceiverListener.class.getSimpleName();

@@ -1,2 +1,3 @@
+rootProject.name = 'Tegola Mobile'
 include ':TMHarnessUX', ':TMControllerSvc'
 project(':TMControllerSvc').projectDir = new File(settingsDir, '../TMControllerSvcLib/TMControllerSvc')

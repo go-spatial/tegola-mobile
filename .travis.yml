@@ -68,7 +68,6 @@ before_script:
   - QEMU_AUDIO_DRV=none emulator -avd test -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
-  #- adb -e logcat *:W | tee logcat.log > /dev/null 2>&1 &
 
 script:
   #note - calling gradlew script w/ connectedCheck arg will execute instrumentation tests located in src/androidTests/
@@ -81,21 +80,20 @@ script:
   # - ./gradlew connectedCheck -PdisablePreDex --stacktrace
 
   - cd ${WRK_DIR}/android/TMHarness
+  - adb -e logcat *:W | tee test_logcat.log > /dev/null 2>&1 &
   - chmod +x ./gradlew
-  # - ./gradlew clean --stacktrace
   - ./gradlew connectedAndroidTest -PdisablePreDex --stacktrace
+  
+  - echo " LOGCAT "; echo "========"; cat logcat.log; pkill -KILL -f adb
+  # - export ANDROID_TEST_MODULE_NAME="TMHarnessUX"
+  # - export ANDROID_TETS_LOG_DIR="$(pwd)/${ANDROID_TEST_MODULE_NAME}/build/outputs/reports/androidTests/connected/"
+  # - pwd && cd "${ANDROID_TETS_LOG_DIR:-.}" && pwd && ls -al
+  # - lynx --dump index.html > android_test__index.log
+  # - lynx --dump com.android.builder.testing.ConnectedDevice.html > android_test__connected_device.log
+  # - lynx --dump com.android.builder.testing.html > android_test__testing.log
+  # - for file in *.log; do echo "$file"; echo "====================="; cat "$file"; done || true
 
   #comment out for now to speed up builds
   # #finally, if we are here then all we have remaining to do is ensure TMHarness Release assembles
   # - ./gradlew clean --stacktrace
   # - ./gradlew assembleRelease -PdisablePreDex --stacktrace
-
-after_script:
-  #- echo " LOGCAT "; echo "========"; cat logcat.log; pkill -KILL -f adb
-  - export ANDROID_TEST_MODULE_NAME="TMHarnessUX"
-  - export ANDROID_TETS_LOG_DIR="$(pwd)/${ANDROID_TEST_MODULE_NAME}/build/outputs/reports/androidTests/connected/"
-  - pwd && cd "${ANDROID_TETS_LOG_DIR:-.}" && pwd && ls -al
-  - lynx --dump index.html > android_test__index.log
-  - lynx --dump com.android.builder.testing.ConnectedDevice.html > android_test__connected_device.log
-  - lynx --dump com.android.builder.testing.html > android_test__testing.log
-  - for file in *.log; do echo "$file"; echo "====================="; cat "$file"; done || true
