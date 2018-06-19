@@ -88,12 +88,9 @@ script:
   #note that we should now have reports output to
 
   #- echo " LOGCAT "; echo "========"; cat test_logcat.log; pkill -KILL -f adb
-  - export ANDROID_TEST_LOG_DIR="${WRK_DIR}/android/build/reports"
+  - export ANDROID_TEST_LOG_DIR="${WRK_DIR}/android/build/reports/androidTests"
   - cd "${ANDROID_TEST_LOG_DIR:-.}" && pwd && ls -al
-  - for file in *.html; do lynx --dump "$file" > ${file}.log; echo "================ TEST RESULTS: ${ANDROID_TEST_LOG_DIR}/${file} ================"; cat ${file}.log; echo ""; done || true
-  - export ANDROID_TEST_LOG_DIR="${WRK_DIR}/android/build/androidTest-results"
-  - cd "${ANDROID_TEST_LOG_DIR:-.}" && pwd && ls -al
-  - for file in *.html; do lynx --dump "$file" > ${file}.log; echo "================ TEST RESULTS: ${ANDROID_TEST_LOG_DIR}/${file} ================"; cat ${file}.log; echo ""; done || true
+  - for file in *.html; do lynx --dump "$file" > "${file}.log"; echo "================ TEST RESULTS - ${ANDROID_TEST_LOG_DIR}/${file} ================"; cat "${file}.log"; echo ""; done || true
 
   #comment out for now to speed up builds
   # #finally, if we are here then all we have remaining to do is ensure TMHarness Release assembles
