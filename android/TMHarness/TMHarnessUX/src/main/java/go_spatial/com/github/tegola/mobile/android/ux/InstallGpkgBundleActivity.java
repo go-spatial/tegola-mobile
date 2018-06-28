@@ -3,6 +3,7 @@ package go_spatial.com.github.tegola.mobile.android.ux;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -101,8 +102,6 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
         m_btn_install_remote_gpkg_bundle__cancel.setOnClickListener(OnClickListener__m_btn_install_remote_gpkg_bundle__cancel);
         m_btn_install_remote_gpkg_bundle.setOnClickListener(OnClickListener__m_btn_install_remote_gpkg_bundle);
-
-        getGpkgBundlesAvailable();
     }
 
     private LinkedHashMap<String, ArrayList<String>> m_gpkg_bundles_available = null;
@@ -191,6 +190,10 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
         m_pb.setMax(PROG_MAX);
         m_vw_progress.setVisibility(View.GONE);
+
+        m_edt_remote_gpkg_bundle__name.requestFocus();
+
+        getGpkgBundlesAvailable();
     }
 
 

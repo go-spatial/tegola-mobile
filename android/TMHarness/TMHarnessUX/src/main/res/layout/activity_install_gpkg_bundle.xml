@@ -164,7 +164,8 @@
                     android:inputType="textUri"
                     android:singleLine="true"
                     android:text=""
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:nextFocusDown="@+id/edt_remote_gpkg_bundle__ver_props"/>
 
             </RelativeLayout>
 
@@ -213,7 +214,8 @@
                     android:inputType="textUri"
                     android:singleLine="true"
                     android:text=""
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:nextFocusDown="@+id/btn_install_remote_gpkg_bundle"/>
 
             </RelativeLayout>
 
@@ -238,48 +240,44 @@
                 style="@style/Section_Content_Item_Content"
                 android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/edt_local_gpkg_bundle__name"
-                    style="@style/edittext"
-                    android:gravity="center_vertical"
-                    android:layout_centerVertical="true"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:orientation="vertical"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentRight="true"
-                    android:layout_alignParentStart="true"
-                    android:imeOptions="actionDone"
-                    android:inputType="textUri"
-                    android:singleLine="true"
-                    android:text=""
-                    android:textSize="14sp"/>
+                    android:layout_alignParentStart="true">
+
+                    <EditText
+                        android:id="@+id/edt_local_gpkg_bundle__name"
+                        style="@style/edittext"
+                        android:gravity="center_vertical"
+                        android:layout_centerVertical="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionDone"
+                        android:inputType="textUri"
+                        android:singleLine="true"
+                        android:text=""
+                        android:textSize="14sp"/>
+
+                    <Button
+                        android:id="@+id/btn_install_remote_gpkg_bundle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:layout_marginTop="30dp"
+                        android:drawableLeft="@drawable/ic_download_black_24dp"
+                        android:drawablePadding="5dp"
+                        android:text="@string/install" />
+
+                </LinearLayout>
 
             </RelativeLayout>
 
         </LinearLayout>
         <!-- install gpkg bundle - selection - name: END -->
-
-        <!-- install gpkg bundle - DO IT button - name: BEGIN -->
-
-
-        <RelativeLayout
-            style="@style/Section_Content_Item_Content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp">
-            <Button
-                android:id="@+id/btn_install_remote_gpkg_bundle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"
-                android:drawableLeft="@drawable/ic_download_black_24dp"
-                android:drawablePadding="5dp"
-                android:text="@string/install"
-                />
-
-        </RelativeLayout>
-        <!-- install gpkg bundle - DO IT button - END -->
 
         <!-- install gpkg bundle - progress - name: BEGIN -->
         <LinearLayout

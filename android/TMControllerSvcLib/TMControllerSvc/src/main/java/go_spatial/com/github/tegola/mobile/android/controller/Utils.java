@@ -19,7 +19,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Properties;
@@ -28,7 +38,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import javax.security.cert.CertificateException;
+
 import okhttp3.Call;
+import okhttp3.ConnectionSpec;
 import okhttp3.Dispatcher;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -267,6 +288,117 @@ public class Utils {
                 return false;
         }
 
+        private static Dispatcher newDefaultDispatcher() {
+            Dispatcher dispatcher = new Dispatcher();
+            dispatcher.setMaxRequestsPerHost(20);
+            return dispatcher;
+        }
+
+        private static X509TrustManager newDefaultX509TrustManager() {
+            TrustManagerFactory trustManagerFactory = null;
+            X509TrustManager trustManager = null;
+            try {
+                trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init((KeyStore)null);
+                TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+                Log.d(TAG, String.format("newDefaultX509TrustManager: trustManagerFactory.getTrustManagers(): %s", Arrays.toString(trustManagers)));
+                if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager))
+                    throw new IllegalStateException(String.format("Unexpected default trust managers: %s", Arrays.toString(trustManagers)));
+                trustManager = (X509TrustManager)trustManagers[0];
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (KeyStoreException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return trustManager;
+        }
+
+        private static X509TrustManager newX509TrustManagerBypass() {
+            return new X509TrustManager() {
+                private final String TAG = "X509TrustManagerBypass";
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws java.security.cert.CertificateException {
+                    Log.d(TAG, "checkClientTrusted: no-op for bypass");
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws java.security.cert.CertificateException {
+                    Log.d(TAG, "checkServerTrusted: no-op for bypass");
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    Log.d(TAG, "getAcceptedIssuers: returning java.security.cert.X509Certificate[]{} for bypass");
+                    return new java.security.cert.X509Certificate[]{};
+                }
+            };
+        }
+
+        private static class SSLConfig {
+            SSLContext sslContext = null;
+            KeyManager[] keyManagers = null;
+            TrustManager[] trustManagers = null;
+            SecureRandom random = null;
+        }
+        private static SSLConfig newSSLConfig(final String sslprotocol, KeyManager[] keyManagers, final TrustManager[] trustManagers, final SecureRandom random) {
+            SSLConfig sslConfig = new SSLConfig();
+            sslConfig.keyManagers = keyManagers;
+            sslConfig.trustManagers = trustManagers;
+            sslConfig.random = random;
+            try {
+                sslConfig.sslContext = SSLContext.getInstance(sslprotocol);   //see https://developer.android.com/reference/javax/net/ssl/SSLContext.html#getInstance(java.lang.String) for list of canonical protocol strings
+                Log.d(TAG, String.format("newSSLConfig: sslContext.getProtocol(): %s", sslConfig.sslContext.getProtocol()));
+                sslConfig.sslContext.init(keyManagers, trustManagers, random);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (KeyManagementException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return sslConfig;
+        }
+        private static SSLConfig newSSLConfig(final String sslprotocol) {
+            return newSSLConfig(sslprotocol, null, new TrustManager[]{newDefaultX509TrustManager()}, null);
+        }
+
+        private static HostnameVerifier newDefaultHostnameVerifier() {
+            return new HostnameVerifier() {
+                @Override
+                public boolean verify(String s, SSLSession sslSession) {
+                    return true;
+                }
+            };
+        }
+
+        private static OkHttpClient.Builder newDefaultHttpClientBuilder(final boolean useSSL) {
+            final OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder()
+                .dispatcher(newDefaultDispatcher())
+                .protocols(new ArrayList<Protocol>(){{add(Protocol.HTTP_1_1);}})    //restrict to HTTP 1.1
+                .readTimeout(20, TimeUnit.SECONDS);
+            if (useSSL) {
+                try {
+                    SSLConfig sslConfig = newSSLConfig("SSL");
+                    httpClientBuilder.sslSocketFactory(sslConfig.sslContext.getSocketFactory(), (X509TrustManager)sslConfig.trustManagers[0]);
+                    httpClientBuilder.hostnameVerifier(newDefaultHostnameVerifier());
+                    httpClientBuilder.connectionSpecs(new ArrayList<ConnectionSpec>(){{add(new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS).build());}});
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return httpClientBuilder;
+        }
+        private static OkHttpClient.Builder newDefaultHttpClientBuilder() {
+            return newDefaultHttpClientBuilder(false);
+        }
+
+        private static OkHttpClient newDefaultHttpClient() {
+            return newDefaultHttpClientBuilder().build();
+        }
+
         public static class Get {
             private final static String TAG = Utils.HTTP.Get.class.getCanonicalName();
 
@@ -277,19 +409,10 @@ public class Utils {
                 void onReadComplete(long n_read, long n_remaining);
             }
 
-            private static Dispatcher getDispatcher() {
-                Dispatcher dispatcher = new Dispatcher();
-                dispatcher.setMaxRequestsPerHost(20);
-                return dispatcher;
-            }
-
             public static void exec(final String s_url, final ContentHandler content_handler) {
                 if (s_url == null)
                     throw new NullPointerException("s_url cannot be null");
-                final OkHttpClient httpClient = new OkHttpClient.Builder().dispatcher(getDispatcher())
-                        .protocols(new ArrayList<Protocol>(){{add(Protocol.HTTP_1_1);}})    //restrict to HTTP 1.1
-                        .readTimeout(20, TimeUnit.SECONDS)
-                        .build();
+                final OkHttpClient httpClient = newDefaultHttpClient();
                 final Request http_get_request = new Request.Builder()
                         .url(s_url)
                         .get()
@@ -747,12 +870,6 @@ public class Utils {
                     }
                 }
 
-                private static Dispatcher getDispatcher() {
-                    Dispatcher dispatcher = new Dispatcher();
-                    dispatcher.setMaxRequestsPerHost(20);
-                    return dispatcher;
-                }
-
                 @Override
                 protected Exception doInBackground(final HttpUrl_To_Local_File[] httpUrl_to_local_file) {
                     Exception exception = null;
@@ -765,10 +882,8 @@ public class Utils {
                             throw new RemoteFileInvalidParameterException("HttpUrl_To_Local_File.url is null");
                         if (httpUrl_to_local_file[0].get_file() == null)
                             throw new RemoteFileInvalidParameterException("HttpUrl_To_Local_File.file is null");
-                        httpClient = new OkHttpClient.Builder().dispatcher(getDispatcher())
-                                .protocols(new ArrayList<Protocol>(){{add(Protocol.HTTP_1_1);}})    //restrict to HTTP 1.1
+                        httpClient = newDefaultHttpClientBuilder()
                                 .followRedirects(true)
-                                .readTimeout(20, TimeUnit.SECONDS)
                                 //network interceptor not currently needed - only application interceptor
     //                            .addNetworkInterceptor(new Interceptor() {
     //                                @Override public Response intercept(Chain chain) throws IOException {
