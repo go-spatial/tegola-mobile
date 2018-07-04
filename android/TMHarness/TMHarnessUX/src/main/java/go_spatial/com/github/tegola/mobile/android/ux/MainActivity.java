@@ -1690,6 +1690,7 @@ public class MainActivity
         m_btn_srvr_ctrl.setText(getString(R.string.close_tile_stream));
         //now disable edit-config button
         m_btn_config_sel_local__edit_file.setEnabled(false);
+        m_sect_content__item__srvr_console_output.setVisibility(View.VISIBLE);
         m_tv_tegola_console_output.setText("");
     }
 

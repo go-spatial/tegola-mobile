@@ -3,6 +3,7 @@ package go_spatial.com.github.tegola.mobile.android.ux;
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -567,6 +568,12 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
         mapView.onCreate(savedInstanceState);
 
         return this_frag_layout_view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        Log.d(TAG, String.format("(fragment) onViewCreated"));
     }
 
     private final double PREF_AUTO_SCALE_MINZOOM_DIVISOR = 5.0;
