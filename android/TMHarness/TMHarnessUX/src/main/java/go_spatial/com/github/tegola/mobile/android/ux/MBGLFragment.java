@@ -34,7 +34,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.concurrent.TimeUnit;
 
-import go_spatial.com.github.tegola.mobile.android.controller.Utils;
+import go_spatial.com.github.tegola.mobile.android.controller.utils.Files;
 import okhttp3.Cache;
 import okhttp3.Call;
 import okhttp3.Dispatcher;
@@ -776,7 +776,7 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
 
         if (m_okhttp_cache != null && m_okhttp_cache.directory().exists()) {
             try {
-                Utils.Files.delete(m_okhttp_cache.directory());
+                Files.delete(m_okhttp_cache.directory());
             } catch (IOException e) {
                 e.printStackTrace();
             }

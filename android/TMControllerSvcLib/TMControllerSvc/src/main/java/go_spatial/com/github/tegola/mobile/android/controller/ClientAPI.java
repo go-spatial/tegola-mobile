@@ -1,7 +1,9 @@
 package go_spatial.com.github.tegola.mobile.android.controller;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -33,7 +35,7 @@ final public class ClientAPI {
         Client client = new Client();
         client.context = context;   //beware that using the same context for multiple client instance can cause duplicate notifications send to controllerNotificationsListener
         client.controllerNotificationsListener = controllerNotificationsListener;
-        client.notificationBroadcastReceiver = new NotificationBroadcastReceiver(client.controllerNotificationsListener);
+        client.controllerNotificationsBroadcastReceiver = new Client.ControllerNotificationsBroadcastReceiver(client.controllerNotificationsListener);
         if (rcvr_handler == null) {
             Log.d(TAG, "initClient: starting client.rcvr_hndlr_wrkr_thrd");
             client.rcvr_hndlr_wrkr_thrd = new HandlerThread("Thread_BroadcastReceiver_CtrlrNotifications");
@@ -41,10 +43,10 @@ final public class ClientAPI {
             client.rcvr_hndlr = new Handler(client.rcvr_hndlr_wrkr_thrd.getLooper());
         } else
             client.rcvr_hndlr = rcvr_handler;
-        Log.d(TAG, "initClient: client.context.registerReceiver(client.notificationBroadcastReceiver)");
+        Log.d(TAG, "initClient: client.context.registerReceiver(client.controllerNotificationsBroadcastReceiver)");
         client.registerReceiverStickyIntent = client.context.registerReceiver(
-                client.notificationBroadcastReceiver,
-                client.notificationBroadcastReceiver.getDefaultIntentFilter(),
+                client.controllerNotificationsBroadcastReceiver,
+                client.controllerNotificationsBroadcastReceiver.getDefaultIntentFilter(),
                 null,
                 client.rcvr_hndlr
         );
@@ -56,8 +58,8 @@ final public class ClientAPI {
     }
 
     static final public void uninitClient(@NonNull Client client) {
-        Log.d(TAG, "uninitClient: unregisterReceiver(client.client.notificationBroadcastReceiver)");
-        client.context.unregisterReceiver(client.notificationBroadcastReceiver);
+        Log.d(TAG, "uninitClient: unregisterReceiver(client.client.controllerNotificationsBroadcastReceiver)");
+        client.context.unregisterReceiver(client.controllerNotificationsBroadcastReceiver);
         if (client.rcvr_hndlr_wrkr_thrd != null) {
             Log.d(TAG, "uninitClient: stopping client.rcvr_hndlr_wrkr_thrd...");
             client.rcvr_hndlr_wrkr_thrd.getLooper().quit();
@@ -76,8 +78,8 @@ final public class ClientAPI {
         private Context context = null;
         public Context getContext() {return context;}
 
-        private NotificationBroadcastReceiver notificationBroadcastReceiver = null;
-        public NotificationBroadcastReceiver getNotificationBroadcastReceiver() {return notificationBroadcastReceiver;}
+        private ControllerNotificationsBroadcastReceiver controllerNotificationsBroadcastReceiver = null;
+        public ControllerNotificationsBroadcastReceiver getControllerNotificationsBroadcastReceiver() {return controllerNotificationsBroadcastReceiver;}
 
         private Intent registerReceiverStickyIntent = null;
         public Intent getRegisterReceiverStickyIntent() {return registerReceiverStickyIntent;}
@@ -174,6 +176,121 @@ final public class ClientAPI {
             Intent intent_stop_controller_fgs = new Intent(context, FGS.class);
             intent_stop_controller_fgs.setAction(Constants.Strings.INTENT.ACTION.REQUEST.FGS.COMMAND.STOP.STRING);
             context.stopService(intent_stop_controller_fgs);
+        }
+
+        static final private class ControllerNotificationsBroadcastReceiver extends BroadcastReceiver {
+            final private String TAG = ControllerNotificationsBroadcastReceiver.class.getCanonicalName();
+
+            final private ControllerNotificationsListener controllerNotificationsListener;
+
+            private final IntentFilter default_intent_filter = new IntentFilter() {{
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STARTING.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.RUNNING.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPING.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPED.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STARTING.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING);
+                addAction(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPED.STRING);
+            }};
+            final public IntentFilter getDefaultIntentFilter() {return default_intent_filter;}
+
+            public ControllerNotificationsBroadcastReceiver(@NonNull final ControllerNotificationsListener controllerNotificationsListener) {
+                this.controllerNotificationsListener = controllerNotificationsListener;
+            }
+
+            @Override
+            final public void onReceive(Context context, Intent intent) {
+                if (intent != null) {
+                    Log.d(TAG, String.format("onReceive: %s", intent.getAction()));
+                    Constants.Enums.E_INTENT_ACTION__NOTIFICATION e_ctrlr_notification = Constants.Enums.E_INTENT_ACTION__NOTIFICATION.fromString(intent != null ? intent.getAction() : null);
+                    switch (e_ctrlr_notification) {
+                        case FGS_STATE_STARTING: {
+                            controllerNotificationsListener.OnControllerStarting();
+                            break;
+                        }
+                        case FGS_STATE_RUNNING: {
+                            controllerNotificationsListener.OnControllerRunning();
+                            break;
+                        }
+                        case FGS_STATE_STOPPING: {
+                            controllerNotificationsListener.OnControllerStopping();
+                            break;
+                        }
+                        case FGS_STATE_STOPPED: {
+                            controllerNotificationsListener.OnControllerStopped();
+                            break;
+                        }
+                        case MVT_SERVER_STATE_STARTING: {
+                            controllerNotificationsListener.OnMVTServerStarting();
+                            break;
+                        }
+                        case MVT_SERVER_STATE_START_FAILED: {
+                            controllerNotificationsListener.OnMVTServerStartFailed(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.EXTRA_KEY.REASON.STRING));
+                            break;
+                        }
+                        case MVT_SERVER_STATE_RUNNING: {
+                            controllerNotificationsListener.OnMVTServerRunning(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.EXTRA_KEY.PID.STRING, -1));
+                            break;
+                        }
+                        case MVT_SERVER_STATE_LISTENING: {
+                            controllerNotificationsListener.OnMVTServerListening(intent.getIntExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.LISTENING.EXTRA_KEY.PORT.STRING, 8080));
+                            break;
+                        }
+                        case MVT_SERVER_MONITOR_LOGCAT_OUTPUT: {
+                            controllerNotificationsListener.OnMVTServerOutputLogcat(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.LOGCAT.OUTPUT.EXTRA_KEY.LINE.STRING));
+                            break;
+                        }
+                        case MVT_SERVER_MONITOR_STDERR_OUTPUT: {
+                            controllerNotificationsListener.OnMVTServerOutputStdErr(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDERR.OUTPUT.EXTRA_KEY.LINE.STRING));
+                            break;
+                        }
+                        case MVT_SERVER_MONITOR_STDOUT_OUTPUT: {
+                            controllerNotificationsListener.OnMVTServerOutputStdOut(intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.MONITOR.STDOUT.OUTPUT.EXTRA_KEY.LINE.STRING));
+                            break;
+                        }
+                        case MVT_SERVER_HTTP_URL_API_GOT_JSON: {
+                            controllerNotificationsListener.OnMVTServerJSONRead(
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.ROOT_URL.STRING),
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.ENDPOINT.STRING),
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.CONTENT.STRING),
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.EXTRA_KEY.PURPOSE.STRING)
+                            );
+                            break;
+                        }
+                        case MVT_SERVER_HTTP_URL_API_GET_JSON_FAILED: {
+                            controllerNotificationsListener.OnMVTServerJSONReadFailed(
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.ROOT_URL.STRING),
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.ENDPOINT.STRING),
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.PURPOSE.STRING),
+                                intent.getStringExtra(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.EXTRA_KEY.REASON.STRING)
+                            );
+                            break;
+                        }
+                        case MVT_SERVER_STATE_STOPPING: {
+                            controllerNotificationsListener.OnMVTServerStopping();
+                            break;
+                        }
+                        case MVT_SERVER_STATE_STOPPED: {
+                            controllerNotificationsListener.OnMVTServerStopped();
+                            break;
+                        }
+                        default: {
+                            Log.e(TAG, String.format("onReceive: %s but NO HANDLER IS DEFINED!", intent.getAction()));
+                            break;
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "onReceive: null intent!");
+                }
+            }
         }
     }
 }

@@ -79,10 +79,12 @@ import java.util.ArrayList;
 import go_spatial.com.github.tegola.mobile.android.controller.ClientAPI;
 import go_spatial.com.github.tegola.mobile.android.controller.Exceptions;
 import go_spatial.com.github.tegola.mobile.android.controller.FGS;
+import go_spatial.com.github.tegola.mobile.android.controller.GPKG;
+import go_spatial.com.github.tegola.mobile.android.controller.TEGOLA_BIN;
+import go_spatial.com.github.tegola.mobile.android.controller.utils.HTTP;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.REQUEST_CODES;
 import go_spatial.com.github.tegola.mobile.android.ux.Constants.Strings;
 import go_spatial.com.github.tegola.mobile.android.controller.Constants;
-import go_spatial.com.github.tegola.mobile.android.controller.Utils;
 
 public class MainActivity
         extends LocationUpdatesManager.LocationUpdatesBrokerActivity
@@ -458,7 +460,7 @@ public class MainActivity
                     }
                     final String final_root_url = root_url, final_endpoint = endpoint, final_url = final_root_url + final_endpoint;
                     //validate url first!
-                    if (Utils.HTTP.isValidUrl(final_url)) {
+                    if (HTTP.isValidUrl(final_url)) {
                         Log.d(TAG, "m_btn_stream_tiles.onClick: root_url==\"" + final_root_url + "\"; endpoint==\"" + final_endpoint + "\"");
                         if (!root_url.isEmpty() && !endpoint.isEmpty()) {
                             Log.d(TAG, "m_btn_stream_tiles.onClick: requesting capabilities from " + final_root_url);
@@ -732,7 +734,7 @@ public class MainActivity
         //1. enumerate geopackage-bundles and display results in spinner (drop-down)
         File f_gpkg_bundles_root_dir = null;
         try {
-            f_gpkg_bundles_root_dir = Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
+            f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return;
@@ -785,7 +787,7 @@ public class MainActivity
         //1. enumerate geopackage-bundle config files and display results in spinner (drop-down)
         File f_gpkg_bundle_dir = null;
         try {
-            f_gpkg_bundle_dir = new File(Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext()).getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
+            f_gpkg_bundle_dir = new File(GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext()).getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return;
@@ -1143,7 +1145,7 @@ public class MainActivity
                 //now update UI based on existence of current local geopackage-bundle selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue())
                 File f_gpkg_bundles_root_dir = null;
                 try {
-                    f_gpkg_bundles_root_dir = Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
+                    f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
                     File f_gpkg_bundle = new File(f_gpkg_bundles_root_dir, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
                     //and same MVT srvr control (start/stop) button
                     m_btn_srvr_ctrl.setEnabled(f_gpkg_bundle.exists());
@@ -1223,7 +1225,7 @@ public class MainActivity
                 //now update UI based on existence of current local geopackage-bundle config selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue())
                 File f_gpkg_bundle_dir = null;
                 try {
-                    f_gpkg_bundle_dir = new File(Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext()), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
+                    f_gpkg_bundle_dir = new File(GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext()), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
                     File[] f_gpkg_bundle_props = f_gpkg_bundle_dir.listFiles(new FilenameFilter() {
                         @Override
                         public boolean accept(File dir, String name) {
@@ -1639,7 +1641,7 @@ public class MainActivity
         m_controller_running = true;
         Log.d(TAG, "OnControllerRunning: set m_controller_running == " + m_controller_running);
         try {
-            m_tv_val_bin_ver.setText(Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get_version_string());
+            m_tv_val_bin_ver.setText(TEGOLA_BIN.getInstance(getApplicationContext()).get_version_string());
         } catch (PackageManager.NameNotFoundException e) {
             //e.printStackTrace();
         } catch (IOException e) {

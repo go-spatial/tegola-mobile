@@ -31,6 +31,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Map;
 
+import go_spatial.com.github.tegola.mobile.android.controller.utils.Files;
+import go_spatial.com.github.tegola.mobile.android.controller.utils.HTTP;
+
 
 public class FGS extends Service {
     private static final String TAG = FGS.class.getCanonicalName();
@@ -168,7 +171,7 @@ public class FGS extends Service {
             final Constants.Enums.CPU_ABI e_device_abi = Constants.Enums.CPU_ABI.fromDevice();
             if (e_device_abi == null)
                 throw new Exceptions.UnsupportedCPUABIException(Build.CPU_ABI);
-            Utils.TEGOLA_BIN.getInstance(getApplicationContext());  //mapping from ABI to tegola bin that supports it is done in the ctor of TEGOLA_BIN classß
+            TEGOLA_BIN.getInstance(getApplicationContext());  //mapping from ABI to tegola bin that supports it is done in the ctor of TEGOLA_BIN classß
             get__tegola_version();
         } catch (Exceptions.UnsupportedCPUABIException e) {
             e.printStackTrace();
@@ -182,7 +185,7 @@ public class FGS extends Service {
 
         //create geopackage bundle dir
         try {
-            File f_gpkg_root_dir = Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
+            File f_gpkg_root_dir = GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
             if (!f_gpkg_root_dir.exists()) {
                 boolean created = f_gpkg_root_dir.mkdirs();
                 if (created) {
@@ -344,7 +347,7 @@ public class FGS extends Service {
 
     private void get__tegola_version() {
         try {
-            final File f_tegola_bin_executable = Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get();
+            final File f_tegola_bin_executable = TEGOLA_BIN.getInstance(getApplicationContext()).get();
             final String
                     s_tegola_bin_executable_path = f_tegola_bin_executable.getCanonicalPath()
                     ;
@@ -382,12 +385,12 @@ public class FGS extends Service {
                 }
                 if (m_s_version == null)
                     m_s_version = "unknown";
-                Utils.TEGOLA_BIN.getInstance(getApplicationContext()).set_version_string(m_s_version);
+                TEGOLA_BIN.getInstance(getApplicationContext()).set_version_string(m_s_version);
             }
         } catch (IOException e) {
             e.printStackTrace();
             try {
-                Utils.TEGOLA_BIN.getInstance(getApplicationContext()).set_version_string("unknown");
+                TEGOLA_BIN.getInstance(getApplicationContext()).set_version_string("unknown");
             } catch (PackageManager.NameNotFoundException e1) {
                 //
             } catch (IOException e1) {
@@ -437,7 +440,7 @@ public class FGS extends Service {
     }
     private void handle_mvt_server_control_request__start(@NonNull final MVT_SERVER_START_SPEC server_start_spec) {
         try {
-            Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get();
+            TEGOLA_BIN.getInstance(getApplicationContext()).get();
             shell__tegola__start(server_start_spec);  //note that this function internally handles sending the MVT_SERVER_STATE_STARTING and MVT_SERVER_STATE_RUNNING notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
         } catch (IOException e) {
             e.printStackTrace();
@@ -484,7 +487,7 @@ public class FGS extends Service {
         m_process_tegola_pid = null;
         final File
                 f_filesDir = getFilesDir()
-                , f_tegola_bin_executable = Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get();
+                , f_tegola_bin_executable = TEGOLA_BIN.getInstance(getApplicationContext()).get();
         final String
                 s_tegola_bin_executable_path = f_tegola_bin_executable.getCanonicalPath()
                 ;
@@ -506,7 +509,7 @@ public class FGS extends Service {
                     , f_gpkg_bundle__toml = null
                     , f_gpkg_bundle__gpkg = null;
             try {
-                f_gpkg_bundles_root_dir = Utils.GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
+                f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
                 throw new FileNotFoundException("geopcackage-bundle root directory not found");
@@ -523,11 +526,11 @@ public class FGS extends Service {
                 throw new FileNotFoundException("geopcackage-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath() + " not found");
             Log.d(TAG, "shell__tegola__start: found/using gpkg-bundle version.properties: " + f_gpkg_bundle_ver_props.getCanonicalPath());
             //get gpkg-bundle toml file spec from version.props, confirm existence, then build "--config" arg for tegola commandline
-            s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
+            s_prop_val = Files.getPropsFileProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
             String
                     s_toml_file_remote = s_prop_val,
                     s_toml_file_local = s_toml_file_remote;
-            if (Utils.HTTP.isValidUrl(s_toml_file_remote)) {//then retrieve only last part for local file name
+            if (HTTP.isValidUrl(s_toml_file_remote)) {//then retrieve only last part for local file name
                 Log.d(TAG, "shell__tegola__start: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + ":\"" + s_toml_file_remote + "\" IS a uri");
                 s_toml_file_local = s_toml_file_remote.substring(s_toml_file_remote.lastIndexOf("/") + 1);
             } else {
@@ -547,9 +550,9 @@ public class FGS extends Service {
             Log.d(TAG, "shell__tegola__start: \tset pb env " + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR + " to \"" + pb_env.get(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR) + "\"");
 
             //get gpkg-bundle geopcackages spec from version.props, then confirm existence
-            s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES);
+            s_prop_val = Files.getPropsFileProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES);
             String[] s_list_gpkg_files = s_prop_val.split(",");
-            s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_PATH_ENV_VARS);
+            s_prop_val = Files.getPropsFileProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_PATH_ENV_VARS);
             String[] s_list_geopcackage_path_env_vars = s_prop_val.split(",");
             if (s_list_gpkg_files != null && s_list_gpkg_files.length > 0) {
                 for (int i = 0; i < s_list_gpkg_files.length; i++) {
@@ -557,7 +560,7 @@ public class FGS extends Service {
                             s_gpkg_file_remote = s_list_gpkg_files[i],
                             s_gpkg_file_local = s_gpkg_file_remote;
                     Log.d(TAG, "shell__tegola__start: \t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]=\"" + s_gpkg_file_remote + "\"");
-                    if (Utils.HTTP.isValidUrl(s_gpkg_file_remote)) {//then retrieve only last part for local file name
+                    if (HTTP.isValidUrl(s_gpkg_file_remote)) {//then retrieve only last part for local file name
                         Log.d(TAG, "shell__tegola__start: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]:\"" + s_gpkg_file_remote + "\" IS uri");
                         s_gpkg_file_local = s_gpkg_file_remote.substring(s_gpkg_file_remote.lastIndexOf("/") + 1);
                     } else {
@@ -980,9 +983,9 @@ public class FGS extends Service {
         tegolaJSON.root_url = root_url;
         tegolaJSON.json_url_endpoint = json_url_endpoint;
 
-        Utils.HTTP.Get.exec(
+        HTTP.Get.exec(
             tegolaJSON.root_url + tegolaJSON.json_url_endpoint,
-            new Utils.HTTP.Get.ContentHandler() {
+            new HTTP.Get.ContentHandler() {
                 @Override
                 public void onStartRead(long n_size) {
                     Log.d(TAG, "rest_api__tegola__get_json: Utils.HTTP.Get.ContentHandler: onStartRead: read " + tegolaJSON.root_url + tegolaJSON.json_url_endpoint + ": content-length: " + n_size);
