@@ -465,10 +465,10 @@ public class MainActivity
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    m_controllerClient.mvt_server__get_json(
+                                    m_controllerClient.mvt_server__rest_api__get_json(
                                         final_root_url,
                                         final_endpoint,
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
                                     );
                                 }
                             }, 50);
@@ -1758,7 +1758,7 @@ public class MainActivity
             String s_srvr_status = m_tv_val_srvr_status.getText().toString() + "\n\t\tlistening on port " + port;
             textview_setColorizedText(m_tv_val_srvr_status, s_srvr_status, getString(R.string.running), Color.GREEN);
             m_controllerClient.mvt_server__get_capabilities(
-                Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
             );
         }
     }
@@ -1895,7 +1895,7 @@ public class MainActivity
                 try {
                     final TegolaCapabilities tegolaCapabilities = parse_tegola_capabilities_json(s_tegola_url_root, json);
                     switch (purpose) {
-                        case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                        case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
                             if (tegolaCapabilities.parsed.maps.length > 0) {
                                 mbgl_map_start(tegolaCapabilities);
                                 if (!s_tegola_url_root.contains("localhost"))
@@ -1923,7 +1923,7 @@ public class MainActivity
                 AlertDialog alertDialog = alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                 StringBuilder sb_alert_msg = new StringBuilder();
                 switch (purpose) {
-                    case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                    case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
                         alertDialog.setTitle("Failed loading maps!");
                         sb_alert_msg.append("Could not parse/read mbgl style json from " + s_tegola_url_root + json_url_endpoint);
                         break;

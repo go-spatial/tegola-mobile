@@ -133,35 +133,35 @@ final public class ClientAPI {
             context.sendBroadcast(intent_query_mvt_server_listen_port);
         }
 
-        final public void mvt_server__get_json(String root_url, String json_endpoint, String purpose) {
-            Intent intent_mvt_server_read_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.STRING);
+        final public void mvt_server__rest_api__get_json(String root_url, String json_endpoint, String purpose) {
+            Intent intent_mvt_server__rest_api__get_json = new Intent(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.STRING);
             if (root_url != null && !root_url.trim().isEmpty()) {
-                intent_mvt_server_read_json.putExtra(
-                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ROOT_URL.STRING,
+                intent_mvt_server__rest_api__get_json.putExtra(
+                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.ROOT_URL.STRING,
                     root_url
                 );
             }
             if (json_endpoint != null && !json_endpoint.trim().isEmpty()) {
-                intent_mvt_server_read_json.putExtra(
-                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ENDPOINT.STRING,
+                intent_mvt_server__rest_api__get_json.putExtra(
+                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.ENDPOINT.STRING,
                     json_endpoint
                 );
             }
             if (purpose != null && !purpose.trim().isEmpty()) {
-                intent_mvt_server_read_json.putExtra(
-                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.STRING,
+                intent_mvt_server__rest_api__get_json.putExtra(
+                    Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.STRING,
                     purpose
                 );
             }
-            context.sendBroadcast(intent_mvt_server_read_json);
+            context.sendBroadcast(intent_mvt_server__rest_api__get_json);
         }
         final public void mvt_server__get_capabilities(String purpose) {
-            mvt_server__get_json(
+            mvt_server__rest_api__get_json(
                 null,   //null will direct FGS to read from running instance of local mvt server
                 null,   //null defaults to "/capabilities"
                 purpose != null && !purpose.trim().isEmpty()
                     ? purpose
-                    : Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                    : Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
             );
         }
 

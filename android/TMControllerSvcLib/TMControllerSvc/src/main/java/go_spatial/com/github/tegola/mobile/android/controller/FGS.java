@@ -114,7 +114,7 @@ public class FGS extends Service {
             Log.i(TAG, "onDestroy: FGS is being destroyed (stopService) - notifying harness...");
             Intent intent_notify_service_stopping = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.FGS.STATE.STOPPING.STRING);
             sendBroadcast(intent_notify_service_stopping);
-            stop_tegola();
+            shell__tegola__stop();
             Log.d(TAG, "onDestroy: stopForeground");
             stopForeground(true);
             Log.d(TAG, "onDestroy: stopSelf");
@@ -202,7 +202,7 @@ public class FGS extends Service {
         m_filter_br_client_control_request = new IntentFilter();
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.START.STRING);
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING);
-        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.STRING);
+        m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.STRING);
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING);
         m_filter_br_client_control_request.addAction(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING);
         m_br_client_control_request = new BroadcastReceiver() {
@@ -228,42 +228,42 @@ public class FGS extends Service {
                             handle_mvt_server_control_request__start(server_start_spec);
                             break;
                         }
-                        case MVT_SERVER_HTTP_URL_API_READ_JSON: {
-                            String s_purpose = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.STRING);
+                        case MVT_SERVER_REST_API_GET_JSON: {
+                            String s_purpose = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.STRING);
                             if (s_purpose == null || s_purpose.isEmpty()) {
-                                s_purpose = Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING;
+                                s_purpose = Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING;
                                 Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_GOT_JSON): "
-                                    + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.STRING
+                                    + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.STRING
                                     + " string extra is null or empty - setting s_purpose==\"" + s_purpose + "\""
                                 );
                             }
-                            String s_root_url = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ROOT_URL.STRING);
+                            String s_root_url = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.ROOT_URL.STRING);
                             if (s_root_url == null || s_root_url.isEmpty()) {
                                 s_root_url = "http://localhost:" + m_i_tegola_listen_port;
                                 Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_GOT_JSON): "
-                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ROOT_URL.STRING
+                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.ROOT_URL.STRING
                                         + " string extra is null or empty - setting s_root_url==\"" + s_root_url + "\""
                                 );
                             }
-                            String s_endpoint = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ENDPOINT.STRING);
+                            String s_endpoint = intent.getStringExtra(Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.ENDPOINT.STRING);
                             if (s_endpoint == null || s_endpoint.isEmpty()) {
                                 s_endpoint = "/capabilities";
                                 Log.d(TAG, "m_br_client_control_request.onReceive(MVT_SERVER_HTTP_URL_API_GOT_JSON): "
-                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.ENDPOINT.STRING
+                                        + Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.ENDPOINT.STRING
                                         + " string extra is null or empty - setting s_endpoint==\"" + s_endpoint + "\""
                                 );
                             }
                             switch (s_purpose) {
-                                case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
-                                    read_tegola_json(
+                                case Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING: {
+                                    rest_api__tegola__get_json(
                                         s_root_url,
                                         s_endpoint,
-                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
+                                        Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
                                     );
                                     break;
                                 }
                                 default: {
-                                    read_tegola_json(
+                                    rest_api__tegola__get_json(
                                         s_root_url,
                                         s_endpoint,
                                         s_purpose
@@ -273,7 +273,7 @@ public class FGS extends Service {
                             break;
                         }
                         case MVT_SERVER_CONTROL_STOP: {
-                            stop_tegola();
+                            shell__tegola__stop();
                             break;
                         }
                         case MVT_SERVER_STATE_IS_RUNNING: {
@@ -438,7 +438,7 @@ public class FGS extends Service {
     private void handle_mvt_server_control_request__start(@NonNull final MVT_SERVER_START_SPEC server_start_spec) {
         try {
             Utils.TEGOLA_BIN.getInstance(getApplicationContext()).get();
-            start_tegola(server_start_spec);  //note that this function internally handles sending the MVT_SERVER_STATE_STARTING and MVT_SERVER_STATE_RUNNING notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
+            shell__tegola__start(server_start_spec);  //note that this function internally handles sending the MVT_SERVER_STATE_STARTING and MVT_SERVER_STATE_RUNNING notifications - on failure an exception will be thrown on the SEH below will send the failure notification in that case
         } catch (IOException e) {
             e.printStackTrace();
             Intent intent_notify_mvt_server_start_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.START_FAILED.STRING);
@@ -480,7 +480,7 @@ public class FGS extends Service {
 
     private Process m_logcat_process = null;
 
-    private boolean start_tegola(@NonNull final MVT_SERVER_START_SPEC server_start_spec) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException, UnknownMVTServerStartSpecType, PackageManager.NameNotFoundException, Exceptions.TegolaBinaryNotExecutableException {
+    private boolean shell__tegola__start(@NonNull final MVT_SERVER_START_SPEC server_start_spec) throws IOException, Exceptions.UnsupportedCPUABIException, Exceptions.InvalidTegolaArgumentException, UnknownMVTServerStartSpecType, PackageManager.NameNotFoundException, Exceptions.TegolaBinaryNotExecutableException {
         m_process_tegola_pid = null;
         final File
                 f_filesDir = getFilesDir()
@@ -490,7 +490,7 @@ public class FGS extends Service {
                 ;
         if (!f_tegola_bin_executable.exists())
             throw new FileNotFoundException("tegola bin file " + s_tegola_bin_executable_path + " does not exist");
-        Log.d(TAG, "start_tegola: found/using tegola bin: " + s_tegola_bin_executable_path);
+        Log.d(TAG, "shell__tegola__start: found/using tegola bin: " + s_tegola_bin_executable_path);
         ArrayList<String> als_cmd_line = new ArrayList<String>();
         als_cmd_line.add("./" + f_tegola_bin_executable.getName());
         als_cmd_line.add("serve");
@@ -514,37 +514,37 @@ public class FGS extends Service {
             f_gpkg_bundle = new File(f_gpkg_bundles_root_dir.getPath(), server_start_spec__gpkg_provider.gpkg_bundle);
             if (!f_gpkg_bundle.exists())
                 throw new FileNotFoundException("geopcackage-bundle " + f_gpkg_bundle.getCanonicalPath() + " not found");
-            Log.d(TAG, "start_tegola: found/using gpkg-bundle: " + f_gpkg_bundle.getName());
+            Log.d(TAG, "shell__tegola__start: found/using gpkg-bundle: " + f_gpkg_bundle.getName());
 
 //            //process version.properties file for this gpk-bundle
             String s_prop_val = "";
             File f_gpkg_bundle_ver_props = new File(f_gpkg_bundle.getPath(), server_start_spec__gpkg_provider.gpkg_bundle_props);
             if (!f_gpkg_bundle_ver_props.exists())
                 throw new FileNotFoundException("geopcackage-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath() + " not found");
-            Log.d(TAG, "start_tegola: found/using gpkg-bundle version.properties: " + f_gpkg_bundle_ver_props.getCanonicalPath());
+            Log.d(TAG, "shell__tegola__start: found/using gpkg-bundle version.properties: " + f_gpkg_bundle_ver_props.getCanonicalPath());
             //get gpkg-bundle toml file spec from version.props, confirm existence, then build "--config" arg for tegola commandline
             s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE);
             String
                     s_toml_file_remote = s_prop_val,
                     s_toml_file_local = s_toml_file_remote;
             if (Utils.HTTP.isValidUrl(s_toml_file_remote)) {//then retrieve only last part for local file name
-                Log.d(TAG, "start_tegola: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + ":\"" + s_toml_file_remote + "\" IS a uri");
+                Log.d(TAG, "shell__tegola__start: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + ":\"" + s_toml_file_remote + "\" IS a uri");
                 s_toml_file_local = s_toml_file_remote.substring(s_toml_file_remote.lastIndexOf("/") + 1);
             } else {
-                Log.d(TAG, "start_tegola: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + ":\"" + s_toml_file_remote + "\" IS NOT a uri");
+                Log.d(TAG, "shell__tegola__start: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + ":\"" + s_toml_file_remote + "\" IS NOT a uri");
             }
-            Log.d(TAG, "start_tegola: \t\tlocal: \"" + s_toml_file_local + "\"; remote: \"" + s_toml_file_remote + "\"");
+            Log.d(TAG, "shell__tegola__start: \t\tlocal: \"" + s_toml_file_local + "\"; remote: \"" + s_toml_file_remote + "\"");
             f_gpkg_bundle__toml = new File(f_gpkg_bundle.getPath(), s_toml_file_local);
-            Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + " == " + f_gpkg_bundle__toml.getCanonicalPath());
+            Log.d(TAG, "shell__tegola__start: version.properties: " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.TOML_FILE + " == " + f_gpkg_bundle__toml.getCanonicalPath());
             if (!f_gpkg_bundle__toml.exists())
                 throw new FileNotFoundException("geopcackage-bundle toml file " + f_gpkg_bundle__toml.getCanonicalPath() + " not found");
-            Log.d(TAG, "start_tegola: \tfound/using gpkg-bundle toml file: " + f_gpkg_bundle__toml.getCanonicalPath());
+            Log.d(TAG, "shell__tegola__start: \tfound/using gpkg-bundle toml file: " + f_gpkg_bundle__toml.getCanonicalPath());
             als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
             als_cmd_line.add(f_gpkg_bundle__toml.getCanonicalPath());
 
             //set env var for tegola file cache base path
             pb_env.put(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR, f_gpkg_bundle.getCanonicalPath() + File.separator + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.SUB_PATH);
-            Log.d(TAG, "start_tegola: \tset pb env " + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR + " to \"" + pb_env.get(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR) + "\"");
+            Log.d(TAG, "shell__tegola__start: \tset pb env " + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR + " to \"" + pb_env.get(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR) + "\"");
 
             //get gpkg-bundle geopcackages spec from version.props, then confirm existence
             s_prop_val = Utils.getProperty(f_gpkg_bundle_ver_props, Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES);
@@ -556,21 +556,21 @@ public class FGS extends Service {
                     String
                             s_gpkg_file_remote = s_list_gpkg_files[i],
                             s_gpkg_file_local = s_gpkg_file_remote;
-                    Log.d(TAG, "start_tegola: \t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]=\"" + s_gpkg_file_remote + "\"");
+                    Log.d(TAG, "shell__tegola__start: \t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]=\"" + s_gpkg_file_remote + "\"");
                     if (Utils.HTTP.isValidUrl(s_gpkg_file_remote)) {//then retrieve only last part for local file name
-                        Log.d(TAG, "start_tegola: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]:\"" + s_gpkg_file_remote + "\" IS uri");
+                        Log.d(TAG, "shell__tegola__start: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]:\"" + s_gpkg_file_remote + "\" IS uri");
                         s_gpkg_file_local = s_gpkg_file_remote.substring(s_gpkg_file_remote.lastIndexOf("/") + 1);
                     } else {
-                        Log.d(TAG, "start_tegola: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]:\"" + s_gpkg_file_remote + "\" IS NOT uri");
+                        Log.d(TAG, "shell__tegola__start: \t\t" + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "]:\"" + s_gpkg_file_remote + "\" IS NOT uri");
                     }
-                    Log.d(TAG, "start_tegola: \t\tlocal: \"" + s_gpkg_file_local + "\"; remote: \"" + s_gpkg_file_remote + "\"");
+                    Log.d(TAG, "shell__tegola__start: \t\tlocal: \"" + s_gpkg_file_local + "\"; remote: \"" + s_gpkg_file_remote + "\"");
                     f_gpkg_bundle__gpkg = new File(f_gpkg_bundle.getPath(), s_gpkg_file_local);
-                    Log.d(TAG, "start_tegola: version.properties: " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "] == " + f_gpkg_bundle__gpkg.getCanonicalPath());
+                    Log.d(TAG, "shell__tegola__start: version.properties: " + Constants.Strings.GPKG_BUNDLE.VERSION_PROPS.PROP.GPKG_FILES + "[" + i + "] == " + f_gpkg_bundle__gpkg.getCanonicalPath());
                     if (!f_gpkg_bundle__gpkg.exists())
                         throw new FileNotFoundException("geopcackage-bundle gpkg file " + f_gpkg_bundle__gpkg.getCanonicalPath() + " not found");
                     //set env var to store path to this particular gpkg
                     pb_env.put(s_list_geopcackage_path_env_vars[i], f_gpkg_bundle__gpkg.getCanonicalPath());
-                    Log.d(TAG, "start_tegola: \tset pb env " + s_list_geopcackage_path_env_vars[i] + " to \"" + pb_env.get(s_list_geopcackage_path_env_vars[i]) + "\"");
+                    Log.d(TAG, "shell__tegola__start: \tset pb env " + s_list_geopcackage_path_env_vars[i] + " to \"" + pb_env.get(s_list_geopcackage_path_env_vars[i]) + "\"");
                 }
             } else {
                 throw new FileNotFoundException("failed to retrieve list of geopackage files from gpkg-bundle version.properties file " + f_gpkg_bundle_ver_props.getCanonicalPath());
@@ -580,28 +580,28 @@ public class FGS extends Service {
             if (server_start_spec_postgis_provider.config_toml == null || server_start_spec_postgis_provider.config_toml.isEmpty())
                 throw new Exceptions.InvalidTegolaArgumentException("argument \"" + Constants.Strings.TEGOLA_ARG.CONFIG + "\" is null or empty");
             if (server_start_spec_postgis_provider.config_toml__is_remote) {
-                Log.d(TAG, "start_tegola: using remote config toml file: " + server_start_spec_postgis_provider.config_toml);
+                Log.d(TAG, "shell__tegola__start: using remote config toml file: " + server_start_spec_postgis_provider.config_toml);
                 als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
                 als_cmd_line.add(server_start_spec_postgis_provider.config_toml);
             } else {
                 final File f_postgis_config_toml = new File(server_start_spec_postgis_provider.config_toml);
                 if (f_postgis_config_toml != null && !f_postgis_config_toml.exists())
                     throw new FileNotFoundException("toml file " + f_postgis_config_toml.getCanonicalPath() + " not found");
-                Log.d(TAG, "start_tegola: found/using config toml file: " + f_postgis_config_toml.getCanonicalPath());
+                Log.d(TAG, "shell__tegola__start: found/using config toml file: " + f_postgis_config_toml.getCanonicalPath());
                 als_cmd_line.add("--" + Constants.Strings.TEGOLA_ARG.CONFIG);
                 als_cmd_line.add(f_postgis_config_toml.getCanonicalPath());
             }
 
             //set env var for tegola file cache base path
             pb_env.put(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR, pb.directory().getCanonicalPath() + File.separator + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.SUB_PATH);
-            Log.d(TAG, "start_tegola: \tset pb env " + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR + " to \"" + pb_env.get(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR) + "\"");
+            Log.d(TAG, "shell__tegola__start: \tset pb env " + Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR + " to \"" + pb_env.get(Constants.Strings.TEGOLA_PROCESS.TILE_CACHE.FILE.BASE_PATH_ENV_VAR) + "\"");
         } else
             throw new UnknownMVTServerStartSpecType(server_start_spec);
         pb = pb.command(als_cmd_line);
 
-        //stop_tegola();
+        //shell__tegola__stop();
 
-        Log.i(TAG, "start_tegola: starting new tegola server process...");
+        Log.i(TAG, "shell__tegola__start: starting new tegola server process...");
         //notify br_receivers (if any) server starting
         Intent intent_notify_server_starting = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STARTING.STRING);
         fgs_asn__update(getString(R.string.starting));
@@ -618,7 +618,7 @@ public class FGS extends Service {
         }
         String s_cmdline = sb_cmdline.toString();
         String s_working_dir = pb.directory().getCanonicalPath();
-        Log.d(TAG, "start_tegola: starting tegola server process (cmdline is '" + s_cmdline + "' and will run in " + s_working_dir + ")...");
+        Log.d(TAG, "shell__tegola__start: starting tegola server process (cmdline is '" + s_cmdline + "' and will run in " + s_working_dir + ")...");
         m_process_tegola = pb.start();
 
         //immediately notify br receivers MVT_SERVER_STATE_STOPPED if we fail to create tegola process
@@ -637,7 +637,7 @@ public class FGS extends Service {
 
         //get tegola pid if we can - may not work since "pid" is private field of Process, obtained via reflection...
         m_process_tegola_pid = getPid(m_process_tegola);
-        Log.i(TAG, "start_tegola: tegola server process " + (m_process_tegola_pid != -1 ? "(pid " + m_process_tegola_pid + ") ": "") + "started");
+        Log.i(TAG, "shell__tegola__start: tegola server process " + (m_process_tegola_pid != -1 ? "(pid " + m_process_tegola_pid + ") ": "") + "started");
 
         //notify br receivers MVT_SERVER_STATE_RUNNING
         Intent intent_notify_server_started = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.RUNNING.STRING);
@@ -654,12 +654,12 @@ public class FGS extends Service {
             s_cmdline = sb_cmdline.toString();
 
             //the crux: start logcat process!
-            Log.d(TAG, "start_tegola: starting logcat process (cmdline: '" + s_cmdline + "')...");
+            Log.d(TAG, "shell__tegola__start: starting logcat process (cmdline: '" + s_cmdline + "')...");
             m_logcat_process = Runtime.getRuntime().exec(s_cmdline);
 
             if (m_logcat_process != null) {
                 final int pid_logcat = getPid(m_logcat_process);
-                Log.i(TAG, "start_tegola: logcat process (" + pid_logcat + ") started");
+                Log.i(TAG, "shell__tegola__start: logcat process (" + pid_logcat + ") started");
 
                 //now create/start thread to monitor the logcat process itself
                 m_thread_logcat_process_monitor = new Thread(new Runnable() {
@@ -972,7 +972,7 @@ public class FGS extends Service {
         public String json_url_endpoint = "";
         public String json_string = "";
     }
-    private void read_tegola_json(final String root_url, final String json_url_endpoint, final String purpose) {
+    private void rest_api__tegola__get_json(final String root_url, final String json_url_endpoint, final String purpose) {
         final TegolaJSON tegolaJSON = new TegolaJSON();
 
         StringBuilder sb_json = new StringBuilder();
@@ -985,22 +985,22 @@ public class FGS extends Service {
             new Utils.HTTP.Get.ContentHandler() {
                 @Override
                 public void onStartRead(long n_size) {
-                    Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onStartRead: read " + tegolaJSON.root_url + tegolaJSON.json_url_endpoint + ": content-length: " + n_size);
+                    Log.d(TAG, "rest_api__tegola__get_json: Utils.HTTP.Get.ContentHandler: onStartRead: read " + tegolaJSON.root_url + tegolaJSON.json_url_endpoint + ": content-length: " + n_size);
                 }
 
                 @Override
                 public void onChunkRead(int n_bytes_read, byte[] bytes_1kb_chunk) {
                     if (n_bytes_read > 0) {
                         baos.write(bytes_1kb_chunk, 0, n_bytes_read);
-                        Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: read next " + n_bytes_read + " bytes from " + tegolaJSON.root_url + tegolaJSON.json_url_endpoint + " into byteoutputstream");
+                        Log.d(TAG, "rest_api__tegola__get_json: Utils.HTTP.Get.ContentHandler: read next " + n_bytes_read + " bytes from " + tegolaJSON.root_url + tegolaJSON.json_url_endpoint + " into byteoutputstream");
                     } else {
-                        Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onChunkRead: skipped writing bytes from " + tegolaJSON.root_url + tegolaJSON.json_url_endpoint + " into byteoutputstream since n_bytes_read <= 0");
+                        Log.d(TAG, "rest_api__tegola__get_json: Utils.HTTP.Get.ContentHandler: onChunkRead: skipped writing bytes from " + tegolaJSON.root_url + tegolaJSON.json_url_endpoint + " into byteoutputstream since n_bytes_read <= 0");
                     }
                 }
 
                 @Override
                 public void onReadError(long n_remaining, Exception e) {
-                    Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onReadError: n_remaining: " + n_remaining + "; error: " + e.getMessage());
+                    Log.d(TAG, "rest_api__tegola__get_json: Utils.HTTP.Get.ContentHandler: onReadError: n_remaining: " + n_remaining + "; error: " + e.getMessage());
                     e.printStackTrace();
                     Intent intent_notify_mvt_server_json_read_failed = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GET_JSON_FAILED.STRING);
                     intent_notify_mvt_server_json_read_failed.putExtra(
@@ -1024,10 +1024,10 @@ public class FGS extends Service {
 
                 @Override
                 public void onReadComplete(long n_read, long n_remaining) {
-                    Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onReadComplete: n_read: " + n_read + "; n_remaining: " + n_remaining);
+                    Log.d(TAG, "rest_api__tegola__get_json: Utils.HTTP.Get.ContentHandler: onReadComplete: n_read: " + n_read + "; n_remaining: " + n_remaining);
                     try {
                         tegolaJSON.json_string = baos.toString();
-                        Log.d(TAG, "read_tegola_json: Utils.HTTP.Get.ContentHandler: onReadComplete: json content is:\n" + tegolaJSON.json_string);
+                        Log.d(TAG, "rest_api__tegola__get_json: Utils.HTTP.Get.ContentHandler: onReadComplete: json content is:\n" + tegolaJSON.json_string);
                         baos.close();
                         Intent intent_notify_mvt_server_json_read = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.HTTP_URL_API.GOT_JSON.STRING);
                         intent_notify_mvt_server_json_read.putExtra(
@@ -1056,7 +1056,7 @@ public class FGS extends Service {
         );
     }
 
-    private void parse_netstat() {
+    private void shell__netstat__parse() {
 //                    if (m_process_tegola_pid != - 1) {//get port on which tegola process is listening and notify broaccast receivers
 //                        Thread.currentThread().sleep(1000);
 //                        int i_port = -1;
@@ -1093,10 +1093,10 @@ public class FGS extends Service {
 //                    }
     }
 
-    private boolean stop_tegola() {
+    private boolean shell__tegola__stop() {
         boolean wasrunning = false;
         if (m_process_tegola != null) {
-            Log.i(TAG, "stop_tegola: destroying mvt server tegola process (pid " + m_process_tegola_pid + ")...");
+            Log.i(TAG, "shell__tegola__stop: destroying mvt server tegola process (pid " + m_process_tegola_pid + ")...");
             Intent intent_notify_server_stopping = new Intent(Constants.Strings.INTENT.ACTION.NOTIFICATION.MVT_SERVER.STATE.STOPPING.STRING);
             fgs_asn__update(getString(R.string.stopping));
             sendBroadcast(intent_notify_server_stopping);
@@ -1111,7 +1111,7 @@ public class FGS extends Service {
             }
             wasrunning = true;
         }
-        Log.i(TAG, "stop_tegola: tegola mvt server is not currently running");
+        Log.i(TAG, "shell__tegola__stop: tegola mvt server is not currently running");
         m_tegola_process_is_running = false;
         m_process_tegola = null;;
         return wasrunning;

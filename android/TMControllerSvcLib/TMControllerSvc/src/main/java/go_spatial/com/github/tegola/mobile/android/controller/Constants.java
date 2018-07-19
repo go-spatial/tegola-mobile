@@ -103,10 +103,10 @@ public class Constants {
                                 String STRING = STATE.STRING + "." + "LISTEN_PORT";
                             }
                         }
-                        interface HTTP_URL_API {
-                            String STRING = MVT_SERVER.STRING + "." + "HTTP_URL_API";
+                        interface REST_API {
+                            String STRING = MVT_SERVER.STRING + "." + "REST_API";
                             interface GET_JSON {
-                                String STRING = HTTP_URL_API.STRING + "." + "GET_JSON";
+                                String STRING = REST_API.STRING + "." + "GET_JSON";
                                 interface EXTRA_KEY {
                                     String STRING = GET_JSON.STRING + "." + "EXTRA_KEY";
                                     interface PURPOSE {
@@ -231,7 +231,7 @@ public class Constants {
                             }
                         }
                         interface HTTP_URL_API {
-                            String STRING = MVT_SERVER.STRING + "." + "HTTP_URL_API";
+                            String STRING = MVT_SERVER.STRING + "." + "REST_API";
                             interface GOT_JSON {
                                 String STRING = HTTP_URL_API.STRING + "." + "GOT_JSON";
                                 interface EXTRA_KEY {
@@ -321,7 +321,7 @@ public class Constants {
             , MVT_SERVER_CONTROL_STOP
             , MVT_SERVER_STATE_IS_RUNNING
             , MVT_SERVER_STATE_LISTEN_PORT
-            , MVT_SERVER_HTTP_URL_API_READ_JSON
+            , MVT_SERVER_REST_API_GET_JSON
             ;
 
             public static final E_INTENT_ACTION__REQUEST fromString(final String s) {
@@ -332,7 +332,7 @@ public class Constants {
                     case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING: return MVT_SERVER_CONTROL_STOP;
                     case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING: return MVT_SERVER_STATE_IS_RUNNING;
                     case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING: return MVT_SERVER_STATE_LISTEN_PORT;
-                    case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.STRING: return MVT_SERVER_HTTP_URL_API_READ_JSON;
+                    case Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.STRING: return MVT_SERVER_REST_API_GET_JSON;
                     default: return null;
                 }
             }
@@ -346,7 +346,7 @@ public class Constants {
                     case MVT_SERVER_CONTROL_STOP: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.CONTROL.STOP.STRING;
                     case MVT_SERVER_STATE_IS_RUNNING: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.IS_RUNNING.STRING;
                     case MVT_SERVER_STATE_LISTEN_PORT: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.STATE.LISTEN_PORT.STRING;
-                    case MVT_SERVER_HTTP_URL_API_READ_JSON: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.HTTP_URL_API.GET_JSON.STRING;
+                    case MVT_SERVER_REST_API_GET_JSON: return Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.STRING;
                     default: return null;
                 }
             }
