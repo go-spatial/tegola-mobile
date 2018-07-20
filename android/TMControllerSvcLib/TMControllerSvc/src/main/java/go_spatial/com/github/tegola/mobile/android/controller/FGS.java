@@ -1,6 +1,7 @@
 package go_spatial.com.github.tegola.mobile.android.controller;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -10,12 +11,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -33,6 +36,9 @@ import java.util.Map;
 
 import go_spatial.com.github.tegola.mobile.android.controller.utils.Files;
 import go_spatial.com.github.tegola.mobile.android.controller.utils.HTTP;
+
+import static android.support.v4.app.NotificationCompat.PRIORITY_DEFAULT;
+import static android.support.v4.app.NotificationCompat.PRIORITY_MIN;
 
 
 public class FGS extends Service {
@@ -138,14 +144,30 @@ public class FGS extends Service {
         }
     }
 
+    private String getNotificationChannelId() {
+        String channelId = "";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            channelId = Constants.ASNB_NOTIFICATIONS.NOTIFICATION_CHANNEL_ID__CONTROLLER_SERVICE;
+            String channelName = "FGS.ASNB";
+            NotificationChannel chan = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_NONE);
+            chan.setLightColor(Color.BLUE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationManager service = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            service.createNotificationChannel(chan);
+        }
+        return channelId;
+    }
+
     private Notification fgs_asn__prepare(final String s_title, final String s_status) {
         Intent intent_bring_harness_to_foreground = new Intent(getApplicationContext(), m_class_harness);
         intent_bring_harness_to_foreground.setAction(Intent.ACTION_MAIN);
         intent_bring_harness_to_foreground.addCategory(Intent.CATEGORY_LAUNCHER);
         PendingIntent pending_intent_bring_harness_to_foreground = PendingIntent.getActivity(getApplicationContext(), 0, intent_bring_harness_to_foreground, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder notificationBuilder = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new NotificationCompat.Builder(this, Constants.ASNB_NOTIFICATIONS.NOTIFICATION_CHANNEL_ID__CONTROLLER_SERVICE) : new NotificationCompat.Builder(this));
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, getNotificationChannelId());
         return notificationBuilder
+            .setPriority(PRIORITY_DEFAULT)
+            .setCategory(Notification.CATEGORY_SERVICE)
             .setContentTitle(s_title)
             .setContentText(s_status)
             .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
