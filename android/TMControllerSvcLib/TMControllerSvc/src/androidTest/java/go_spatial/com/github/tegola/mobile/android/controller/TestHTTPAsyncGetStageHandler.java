@@ -13,13 +13,14 @@ import okio.Buffer;
 public class TestHTTPAsyncGetStageHandler extends HTTP.AsyncGet.TaskStageHandler {
     final private String TAG = TestHTTPAsyncGetStageHandler.class.getSimpleName();
 
-    private boolean firstUpdate = true;
-    private long content_length = 0;
-    private long total_bytes_read = 0;
-    private String s_url_remote_file = "";
-    private File local_file = null;
-    private String s_local_file = "<failed to retrieve local file path>";
-    private FileOutputStream f_outputstream__local_file = null;
+    private volatile boolean firstUpdate = true;
+    private volatile long content_length = 0;
+    private volatile long total_bytes_read = 0;
+    private volatile HTTP.AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file = null;
+    private volatile String s_url_remote_file = "<failed to retrieve remote file url>";
+    private volatile File local_file = null;
+    private volatile String s_local_file = "<failed to retrieve local file path>";
+    private volatile FileOutputStream f_outputstream__local_file = null;
 
     @Override
     public void onPreExecute() {
@@ -27,14 +28,20 @@ public class TestHTTPAsyncGetStageHandler extends HTTP.AsyncGet.TaskStageHandler
         firstUpdate = true;
         content_length = 0;
         total_bytes_read = 0;
-        s_url_remote_file = get_httpUrl_to_local_file().get_url().toString();
-        local_file = get_httpUrl_to_local_file().get_file();
-        try {
-            s_local_file = local_file.getCanonicalPath();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        httpUrl_to_local_file = get_httpUrl_to_local_file();
         f_outputstream__local_file = null;
+
+        if (httpUrl_to_local_file != null) {
+            s_url_remote_file = httpUrl_to_local_file.get_url().toString();
+            local_file = httpUrl_to_local_file.get_file();
+            if (local_file != null) {
+                try {
+                    s_local_file = local_file.getCanonicalPath();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
         Log.d(
             TAG,
@@ -55,25 +62,77 @@ public class TestHTTPAsyncGetStageHandler extends HTTP.AsyncGet.TaskStageHandler
                 if (firstUpdate) {
                     Log.d(TAG, "onChunkRead: firstUpdate==true");
                     firstUpdate = false;
+
+                    if (httpUrl_to_local_file == null) {
+                        httpUrl_to_local_file = get_httpUrl_to_local_file();
+                        s_url_remote_file = httpUrl_to_local_file.get_url().toString();
+                        local_file = httpUrl_to_local_file.get_file();
+                        if (local_file != null) {
+                            try {
+                                s_local_file = local_file.getCanonicalPath();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
                     if (contentLength < 1) {
                         Log.d(TAG, "onChunkRead: *** WARNING!!! *** - contentLength < 1");
                     }
                     content_length = contentLength;
-                    Log.d(TAG, "onChunkRead: content_length==" + content_length);
+                    Log.d(
+                        TAG,
+                        String.format(
+                            "onChunkRead: content_length==%d",
+                            content_length
+                        )
+                    );
                     if (local_file.exists()) {
-                        Log.d(TAG, String.format("onChunkRead: local file %s already exists", s_local_file));
-                        throw new HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException(get_httpUrl_to_local_file());
+                        Log.d(
+                            TAG,
+                            String.format(
+                                "onChunkRead: local file %s already exists",
+                                s_local_file
+                            )
+                        );
+                        throw new HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException(httpUrl_to_local_file);
                     } else {
-                        Log.d(TAG, String.format("onChunkRead: local file %s does not exist", s_local_file));
+                        Log.d(
+                            TAG,
+                            String.format(
+                                "onChunkRead: local file %s does not exist",
+                                s_local_file
+                            )
+                        );
                         if (!local_file.getParentFile().exists()) {
-                            Log.d(TAG, String.format("onChunkRead: local file directory %s does not exist; creating...", local_file.getParentFile().getCanonicalPath()));
+                            Log.d(
+                                TAG,
+                                String.format(
+                                    "onChunkRead: local file directory %s does not exist; creating...",
+                                    local_file.getParentFile().getCanonicalPath()
+                                )
+                            );
                             local_file.getParentFile().mkdirs();
                         }
                         boolean created_file = local_file.createNewFile();
-                        Log.d(TAG, String.format("onChunkRead: %s new local file %s; opening outputstream", (created_file ? "Succcessfully created" : "Failed to create"), s_local_file));
+                        Log.d(
+                            TAG,
+                            String.format(
+                                "onChunkRead: %s new local file %s; opening outputstream",
+                                (created_file ? "Succcessfully created" : "Failed to create"),
+                                s_local_file
+                            )
+                        );
                         f_outputstream__local_file = new FileOutputStream(local_file);
                     }
-                    Log.d(TAG, String.format("onChunkRead: downloading/writing %s outputstream to %s...", s_url_remote_file, s_local_file));
+                    Log.d(
+                        TAG,
+                        String.format(
+                            "onChunkRead: downloading/writing %s outputstream to %s...",
+                            s_url_remote_file,
+                            s_local_file
+                        )
+                    );
                 }
 
                 //write bytes to outputstream
@@ -91,31 +150,66 @@ public class TestHTTPAsyncGetStageHandler extends HTTP.AsyncGet.TaskStageHandler
                     final int i_progress = (int) (dbl_progress * 100.0);
                     //Log.d(TAG, "onChunkRead: updating progress to " + i_progress + "%");
                 } else {
-                    Log.d(TAG, "onChunkRead: cannot update interim progress for " + get_httpUrl_to_local_file().get_url().toString() + " to " + get_httpUrl_to_local_file().get_file().getCanonicalPath() + " download since content_length==" + content_length);
+                    Log.d(
+                        TAG,
+                        String.format(
+                            "onChunkRead: cannot update interim progress for %s to %s download since content_length==%d",
+                            s_url_remote_file,
+                            s_local_file,
+                            content_length
+                        )
+                    );
                 }
             } else {//done
-                Log.d(TAG, "onChunkRead: done; wrote: " + total_bytes_read + " bytes to " + get_httpUrl_to_local_file().get_file().getCanonicalPath());
+                Log.d(
+                    TAG,
+                    String.format(
+                        "onChunkRead: done; wrote: %d bytes to %s",
+                        total_bytes_read,
+                        s_local_file
+                    )
+                );
                 if (f_outputstream__local_file != null) {
-                    Log.d(TAG, "onChunkRead: Closing fileoutputstream for " + get_httpUrl_to_local_file().get_file().getCanonicalPath());
+                    Log.d(
+                        TAG,
+                        String.format(
+                            "onChunkRead: Closing fileoutputstream for %s",
+                            s_local_file
+                        )
+                    );
                     f_outputstream__local_file.close();
                 } else {
-                    Log.d(TAG, "onChunkRead: Cannot close null fileoutputstream for " + get_httpUrl_to_local_file().get_file().getCanonicalPath());
+                    Log.d(
+                        TAG,
+                        String.format(
+                            "onChunkRead: Cannot close null fileoutputstream for %s",
+                            s_local_file
+                        )
+                    );
                 }
             }
         } catch (HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileAlreadyExistsException e) {
             throw e;
         } catch (FileNotFoundException e) {
-            HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileCreateException lfce = new HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileCreateException(get_httpUrl_to_local_file(), e.getMessage());
+            HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileCreateException lfce = new HTTP.AsyncGet.StageHandlerOnChunkRead_LocalFileCreateException(httpUrl_to_local_file, e.getMessage());
             throw lfce;
         } catch (IOException e) {
-            HTTP.AsyncGet.StageHandlerOnChunkRead_GeneralIOException gioe = new HTTP.AsyncGet.StageHandlerOnChunkRead_GeneralIOException(get_httpUrl_to_local_file(), e.getMessage());
+            HTTP.AsyncGet.StageHandlerOnChunkRead_GeneralIOException gioe = new HTTP.AsyncGet.StageHandlerOnChunkRead_GeneralIOException(httpUrl_to_local_file, e.getMessage());
             throw gioe;
         }
     }
 
     @Override
     public void onCancelled(Exception exception) {
-        Log.d(TAG, String.format("onCancelled - exception: %s", exception));
+        if (exception != null) {
+            Log.d(
+                TAG,
+                String.format(
+                    "onCancelled - exception: %s",
+                    exception
+                )
+            );
+        }
         Log.d(
             TAG,
             String.format(
@@ -128,7 +222,15 @@ public class TestHTTPAsyncGetStageHandler extends HTTP.AsyncGet.TaskStageHandler
 
     @Override
     public void onPostExecute(Exception exception) {
-        Log.d(TAG, String.format("onPostExecute - exception: %s", exception));
+        if (exception != null) {
+            Log.d(
+                TAG,
+                String.format(
+                    "onPostExecute - exception: %s",
+                    exception
+                )
+            );
+        }
         Log.d(
             TAG,
             String.format(
