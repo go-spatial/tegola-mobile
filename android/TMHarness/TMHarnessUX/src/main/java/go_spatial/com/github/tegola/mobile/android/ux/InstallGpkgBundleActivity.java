@@ -200,16 +200,16 @@ public class InstallGpkgBundleActivity extends AppCompatActivity {
 
     private String build_remote_gpkg_bundle_file_url_string(String s_gremote_gpkg_fname) {
         return new
-                StringBuilder(
-                    GPKG.Remote.build_root_url_string(
-                        m_tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix.getText().toString(),
-                        m_edt_remote_gpkg_bundle__root_url.getText().toString(),
-                        m_edt_remote_gpkg_bundle__name.getText().toString()
-                    )
+            StringBuilder(
+                GPKG.Remote.build_root_url_string(
+                    m_tv_lbl_remote_gpkg_bundle__root_url__http_proto_prefix.getText().toString(),
+                    m_edt_remote_gpkg_bundle__root_url.getText().toString(),
+                    m_edt_remote_gpkg_bundle__name.getText().toString()
                 )
-                .append("/")
-                .append(s_gremote_gpkg_fname)
-                .toString();
+            )
+            .append("/")
+            .append(s_gremote_gpkg_fname)
+            .toString();
     }
 
     private String build_local_gpkg_bundle_path_string() throws PackageManager.NameNotFoundException, IOException {

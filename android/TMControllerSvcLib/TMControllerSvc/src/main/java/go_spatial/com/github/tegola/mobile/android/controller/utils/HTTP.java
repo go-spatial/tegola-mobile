@@ -17,7 +17,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -700,6 +702,45 @@ public class HTTP {
             @Override
             protected void onPostExecute(Exception exception) {
                 m_asyncgetfiletask_stage_handler.onPostExecute(exception);
+            }
+        }
+
+        public static class RunnableTask extends Task implements Runnable {
+            final HttpUrl_To_Local_File url_to_local_file;
+            final public HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return url_to_local_file;
+            }
+
+            public RunnableTask(@NonNull final HttpUrl_To_Local_File url_to_local_file, @NonNull final TaskStageHandler asyncgetfiletask_stage_handler) {
+                super(asyncgetfiletask_stage_handler);
+                this.url_to_local_file = url_to_local_file;
+                asyncgetfiletask_stage_handler.set_httpUrl_to_local_file(url_to_local_file);
+            }
+
+            @Override
+            public void run() {
+                this.onPreExecute();
+                this.onPostExecute(this.doInBackground(new HttpUrl_To_Local_File[]{url_to_local_file}));
+            }
+        }
+
+        public static class CallableTask extends Task implements Callable<HttpUrl_To_Local_File> {
+            final HttpUrl_To_Local_File url_to_local_file;
+            final public HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return url_to_local_file;
+            }
+
+            public CallableTask(@NonNull final HttpUrl_To_Local_File url_to_local_file, @NonNull final TaskStageHandler asyncgetfiletask_stage_handler) {
+                super(asyncgetfiletask_stage_handler);
+                this.url_to_local_file = url_to_local_file;
+                asyncgetfiletask_stage_handler.set_httpUrl_to_local_file(url_to_local_file);
+            }
+
+            @Override
+            public HttpUrl_To_Local_File call() throws Exception {
+                this.onPreExecute();
+                this.onPostExecute(this.doInBackground(new HttpUrl_To_Local_File[]{url_to_local_file}));
+                return url_to_local_file;
             }
         }
 
