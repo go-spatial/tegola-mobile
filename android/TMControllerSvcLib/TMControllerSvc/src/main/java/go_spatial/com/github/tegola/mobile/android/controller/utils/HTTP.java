@@ -7,6 +7,7 @@ import android.util.Patterns;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -18,8 +19,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -284,99 +289,6 @@ public class HTTP {
                 this.url = url;
                 this.file = file;
             }
-        }
-
-        public static class RemoteFileInvalidParameterException extends Exception {
-            public RemoteFileInvalidParameterException(String message) {
-                super(message);
-            }
-        }
-
-        public static class RemoteFile_SizeException extends Exception {
-            private final HttpUrl m_httpUrl;
-            public final HttpUrl get_httpurl() {
-                return m_httpUrl;
-            }
-            public RemoteFile_SizeException(final HttpUrl httpUrl) {
-                m_httpUrl = httpUrl;
-            }
-            public RemoteFile_SizeException(final HttpUrl httpUrl, final String msg) {
-                super(msg);
-                m_httpUrl = httpUrl;
-            }
-        }
-
-        public static class StageHandlerOnChunkRead_LocalFileAlreadyExistsException extends IOException {
-            private final AsyncGet.HttpUrl_To_Local_File m_httpUrl_to_local_file;
-            public final AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
-                return m_httpUrl_to_local_file;
-            }
-            public StageHandlerOnChunkRead_LocalFileAlreadyExistsException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file) {
-                m_httpUrl_to_local_file = httpUrl_to_local_file;
-            }
-            public StageHandlerOnChunkRead_LocalFileAlreadyExistsException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
-                super(msg);
-                m_httpUrl_to_local_file = httpUrl_to_local_file;
-            }
-        }
-
-        public static class StageHandlerOnChunkRead_LocalFileCreateException extends IOException {
-            private final AsyncGet.HttpUrl_To_Local_File m_httpUrl_to_local_file;
-            public final AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
-                return m_httpUrl_to_local_file;
-            }
-            public StageHandlerOnChunkRead_LocalFileCreateException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file) {
-                m_httpUrl_to_local_file = httpUrl_to_local_file;
-            }
-            public StageHandlerOnChunkRead_LocalFileCreateException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
-                super(msg);
-                m_httpUrl_to_local_file = httpUrl_to_local_file;
-            }
-        }
-
-        public static class StageHandlerOnChunkRead_GeneralIOException extends IOException {
-            private final AsyncGet.HttpUrl_To_Local_File m_httpUrl_to_local_file;
-            public final AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
-                return m_httpUrl_to_local_file;
-            }
-            public StageHandlerOnChunkRead_GeneralIOException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file) {
-                m_httpUrl_to_local_file = httpUrl_to_local_file;
-            }
-            public StageHandlerOnChunkRead_GeneralIOException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
-                super(msg);
-                m_httpUrl_to_local_file = httpUrl_to_local_file;
-            }
-        }
-
-        public static abstract class TaskStageHandler {
-            private final static String TAG = "Utils.HTTP.AsyncGet" + AsyncGet.TaskStageHandler.class.getSimpleName();
-
-            private AsyncGet.HttpUrl_To_Local_File m_httpUrl_to_local_file = null;
-            private AsyncGet.Task m_asyncgetfiletask = null;
-            private final Object m_asyncgetfiletask_sync_target = new Object();
-
-            public void set_asyncgetfiletask(final AsyncGet.Task asyncgetfiletask) {
-                synchronized (m_asyncgetfiletask_sync_target) {
-                    m_asyncgetfiletask =  asyncgetfiletask;
-                }
-            }
-            public AsyncGet.Task get_asyncgetfiletask() {
-                synchronized (m_asyncgetfiletask_sync_target) {
-                    return m_asyncgetfiletask;
-                }
-            }
-
-            private void set_httpUrl_to_local_file(@NonNull final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file) {
-                m_httpUrl_to_local_file = httpUrl_to_local_file;
-            }
-            public final AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
-                return m_httpUrl_to_local_file;
-            }
-
-            public abstract void onPreExecute();
-            public abstract void onChunkRead(Buffer sink, long bytesRead, long contentLength, boolean done) throws IOException;
-            public abstract void onCancelled(Exception exception);
-            public abstract void onPostExecute(Exception exception);
         }
 
         public static class Task extends AsyncTask<AsyncGet.HttpUrl_To_Local_File, Void, Exception> {
@@ -705,22 +617,15 @@ public class HTTP {
             }
         }
 
-        public static class RunnableTask extends Task implements Runnable {
+        public static class CallableTaskException extends Exception {
             final HttpUrl_To_Local_File url_to_local_file;
             final public HttpUrl_To_Local_File get_httpUrl_to_local_file() {
                 return url_to_local_file;
             }
 
-            public RunnableTask(@NonNull final HttpUrl_To_Local_File url_to_local_file, @NonNull final TaskStageHandler asyncgetfiletask_stage_handler) {
-                super(asyncgetfiletask_stage_handler);
+            public CallableTaskException(@NonNull final Exception e, @NonNull final HttpUrl_To_Local_File url_to_local_file) {
+                super(e);
                 this.url_to_local_file = url_to_local_file;
-                asyncgetfiletask_stage_handler.set_httpUrl_to_local_file(url_to_local_file);
-            }
-
-            @Override
-            public void run() {
-                this.onPreExecute();
-                this.onPostExecute(this.doInBackground(new HttpUrl_To_Local_File[]{url_to_local_file}));
             }
         }
 
@@ -739,8 +644,461 @@ public class HTTP {
             @Override
             public HttpUrl_To_Local_File call() throws Exception {
                 this.onPreExecute();
-                this.onPostExecute(this.doInBackground(new HttpUrl_To_Local_File[]{url_to_local_file}));
+                Exception e = this.doInBackground(new HttpUrl_To_Local_File[]{url_to_local_file});
+                this.onPostExecute(e);
+                if (e != null)
+                    throw new CallableTaskException(e, url_to_local_file);
                 return url_to_local_file;
+            }
+        }
+
+        public static class RemoteFileInvalidParameterException extends Exception {
+            public RemoteFileInvalidParameterException(String message) {
+                super(message);
+            }
+        }
+
+        public static class RemoteFile_SizeException extends Exception {
+            private final HttpUrl m_httpUrl;
+            public final HttpUrl get_httpurl() {
+                return m_httpUrl;
+            }
+            public RemoteFile_SizeException(final HttpUrl httpUrl) {
+                m_httpUrl = httpUrl;
+            }
+            public RemoteFile_SizeException(final HttpUrl httpUrl, final String msg) {
+                super(msg);
+                m_httpUrl = httpUrl;
+            }
+        }
+
+        public static class StageHandlerOnChunkRead_LocalFileAlreadyExistsException extends IOException {
+            private final AsyncGet.HttpUrl_To_Local_File m_httpUrl_to_local_file;
+            public final AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpUrl_to_local_file;
+            }
+            public StageHandlerOnChunkRead_LocalFileAlreadyExistsException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file) {
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+            public StageHandlerOnChunkRead_LocalFileAlreadyExistsException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
+                super(msg);
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+        }
+
+        public static class StageHandlerOnChunkRead_LocalFileCreateException extends IOException {
+            private final AsyncGet.HttpUrl_To_Local_File m_httpUrl_to_local_file;
+            public final AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpUrl_to_local_file;
+            }
+            public StageHandlerOnChunkRead_LocalFileCreateException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file) {
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+            public StageHandlerOnChunkRead_LocalFileCreateException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
+                super(msg);
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+        }
+
+        public static class StageHandlerOnChunkRead_GeneralIOException extends IOException {
+            private final AsyncGet.HttpUrl_To_Local_File m_httpUrl_to_local_file;
+            public final AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpUrl_to_local_file;
+            }
+            public StageHandlerOnChunkRead_GeneralIOException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file) {
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+            public StageHandlerOnChunkRead_GeneralIOException(final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file, final String msg) {
+                super(msg);
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+        }
+
+        public static abstract class TaskStageHandler {
+            private final static String TAG = "Utils.HTTP.AsyncGet" + AsyncGet.TaskStageHandler.class.getSimpleName();
+
+            private AsyncGet.HttpUrl_To_Local_File m_httpUrl_to_local_file = null;
+            private AsyncGet.Task m_asyncgetfiletask = null;
+            private final Object m_asyncgetfiletask_sync_target = new Object();
+
+            public void set_asyncgetfiletask(final AsyncGet.Task asyncgetfiletask) {
+                synchronized (m_asyncgetfiletask_sync_target) {
+                    m_asyncgetfiletask =  asyncgetfiletask;
+                }
+            }
+            public AsyncGet.Task get_asyncgetfiletask() {
+                synchronized (m_asyncgetfiletask_sync_target) {
+                    return m_asyncgetfiletask;
+                }
+            }
+
+            public void set_httpUrl_to_local_file(@NonNull final AsyncGet.HttpUrl_To_Local_File httpUrl_to_local_file) {
+                m_httpUrl_to_local_file = httpUrl_to_local_file;
+            }
+            public final AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+                return m_httpUrl_to_local_file;
+            }
+
+            public abstract void onPreExecute();
+            public abstract void onChunkRead(Buffer sink, long bytesRead, long contentLength, boolean done) throws IOException;
+            public abstract void onCancelled(Exception exception);
+            public abstract void onPostExecute(Exception exception);
+        }
+
+        public static class ExecutorService extends ThreadPoolExecutor {
+            private final String TAG = ExecutorService.class.getSimpleName();
+
+            private final LinkedBlockingQueue<Future<?>> observableDownloadQueue;
+
+            public static class DownloadQueueObserver {
+                protected String getTag() {
+                    return DownloadQueueObserver.class.getSimpleName();
+                }
+
+                private final Object queue_empty_monitor = new Object();
+                public final void waitUntilAllDownloadsFinish() {
+                    synchronized (queue_empty_monitor) {
+                        try {
+                            queue_empty_monitor.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                private LinkedBlockingQueue<HTTP.AsyncGet.HttpUrl_To_Local_File> successful_downloads = new LinkedBlockingQueue<>();
+                protected LinkedBlockingQueue<HTTP.AsyncGet.HttpUrl_To_Local_File> getSuccessfulDownloads() {
+                    return successful_downloads;
+                }
+
+                private LinkedBlockingQueue<HTTP.AsyncGet.CallableTaskException> failed_download_exceptions = new LinkedBlockingQueue<>();
+                protected LinkedBlockingQueue<HTTP.AsyncGet.CallableTaskException> getFailedDownloadExceptions() {
+                    return failed_download_exceptions;
+                }
+
+                public void onDownloadQueued(HttpUrl_To_Local_File httpUrl_to_local_file, int n_pending) {
+                    String url = httpUrl_to_local_file.get_url().toString();
+                    File f = httpUrl_to_local_file.get_file();
+                    String file_path = null;
+                    try {
+                        file_path = f.getCanonicalPath();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Log.d(
+                        getTag(),
+                        String.format(
+                            "onDownloadQueued: new download (task) of %s to local file %s has been queued - %d download tasks pending in queue",
+                            url,
+                            file_path,
+                            n_pending
+                        )
+                    );
+                }
+
+                public void onDownloadStarted(HttpUrl_To_Local_File httpUrl_to_local_file) {
+                    String url = httpUrl_to_local_file.get_url().toString();
+                    File f = httpUrl_to_local_file.get_file();
+                    String file_path = null;
+                    try {
+                        file_path = f.getCanonicalPath();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Log.d(
+                        getTag(),
+                        String.format(
+                            "onDownloadStarted: queued (task) download of %s to local file %s has started",
+                            url,
+                            file_path
+                        )
+                    );
+                }
+
+                public void onDownloaded(HttpUrl_To_Local_File httpUrl_to_local_file, int n_pending) {
+                    String url = httpUrl_to_local_file.get_url().toString();
+                    File f = httpUrl_to_local_file.get_file();
+                    String file_path = null;
+                    try {
+                        file_path = f.getCanonicalPath();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    boolean file_exists = f.exists();
+                    Log.d(
+                        getTag(),
+                        String.format(
+                            "onDownloaded: queued (task) download of %s to local file %s is COMPLETE - local file exists: %b; %d download tasks pending in queue",
+                            url,
+                            file_path,
+                            file_exists,
+                            n_pending
+                        )
+                    );
+                    successful_downloads.add(httpUrl_to_local_file);
+                }
+
+                public void onDownloadFailed(CallableTaskException e, int n_pending) {
+                    String
+                        s_url = "<failed to retrieve remote file url>",
+                        s_local_file = "<failed to retrieve local file path>";
+                    try {
+                        s_url = e.get_httpUrl_to_local_file().get_url().toString();
+                        s_local_file = e.get_httpUrl_to_local_file().get_file().getCanonicalPath();
+                    } catch (IOException e1) {}
+                    Log.d(
+                        getTag(),
+                        String.format(
+                            "onDownloadFailed: queued (task) download %s to %s failed with error: %s",
+                            s_url,
+                            s_local_file,
+                            e.getMessage(),
+                            n_pending
+                        )
+                    );
+                    failed_download_exceptions.add(e);
+                }
+
+                public void onAllDownloadsFinished() {
+                    successful_downloads.clear();
+                    failed_download_exceptions.clear();
+
+                    synchronized (queue_empty_monitor) {
+                        queue_empty_monitor.notifyAll();
+                    }
+                }
+            }
+            private final DownloadQueueObserver downloadQueueObserver;
+
+            public ExecutorService(@NonNull final RejectedExecutionHandler handler, final DownloadQueueObserver downloadQueueObserver) {
+                super(1, 1, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), handler);
+                this.downloadQueueObserver = downloadQueueObserver;
+                observableDownloadQueue = (downloadQueueObserver != null ? new LinkedBlockingQueue<>() : null);
+            }
+            public ExecutorService(@NonNull final RejectedExecutionHandler handler) {
+                this(handler, null);
+            }
+
+            @Override
+            public boolean prestartCoreThread() {
+                Log.d(TAG, String.format("prestartCoreThread"));
+                return super.prestartCoreThread();
+            }
+
+            @Override
+            public int prestartAllCoreThreads() {
+                Log.d(TAG, String.format("prestartAllCoreThreads"));
+                return super.prestartAllCoreThreads();
+            }
+
+            @NonNull
+            @Override
+            public <T> Future<T> submit(@NonNull Callable<T> callable) {
+                Log.d(TAG, String.format("submit - %s", callable.getClass().getCanonicalName()));
+                if (!(callable instanceof CallableTask))
+                    throw new ClassCastException(
+                        String.format(
+                            "%s is incompatible with %s - arg to submit() must be type %s",
+                            ExecutorService.class.getCanonicalName(),
+                            callable.getClass().getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                Future<T> future = null;
+                if (downloadQueueObserver != null) {
+                    observableDownloadQueue.add(super.submit(callable));
+                    downloadQueueObserver.onDownloadQueued(((CallableTask)callable).get_httpUrl_to_local_file(), observableDownloadQueue.size());
+                } else
+                    future = super.submit(callable);
+                return future;
+            }
+
+            @NonNull
+            @Override
+            public <T> Future<T> submit(@NonNull Runnable runnable, T t) {  //only support FutureTask wrapping CallableTask
+                Log.d(TAG, String.format("submit - %s", runnable.getClass().getCanonicalName()));
+                CallableTask callableTask = null;
+                if (!(runnable instanceof FutureTask)) {
+                    throw new ClassCastException(
+                        String.format(
+                            "%s is incompatible with %s - arg to submit() must be an instance of %s (wrapping %s)",
+                            ExecutorService.class.getCanonicalName(),
+                            runnable.getClass().getCanonicalName(),
+                            FutureTask.class.getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                } else {
+                    FutureTask ft = (FutureTask)runnable;
+                    Field f = null;
+                    try {
+                        f = ft.getClass().getDeclaredField("callable");
+                        f.setAccessible(true);
+                        try {callableTask = (CallableTask)f.get(ft);} catch (IllegalAccessException e0) {}
+                    } catch (NoSuchFieldException e1) {}
+                }
+                if (callableTask == null) {
+                    throw new ClassCastException(
+                        String.format(
+                            "%s must wrap %s instance but does not",
+                            FutureTask.class.getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                } else {
+                    Log.d(TAG, String.format("submit - instance of %s", callableTask.getClass().getCanonicalName()));
+                }
+                Future<T> future = null;
+                if (downloadQueueObserver != null) {
+                    observableDownloadQueue.add(super.submit(runnable, t));
+                    downloadQueueObserver.onDownloadQueued(callableTask.get_httpUrl_to_local_file(), observableDownloadQueue.size());
+                } else
+                    future = super.submit(runnable, t);
+                return future;
+            }
+
+            @NonNull
+            @Override
+            public Future<?> submit(@NonNull Runnable runnable) {
+                Log.d(TAG, String.format("submit - %s", runnable.getClass().getCanonicalName()));
+                CallableTask callableTask = null;
+                if (!(runnable instanceof FutureTask)) {
+                    throw new ClassCastException(
+                        String.format(
+                            "%s is incompatible with %s - arg to submit() must be an instance of %s (wrapping %s)",
+                            ExecutorService.class.getCanonicalName(),
+                            runnable.getClass().getCanonicalName(),
+                            FutureTask.class.getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                } else {
+                    FutureTask ft = (FutureTask)runnable;
+                    Field f = null;
+                    try {
+                        f = ft.getClass().getDeclaredField("callable");
+                        f.setAccessible(true);
+                        try {callableTask = (CallableTask)f.get(ft);} catch (IllegalAccessException e0) {}
+                    } catch (NoSuchFieldException e1) {}
+                }
+                if (callableTask == null) {
+                    throw new ClassCastException(
+                        String.format(
+                            "%s must wrap %s instance but does not",
+                            FutureTask.class.getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                } else {
+                    Log.d(TAG, String.format("submit - instance of %s", callableTask.getClass().getCanonicalName()));
+                }
+                Future<?> future = null;
+                if (downloadQueueObserver != null) {
+                    observableDownloadQueue.add(super.submit(runnable));
+                    downloadQueueObserver.onDownloadQueued(callableTask.get_httpUrl_to_local_file(), observableDownloadQueue.size());
+                } else
+                    future = super.submit(runnable);
+                return future;
+            }
+
+            @Override
+            public void execute(@NonNull Runnable runnable) {
+                CallableTask callableTask = null;
+                if (!(runnable instanceof FutureTask)) {
+                    throw new ClassCastException(
+                        String.format(
+                            "%s is incompatible with %s - arg to submit() must be an instance of %s (wrapping %s)",
+                            ExecutorService.class.getCanonicalName(),
+                            runnable.getClass().getCanonicalName(),
+                            FutureTask.class.getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                } else {
+                    FutureTask ft = (FutureTask)runnable;
+                    Field f = null;
+                    try {
+                        f = ft.getClass().getDeclaredField("callable");
+                        f.setAccessible(true);
+                        try {callableTask = (CallableTask)f.get(ft);} catch (IllegalAccessException e0) {}
+                    } catch (NoSuchFieldException e1) {}
+                }
+                if (callableTask == null) {
+                    throw new ClassCastException(
+                        String.format(
+                            "%s must wrap %s instance but does not",
+                            FutureTask.class.getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                } else {
+                    Log.d(TAG, String.format("execute - instance of %s", callableTask.getClass().getCanonicalName()));
+                }
+                super.execute(runnable);
+            }
+
+            @Override
+            protected void beforeExecute(Thread t, Runnable r) {
+                CallableTask callableTask = null;
+                if (!(r instanceof FutureTask)) {
+                    throw new ClassCastException(
+                        String.format(
+                            "%s is incompatible with %s - arg to submit() must be an instance of %s (wrapping %s)",
+                            ExecutorService.class.getCanonicalName(),
+                            r.getClass().getCanonicalName(),
+                            FutureTask.class.getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                } else {
+                    FutureTask ft = (FutureTask)r;
+                    Field f = null;
+                    try {
+                        f = ft.getClass().getDeclaredField("callable");
+                        f.setAccessible(true);
+                        try {callableTask = (CallableTask)f.get(ft);} catch (IllegalAccessException e0) {}
+                    } catch (NoSuchFieldException e1) {}
+                }
+                if (callableTask == null) {
+                    throw new ClassCastException(
+                        String.format(
+                            "%s must wrap %s instance but does not",
+                            FutureTask.class.getCanonicalName(),
+                            CallableTask.class.getCanonicalName()
+                        )
+                    );
+                } else {
+//                    Log.d(TAG, String.format("beforeExecute - instance of %s", callableTask.getClass().getCanonicalName()));
+                }
+                if (downloadQueueObserver != null)
+                    downloadQueueObserver.onDownloadStarted(callableTask.get_httpUrl_to_local_file());
+                super.beforeExecute(t, r);
+            }
+
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                super.afterExecute(r, t);
+                if (downloadQueueObserver != null) {
+                    Future<?> queued_download = observableDownloadQueue.poll();
+                    int n_pending = observableDownloadQueue.size();
+                    try {
+                        HttpUrl_To_Local_File url_to_local_file = (HttpUrl_To_Local_File)queued_download.get();
+                        downloadQueueObserver.onDownloaded(url_to_local_file, n_pending);
+                    } catch (InterruptedException e) {
+                        downloadQueueObserver.onDownloadFailed((CallableTaskException)e.getCause(), n_pending);
+                    } catch (ExecutionException e) {
+                        downloadQueueObserver.onDownloadFailed((CallableTaskException)e.getCause(), n_pending);
+                    } finally {
+                        if (n_pending == 0)
+                            downloadQueueObserver.onAllDownloadsFinished();
+                    }
+                }
+            }
+
+            @Override
+            protected void terminated() {
+                Log.d(TAG, String.format("terminated"));
+                super.terminated();
             }
         }
 
@@ -876,5 +1234,4 @@ public class HTTP {
             }
         }
     }
-
 }

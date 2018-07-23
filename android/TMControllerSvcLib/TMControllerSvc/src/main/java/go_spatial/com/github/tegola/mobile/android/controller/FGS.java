@@ -18,7 +18,6 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -38,7 +37,6 @@ import go_spatial.com.github.tegola.mobile.android.controller.utils.Files;
 import go_spatial.com.github.tegola.mobile.android.controller.utils.HTTP;
 
 import static android.support.v4.app.NotificationCompat.PRIORITY_DEFAULT;
-import static android.support.v4.app.NotificationCompat.PRIORITY_MIN;
 
 
 public class FGS extends Service {
@@ -207,7 +205,7 @@ public class FGS extends Service {
 
         //create geopackage bundle dir
         try {
-            File f_gpkg_root_dir = GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
+            File f_gpkg_root_dir = GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(getApplicationContext());
             if (!f_gpkg_root_dir.exists()) {
                 boolean created = f_gpkg_root_dir.mkdirs();
                 if (created) {
@@ -531,7 +529,7 @@ public class FGS extends Service {
                     , f_gpkg_bundle__toml = null
                     , f_gpkg_bundle__gpkg = null;
             try {
-                f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
+                f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(getApplicationContext());
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
                 throw new FileNotFoundException("geopcackage-bundle root directory not found");

@@ -734,7 +734,7 @@ public class MainActivity
         //1. enumerate geopackage-bundles and display results in spinner (drop-down)
         File f_gpkg_bundles_root_dir = null;
         try {
-            f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
+            f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(getApplicationContext());
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return;
@@ -787,7 +787,7 @@ public class MainActivity
         //1. enumerate geopackage-bundle config files and display results in spinner (drop-down)
         File f_gpkg_bundle_dir = null;
         try {
-            f_gpkg_bundle_dir = new File(GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext()).getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
+            f_gpkg_bundle_dir = new File(GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(getApplicationContext()).getPath(), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return;
@@ -1145,7 +1145,7 @@ public class MainActivity
                 //now update UI based on existence of current local geopackage-bundle selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue())
                 File f_gpkg_bundles_root_dir = null;
                 try {
-                    f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext());
+                    f_gpkg_bundles_root_dir = GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(getApplicationContext());
                     File f_gpkg_bundle = new File(f_gpkg_bundles_root_dir, SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
                     //and same MVT srvr control (start/stop) button
                     m_btn_srvr_ctrl.setEnabled(f_gpkg_bundle.exists());
@@ -1225,7 +1225,7 @@ public class MainActivity
                 //now update UI based on existence of current local geopackage-bundle config selection setting (SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE_PROPS__SELECTION.getValue())
                 File f_gpkg_bundle_dir = null;
                 try {
-                    f_gpkg_bundle_dir = new File(GPKG.Local.F_GPKG_DIR.getInstance(getApplicationContext()), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
+                    f_gpkg_bundle_dir = new File(GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(getApplicationContext()), SharedPrefsManager.STRING_SHARED_PREF.TM_PROVIDER__GPKG_BUNDLE__SELECTION.getValue());
                     File[] f_gpkg_bundle_props = f_gpkg_bundle_dir.listFiles(new FilenameFilter() {
                         @Override
                         public boolean accept(File dir, String name) {

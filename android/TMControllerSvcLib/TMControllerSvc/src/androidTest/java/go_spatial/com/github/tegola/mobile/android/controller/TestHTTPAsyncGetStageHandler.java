@@ -55,7 +55,9 @@ public class TestHTTPAsyncGetStageHandler extends HTTP.AsyncGet.TaskStageHandler
 
     @Override
     public void onChunkRead(Buffer sink, long bytesRead, long contentLength, boolean done) throws IOException {
-        Log.d(TAG, String.format("onChunkRead - %d bytesRead, %s contentLength", bytesRead, contentLength));
+        if (bytesRead > -1) {
+            Log.d(TAG, String.format("onChunkRead: %d bytesRead, %s contentLength", bytesRead, contentLength));
+        }
 
         try {
             if (!done) {

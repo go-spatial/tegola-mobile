@@ -155,7 +155,7 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int id) {
                                 File f_gpkg_root_dir = null;
                                 try {
-                                    f_gpkg_root_dir = new File(GPKG.Local.F_GPKG_DIR.getInstance(ManageGpkgBundlesActivity.this.getApplicationContext()).getPath());
+                                    f_gpkg_root_dir = new File(GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(ManageGpkgBundlesActivity.this.getApplicationContext()).getPath());
                                     File[] f_gpkg_bundles = f_gpkg_root_dir.listFiles();
                                     Log.d(TAG, "OnClickListener__m_btn_gpkg_bundle__uninstall.AlertDialog.PositiveButton.onClick: " + f_gpkg_root_dir.getPath() + " contains " + f_gpkg_bundles.length + " geopackage-bundles");
                                     for (File f_gpkg_bundle : f_gpkg_bundles) {
@@ -260,7 +260,7 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
                         m_lv_gpkg_bundles__installed__items.clear();
 
                         //add installed geopackage bundles (directories) to m_lv_gpk_bundles__installed__dataadapter
-                        File f_gpkg_root_dir = new File(GPKG.Local.F_GPKG_DIR.getInstance(ManageGpkgBundlesActivity.this.getApplicationContext()).getPath());
+                        File f_gpkg_root_dir = new File(GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(ManageGpkgBundlesActivity.this.getApplicationContext()).getPath());
                         File[] f_gpkg_root_dir_files = f_gpkg_root_dir.listFiles();
                         Log.d(TAG, "RefeshList_Runnable.run: " + f_gpkg_root_dir.getPath() + " contains " + f_gpkg_root_dir_files.length + " geopackage-bundles");
                         for (File f_gpkg_root_dir_file : f_gpkg_root_dir_files) {
@@ -301,7 +301,7 @@ public class ManageGpkgBundlesActivity extends AppCompatActivity {
         long hash = 0;
         File f_gpkg_root_dir = null;
         try {
-            f_gpkg_root_dir = new File(GPKG.Local.F_GPKG_DIR.getInstance(ManageGpkgBundlesActivity.this.getApplicationContext()).getPath());
+            f_gpkg_root_dir = new File(GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(ManageGpkgBundlesActivity.this.getApplicationContext()).getPath());
             File[] f_gpkg_bundles = f_gpkg_root_dir.listFiles();
             Log.d(TAG, "hash_gpkgs: " + f_gpkg_root_dir.getPath() + " contains " + f_gpkg_bundles.length + " geopackage-bundles");
             for (File f_gpkg_bundle : f_gpkg_bundles) {

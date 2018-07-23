@@ -1,98 +1,310 @@
 package go_spatial.com.github.tegola.mobile.android.controller;
 
+import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
 
+import go_spatial.com.github.tegola.mobile.android.controller.utils.Files;
 import go_spatial.com.github.tegola.mobile.android.controller.utils.HTTP;
 import okhttp3.HttpUrl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class HTTPUtilsTest {
     private final String TAG = HTTPUtilsTest.class.getSimpleName();
 
+    private class RunnableTask extends HTTP.AsyncGet.Task implements Runnable {
+        final HTTP.AsyncGet.HttpUrl_To_Local_File url_to_local_file;
+        final public HTTP.AsyncGet.HttpUrl_To_Local_File get_httpUrl_to_local_file() {
+            return url_to_local_file;
+        }
+
+        public RunnableTask(@NonNull final HTTP.AsyncGet.HttpUrl_To_Local_File url_to_local_file, @NonNull final HTTP.AsyncGet.TaskStageHandler asyncgetfiletask_stage_handler) {
+            super(asyncgetfiletask_stage_handler);
+            this.url_to_local_file = url_to_local_file;
+            asyncgetfiletask_stage_handler.set_httpUrl_to_local_file(url_to_local_file);
+        }
+
+        @Override
+        public void run() {
+            this.onPreExecute();
+            this.onPostExecute(this.doInBackground(new HTTP.AsyncGet.HttpUrl_To_Local_File[]{url_to_local_file}));
+        }
+    }
+
+    private String build_local_gpkg_bundle_path_string(final String s_gpkg_bundle) throws PackageManager.NameNotFoundException, IOException {
+        return new StringBuilder()
+                .append(GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(InstrumentationRegistry.getContext()).getPath())
+                .append(File.separator)
+                .append(s_gpkg_bundle)
+                .toString();
+    }
+
+
     @Test
-    public void asyncget_via_executor() throws Exception {
-        HTTPAsyncGetExecutorService exec_svc = new HTTPAsyncGetExecutorService(new RejectedExecutionHandler() {
-            @Override
-            public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
-                HTTP.AsyncGet.RunnableTask asynchttpgetrunnabletask = (HTTP.AsyncGet.RunnableTask)runnable;
-                Log.d(TAG, String.format("rejectedExecution - httprequest: %s", asynchttpgetrunnabletask.get_http_get_call().request().toString()));
-            }
-        });
+    public void asyncget_via_executor__incompatible_tasks() throws Exception {
+        TestHTTPAsyncGetQueuedDownloadObserver queuedDownloadObserver = new TestHTTPAsyncGetQueuedDownloadObserver();
+        HTTP.AsyncGet.ExecutorService exec_svc = new HTTP.AsyncGet.ExecutorService(
+            (runnable, threadPoolExecutor) -> {
+                Log.d(TAG, String.format("rejectedExecution - %s", runnable.getClass().getCanonicalName()));
+            },
+            queuedDownloadObserver
+        );
+
+        String s_url_root = "https://sacontreras.github.io/tegola-mobile-gpkg-bundle";
 
         LinkedHashMap<String, ArrayList<String>> gpkg_props_map = new LinkedHashMap<>();
         gpkg_props_map.put("athens", new ArrayList<String>(){{add("default.properties"); add("large-layers-partitioned.properties"); add("test-minimal.properties");}});
         gpkg_props_map.put("harare", new ArrayList<String>(){{add("default.properties");}});
         assertEquals(2, gpkg_props_map.size());
 
-        ArrayList<Future<?>> al_future_httpasyncget = new ArrayList<>();
         if (gpkg_props_map.size() > 0) {
-            Future<?> future_httpasyncget = null;
-            String s_url_root = "https://sacontreras.github.io/tegola-mobile-gpkg-bundle";
-
-            File files_dir = InstrumentationRegistry.getContext().getFilesDir();
-
-            Log.d(TAG, String.format("asyncget_via_executor: starting queued downloads..."));
+            Exception caught_exception = null;
             for (String s_gpkg : gpkg_props_map.keySet()) {
                 for (String s_gpkg_file : gpkg_props_map.get(s_gpkg)) {
-                    future_httpasyncget = exec_svc.submit(
+                    caught_exception = null;
+                    try {
+                        exec_svc.submit(
+                            new RunnableTask(
+                                new HTTP.AsyncGet.HttpUrl_To_Local_File(
+                                    HttpUrl.parse(
+                                        String.format(
+                                            "%s/%s/%s",
+                                            s_url_root,
+                                            s_gpkg,
+                                            s_gpkg_file
+                                        )
+                                    ),
+                                    new File(
+                                        build_local_gpkg_bundle_path_string(s_gpkg),
+                                        s_gpkg_file
+                                    )
+                                ),
+                                new TestHTTPAsyncGetStageHandler()
+                            )
+                        );
+                    } catch (ClassCastException e) {
+                        caught_exception = e;
+                        Log.d(TAG, String.format("asyncget_via_executor__incompatible_tasks - caught expected exception: %s", e.getMessage()));
+                    }
+                    assertTrue(caught_exception != null && (caught_exception instanceof ClassCastException));
+                }
+            }
+        }
+
+        Log.d(
+            TAG,
+            String.format(
+                "asyncget_via_executor__incompatible_tasks: shutting down HTTP.AsyncGet.ExecutorService"
+            )
+        );
+        exec_svc.shutdown();
+    }
+
+    @Test
+    public void asyncget_via_executor__total_success() throws Exception {
+        TestHTTPAsyncGetQueuedDownloadObserver queuedDownloadObserver = new TestHTTPAsyncGetQueuedDownloadObserver();
+        HTTP.AsyncGet.ExecutorService exec_svc = new HTTP.AsyncGet.ExecutorService(
+            (runnable, threadPoolExecutor) -> {
+                Log.d(TAG, String.format("rejectedExecution - %s", runnable.getClass().getCanonicalName()));
+            },
+            queuedDownloadObserver
+        );
+
+        String s_url_root = "https://sacontreras.github.io/tegola-mobile-gpkg-bundle";
+
+        LinkedHashMap<String, ArrayList<String>> gpkg_props_map = new LinkedHashMap<>();
+        gpkg_props_map.put("athens", new ArrayList<String>(){{add("default.properties"); add("large-layers-partitioned.properties"); add("test-minimal.properties");}});
+        gpkg_props_map.put("harare", new ArrayList<String>(){{add("default.properties");}});
+        assertEquals(2, gpkg_props_map.size());
+
+        if (gpkg_props_map.size() > 0) {
+            File files_dir = InstrumentationRegistry.getContext().getFilesDir();
+
+            Log.d(TAG, String.format("asyncget_via_executor__total_success: starting queued downloads..."));
+            for (String s_gpkg : gpkg_props_map.keySet()) {
+                for (String s_gpkg_file : gpkg_props_map.get(s_gpkg)) {
+                    exec_svc.submit(
                         new HTTP.AsyncGet.CallableTask(
                             new HTTP.AsyncGet.HttpUrl_To_Local_File(
-                                HttpUrl.parse(String.format("%s/%s/%s", s_url_root, s_gpkg, s_gpkg_file)),
-                                new File(files_dir, String.format("%s-%s", s_gpkg, s_gpkg_file))
+                                HttpUrl.parse(
+                                    String.format(
+                                        "%s/%s/%s",
+                                        s_url_root,
+                                        s_gpkg, s_gpkg_file
+                                    )
+                                ),
+                                new File(
+                                    build_local_gpkg_bundle_path_string(s_gpkg),
+                                    s_gpkg_file
+                                )
                             ),
                             new TestHTTPAsyncGetStageHandler()
                         )
                     );
-                    al_future_httpasyncget.add(future_httpasyncget);
                 }
             }
-            assertEquals(4, al_future_httpasyncget.size());
 
-            //now wait for queued downloads to complete
-            for (Future<?> queued_download : al_future_httpasyncget) {
-                HTTP.AsyncGet.HttpUrl_To_Local_File url_to_local_file = (HTTP.AsyncGet.HttpUrl_To_Local_File)queued_download.get();
-                String url = url_to_local_file.get_url().toString();
-                File f = url_to_local_file.get_file();
-                String file_path = f.getCanonicalPath();
-                boolean file_exists = f.exists();
-                Log.d(
-                    TAG,
-                    String.format(
-                        "asyncget_via_executor: queued (task) download of %s to local file %s is COMPLETE - local file exists: %b",
-                        url,
-                        file_path,
-                        file_exists
-                    )
-                );
-                assertEquals(true, file_exists);
+            Log.d(TAG, String.format("asyncget_via_executor__total_success: awaiting queued downloads to complete..."));
+            queuedDownloadObserver.waitUntilAllDownloadsFinish();
+            Log.d(TAG, String.format("asyncget_via_executor__total_success: queuedDownloadObserver.queue_empty_monitor notified"));
 
-                if (file_exists) {
-                    file_exists = !f.delete();
-                    Log.d(
-                        TAG,
-                        String.format(
-                            "asyncget_via_executor: AFTER queued (task) download of %s to local file %s, attempt to delete local file - local file exists: %b",
-                            url,
-                            file_path,
-                            file_exists
+            //delete gpkg-bundle dir (and all files/subdirectories within it)
+            Log.d(TAG, String.format("asyncget_via_executor__total_success: removing root geopackage-bundle..."));
+            File dir_gpkg_bundle_root = null;
+            try {
+                dir_gpkg_bundle_root = GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(InstrumentationRegistry.getContext());
+                Log.d(TAG, String.format("asyncget_via_executor__total_success: removing root geopackage-bundle: %s", dir_gpkg_bundle_root.getCanonicalPath()));
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            assertTrue(dir_gpkg_bundle_root.exists());
+            try {
+                Files.delete(dir_gpkg_bundle_root);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            assertTrue(!dir_gpkg_bundle_root.exists());
+        }
+
+        Log.d(TAG, String.format("asyncget_via_executor__total_success: shutting down HTTP.AsyncGet.ExecutorService"));
+        exec_svc.shutdown();
+    }
+
+    @Test
+    public void asyncget_via_executor__total_failure() throws Exception {
+        TestHTTPAsyncGetQueuedDownloadObserver queuedDownloadObserver = new TestHTTPAsyncGetQueuedDownloadObserver();
+        HTTP.AsyncGet.ExecutorService exec_svc = new HTTP.AsyncGet.ExecutorService(
+            (runnable, threadPoolExecutor) -> {
+                Log.d(TAG, String.format("rejectedExecution - %s", runnable.getClass().getCanonicalName()));
+            },
+            queuedDownloadObserver
+        );
+
+        String s_url_root = "https://sacontreras.github.io/tegola-mobile-gpkg"; //bad url
+
+        LinkedHashMap<String, ArrayList<String>> gpkg_props_map = new LinkedHashMap<>();
+        gpkg_props_map.put("athens", new ArrayList<String>(){{add("default.properties"); add("large-layers-partitioned.properties"); add("test-minimal.properties");}});
+        gpkg_props_map.put("harare", new ArrayList<String>(){{add("default.properties");}});
+        assertEquals(2, gpkg_props_map.size());
+
+        if (gpkg_props_map.size() > 0) {
+            File files_dir = InstrumentationRegistry.getContext().getFilesDir();
+
+            Log.d(TAG, String.format("asyncget_via_executor__total_failure: starting queued downloads..."));
+            for (String s_gpkg : gpkg_props_map.keySet()) {
+                for (String s_gpkg_file : gpkg_props_map.get(s_gpkg)) {
+                    exec_svc.submit(
+                        new HTTP.AsyncGet.CallableTask(
+                            new HTTP.AsyncGet.HttpUrl_To_Local_File(
+                                HttpUrl.parse(
+                                    String.format(
+                                        "%s/%s/%s",
+                                        s_url_root,
+                                        s_gpkg, s_gpkg_file
+                                    )
+                                ),
+                                new File(
+                                    build_local_gpkg_bundle_path_string(s_gpkg),
+                                    s_gpkg_file
+                                )
+                            ),
+                            new TestHTTPAsyncGetStageHandler()
                         )
                     );
-                    assertEquals(false, file_exists);
                 }
             }
 
-            exec_svc.shutdown();
+            Log.d(TAG, String.format("asyncget_via_executor__total_failure: awaiting queued downloads to complete..."));
+            queuedDownloadObserver.waitUntilAllDownloadsFinish();
+            Log.d(TAG, String.format("asyncget_via_executor__total_failure: queuedDownloadObserver.queue_empty_monitor notified"));
         }
+
+        Log.d(TAG, String.format("asyncget_via_executor__total_failure: shutting down HTTP.AsyncGet.ExecutorService"));
+        exec_svc.shutdown();
+    }
+
+    @Test
+    public void asyncget_via_executor__partial_success_failure() throws Exception {
+        TestHTTPAsyncGetQueuedDownloadObserver queuedDownloadObserver = new TestHTTPAsyncGetQueuedDownloadObserver();
+        HTTP.AsyncGet.ExecutorService exec_svc = new HTTP.AsyncGet.ExecutorService(
+            (runnable, threadPoolExecutor) -> {
+                Log.d(TAG, String.format("rejectedExecution - %s", runnable.getClass().getCanonicalName()));
+            },
+            queuedDownloadObserver
+        );
+
+        String s_url_root = "https://sacontreras.github.io/tegola-mobile-gpkg-bundle";
+
+        LinkedHashMap<String, ArrayList<String>> gpkg_props_map = new LinkedHashMap<>();
+        gpkg_props_map.put("athens", new ArrayList<String>(){{add("default.properties"); add("large-layers-partitioned.properties"); add("test-minimal.properties");}});
+        gpkg_props_map.put("harare", new ArrayList<String>(){{add("default.properties");add("this-file-does-not-exist.properties");}});
+        assertEquals(2, gpkg_props_map.size());
+
+        if (gpkg_props_map.size() > 0) {
+            File files_dir = InstrumentationRegistry.getContext().getFilesDir();
+
+            Log.d(TAG, String.format("asyncget_via_executor__partial_success_failure: starting queued downloads..."));
+            for (String s_gpkg : gpkg_props_map.keySet()) {
+                for (String s_gpkg_file : gpkg_props_map.get(s_gpkg)) {
+                    exec_svc.submit(
+                        new HTTP.AsyncGet.CallableTask(
+                            new HTTP.AsyncGet.HttpUrl_To_Local_File(
+                                HttpUrl.parse(
+                                    String.format(
+                                        "%s/%s/%s",
+                                        s_url_root,
+                                        s_gpkg, s_gpkg_file
+                                    )
+                                ),
+                                new File(
+                                    build_local_gpkg_bundle_path_string(s_gpkg),
+                                    s_gpkg_file
+                                )
+                            ),
+                            new TestHTTPAsyncGetStageHandler()
+                        )
+                    );
+                }
+            }
+
+            Log.d(TAG, String.format("asyncget_via_executor__partial_success_failure: awaiting queued downloads to complete..."));
+            queuedDownloadObserver.waitUntilAllDownloadsFinish();
+            Log.d(TAG, String.format("asyncget_via_executor__partial_success_failure: queuedDownloadObserver.queue_empty_monitor notified"));
+
+            //delete gpkg-bundle dir (and all files/subdirectories within it)
+            Log.d(TAG, String.format("asyncget_via_executor__partial_success_failure: removing root geopackage-bundle..."));
+            File dir_gpkg_bundle_root = null;
+            try {
+                dir_gpkg_bundle_root = GPKG.Local.F_GPKG_BUNDLE_ROOT_DIR.getInstance(InstrumentationRegistry.getContext());
+                Log.d(TAG, String.format("asyncget_via_executor__partial_success_failure: removing root geopackage-bundle: %s", dir_gpkg_bundle_root.getCanonicalPath()));
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            assertTrue(dir_gpkg_bundle_root.exists());
+            try {
+                Files.delete(dir_gpkg_bundle_root);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            assertTrue(!dir_gpkg_bundle_root.exists());
+        }
+
+        Log.d(TAG, String.format("asyncget_via_executor__partial_success_failure: shutting down HTTP.AsyncGet.ExecutorService"));
+        exec_svc.shutdown();
     }
 }
+

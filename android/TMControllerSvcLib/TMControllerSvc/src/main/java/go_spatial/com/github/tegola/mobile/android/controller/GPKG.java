@@ -11,9 +11,9 @@ import go_spatial.com.github.tegola.mobile.android.controller.utils.Files;
 
 public class GPKG {
     public static class Local {
-        public static class F_GPKG_DIR extends File {
-            private static Local.F_GPKG_DIR m_this = null;
-            private F_GPKG_DIR(@NonNull final Context context) throws PackageManager.NameNotFoundException, IOException {
+        public static class F_GPKG_BUNDLE_ROOT_DIR extends File {
+            private static F_GPKG_BUNDLE_ROOT_DIR m_this = null;
+            private F_GPKG_BUNDLE_ROOT_DIR(@NonNull final Context context) throws PackageManager.NameNotFoundException, IOException {
                 super(
                     Boolean.valueOf(
                         Files.getAssetPropsFileProperty(
@@ -25,9 +25,9 @@ public class GPKG {
                     , Constants.Strings.GPKG_BUNDLE.SUBDIR
                 );
             }
-            public static Local.F_GPKG_DIR getInstance(@NonNull final Context context) throws PackageManager.NameNotFoundException, IOException {
+            public static F_GPKG_BUNDLE_ROOT_DIR getInstance(@NonNull final Context context) throws PackageManager.NameNotFoundException, IOException {
                 if (m_this == null)
-                    m_this = new Local.F_GPKG_DIR(context);
+                    m_this = new F_GPKG_BUNDLE_ROOT_DIR(context);
                 return m_this;
             }
         }
