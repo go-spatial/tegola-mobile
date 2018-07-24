@@ -17,7 +17,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mapbox.android.telemetry.MapboxTelemetry;
 import com.mapbox.android.telemetry.TelemetryEnabler;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -559,8 +561,6 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
         //disable mbgl telemetry
         Log.d(TAG, "(fragment) onCreateView: disabling mb telemetry");
         TelemetryEnabler.updateTelemetryState(TelemetryEnabler.State.DISABLED);
-        Telemetry.initialize();
-        Telemetry.disableOnUserRequest();
 
         mapView.getMapAsync(m_OnMapReadyCallback);
         Log.d(TAG, "(fragment) onCreateView: setting mbglstyle url from tegolaCapabilities.parsed.maps[0].mbgl_style_json_url: " + tegolaCapabilities.parsed.maps[0].mbgl_style_json_url);

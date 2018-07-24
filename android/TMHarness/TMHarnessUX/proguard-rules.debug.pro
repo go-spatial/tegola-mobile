@@ -86,5 +86,12 @@
 -keep class go_spatial.com.github.tegola.mobile.android.controller.Exceptions$NativeSignalException
 #native/JNI related - END
 
--keep class com.mapbox.geojson.** { *; }
+-keep,includedescriptorclasses class com.mapbox.geojson.** { *; }
 -dontwarn com.mapbox.geojson.**
+
+-keep class com.github.aakira.expandablelayout.ExpandableLayoutListener
+-keep class okio.BufferedSink
+-keep class android.arch.lifecycle.**
+-keep class com.mapbox.android.core.location.LocationEnginePriority
+
+-keep,includedescriptorclasses class com.google.gson.** { *; }
