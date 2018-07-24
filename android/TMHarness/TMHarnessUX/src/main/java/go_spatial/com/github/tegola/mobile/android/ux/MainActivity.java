@@ -72,6 +72,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import go_spatial.com.github.tegola.mobile.android.controller.ClientAPI;
 import go_spatial.com.github.tegola.mobile.android.controller.Exceptions;
@@ -147,12 +148,50 @@ public class MainActivity
     private CustomSpinner m_spinner_val_remote_tile_server = null;
     private final ArrayList<String> m_spinner_val_remote_tile_server__items = new ArrayList<String>();
     private CustomSpinner.Adapter m_spinner_val_remote_tile_server__dataadapter = null;
-    private Button m_btn_stream_tiles = null;
+    private Button m_btn_stream_tiles_from_remote = null;
 
     private final MBGLFragment mb_frag = new MBGLFragment();
 
     private ClientAPI.Client m_controllerClient = null;
     private boolean m_controller_running = false;
+
+    private enum MAPVIEW_STATE {
+        STREAM_CLOSED,
+        OPENING_STREAM__REMOTE,
+        STREAMING__REMOTE__DRAWER_OPEN,
+        STREAMING__REMOTE__DRAWER_CLOSED,
+        OPENING_STREAM__LOCAL,
+        STREAMING__LOCAL__DRAWER_OPEN,
+        STREAMING__LOCAL__DRAWER_CLOSED
+        ;
+
+        public static HashMap<String, MAPVIEW_STATE> name_map = new HashMap<String, MAPVIEW_STATE>() { {
+                put(STREAM_CLOSED.name(), STREAM_CLOSED);
+                put(OPENING_STREAM__REMOTE.name(), OPENING_STREAM__REMOTE);
+                put(STREAMING__REMOTE__DRAWER_OPEN.name(), STREAMING__REMOTE__DRAWER_OPEN);
+                put(STREAMING__REMOTE__DRAWER_CLOSED.name(), STREAMING__REMOTE__DRAWER_CLOSED);
+                put(OPENING_STREAM__LOCAL.name(), OPENING_STREAM__LOCAL);
+                put(STREAMING__LOCAL__DRAWER_OPEN.name(), STREAMING__LOCAL__DRAWER_OPEN);
+                put(STREAMING__LOCAL__DRAWER_CLOSED.name(), STREAMING__LOCAL__DRAWER_CLOSED);
+            }
+        };
+
+        public static HashMap<Integer, MAPVIEW_STATE> ordinal_map = new HashMap<Integer, MAPVIEW_STATE>() { {
+                put(STREAM_CLOSED.ordinal(), STREAM_CLOSED);
+                put(OPENING_STREAM__REMOTE.ordinal(), OPENING_STREAM__REMOTE);
+                put(STREAMING__REMOTE__DRAWER_OPEN.ordinal(), STREAMING__REMOTE__DRAWER_OPEN);
+                put(STREAMING__REMOTE__DRAWER_CLOSED.ordinal(), STREAMING__REMOTE__DRAWER_CLOSED);
+                put(OPENING_STREAM__LOCAL.ordinal(), OPENING_STREAM__LOCAL);
+                put(STREAMING__LOCAL__DRAWER_OPEN.ordinal(), STREAMING__LOCAL__DRAWER_OPEN);
+                put(STREAMING__LOCAL__DRAWER_CLOSED.ordinal(), STREAMING__LOCAL__DRAWER_CLOSED);
+            }
+        };
+    }
+    private volatile MAPVIEW_STATE mvstate = MAPVIEW_STATE.STREAM_CLOSED;
+
+    private final String FRAG_DRAWER_CONTENT = "FRAG_DRAWER_CONTENT";
+    private final String SAVE_INSTANCE_ARG__CTRLR_RUNNING = "SAVE_INSTANCE_ARG__CTRLR_RUNNING";
+    private final String SAVE_INSTANCE_ARG__MAPVIEW_STATE = "SAVE_INSTANCE_ARG__MAPVIEW_STATE";
 
 //    private DriveId m_google_drive_id;
 //    private final class MyGoogleApiClientCallbacks implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -205,15 +244,6 @@ public class MainActivity
 //        }
 //    }
 //    private MyGoogleApiClientCallbacks m_google_api_callbacks = null;
-
-
-    private final String SAVE_INSTANCE_ARG__CTRLR_RUNNING = "SAVE_INSTANCE_ARG__CTRLR_RUNNING";
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        Log.d(TAG, "onSaveInstanceState: outState.putBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, " + m_controller_running + ")");
-        outState.putBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, m_controller_running);
-        super.onSaveInstanceState(outState);
-    }
 
     //credit to: https://stackoverflow.com/questions/16754305/full-width-navigation-drawer?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
     private void fixMinDrawerMargin(DrawerLayout drawerLayout) {
@@ -285,7 +315,7 @@ public class MainActivity
 
         m_sect__remote_srvr_nfo = findViewById(R.id.sect__remote_srvr_nfo);
         m_spinner_val_remote_tile_server = (CustomSpinner)findViewById(R.id.spinner_val_remote_tile_server);
-        m_btn_stream_tiles = (Button)findViewById(R.id.btn_stream_tiles);
+        m_btn_stream_tiles_from_remote = (Button)findViewById(R.id.btn_stream_tiles_from_remote);
 
         //set up associated UI objects auxiliary objects if any - e.g. TAGs and data adapters
         m_spinner_val_local_config__dataadapter = new CustomSpinner.Adapter(this, m_spinner_val_local_config__items);
@@ -406,9 +436,9 @@ public class MainActivity
         m_spinner_val_remote_tile_server.setOnItemSelectedListener(OnItemSelectedListener__m_spinner_val_remote_tile_server);
         m_btn_srvr_ctrl.setOnClickListener(OnClickListener__m_btn_srvr_ctrl);
 
-        m_btn_stream_tiles.setOnClickListener(
+        m_btn_stream_tiles_from_remote.setOnClickListener(
             v -> {
-                if (m_btn_stream_tiles.getText().toString().compareTo(getString(R.string.open_tile_stream)) == 0) {
+                if (m_btn_stream_tiles_from_remote.getText().toString().compareTo(getString(R.string.open_tile_stream)) == 0) {//cheap way for state control - state: STREAM_CLOSED
                     String
                         root_url = SharedPrefsManager.STRING_SHARED_PREF.TM_TILE_SOURCE__REMOTE.getValue(),
                         endpoint = "/capabilities";
@@ -420,9 +450,10 @@ public class MainActivity
                     final String final_root_url = root_url, final_endpoint = endpoint, final_url = final_root_url + final_endpoint;
                     //validate url first!
                     if (HTTP.isValidUrl(final_url)) {
-                        Log.d(TAG, "m_btn_stream_tiles.onClick: root_url==\"" + final_root_url + "\"; endpoint==\"" + final_endpoint + "\"");
+                        Log.d(TAG, "m_btn_stream_tiles_from_remote.onClick: root_url==\"" + final_root_url + "\"; endpoint==\"" + final_endpoint + "\"");
                         if (!root_url.isEmpty() && !endpoint.isEmpty()) {
-                            Log.d(TAG, "m_btn_stream_tiles.onClick: requesting capabilities from " + final_root_url);
+                            Log.d(TAG, "m_btn_stream_tiles_from_remote.onClick: requesting capabilities from " + final_root_url);
+                            mvstate = MAPVIEW_STATE.OPENING_STREAM__REMOTE;
                             new Handler().postDelayed(
                                 () -> m_controllerClient.mvt_server__rest_api__get_json(
                                     final_root_url,
@@ -433,6 +464,7 @@ public class MainActivity
                             );
                         }
                     } else {
+                        mvstate = MAPVIEW_STATE.STREAM_CLOSED;
                         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.alert_dialog));
                         alertDialogBuilder.setTitle("Cannot fetch from remote tile server!");
                         alertDialogBuilder
@@ -453,11 +485,11 @@ public class MainActivity
                     }
                 } else {
                     mbgl_map_stop();
-                    m_btn_stream_tiles.setText(getString(R.string.open_tile_stream));
+                    mvstate = MAPVIEW_STATE.STREAM_CLOSED;
+                    m_btn_stream_tiles_from_remote.setText(getString(R.string.open_tile_stream));
                 }
             }
         );
-
 
         //instantiate PersistentConfigSettingsManager singleton
         SharedPrefsManager.newInstance(this);
@@ -469,22 +501,12 @@ public class MainActivity
             MainActivity.this,
             new Handler(getMainLooper())
         );
-    }
 
-    @Override
-    protected void onDestroy() {
-        Log.d(TAG, "onDestroy: ClientAPI.uninitClient(m_controllerClient)");
-        ClientAPI.uninitClient(m_controllerClient);
-        super.onDestroy();
-    }
-
-    final String FRAG_DRAWER_CONTENT = "FRAG_DRAWER_CONTENT";
-
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        Log.d(TAG, "onPostCreate: entered - savedInstanceState is " + (savedInstanceState != null ? "NOT " : "") + "null");
         if (savedInstanceState != null) {
-            Log.d(TAG, "onPostCreate: savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false)==" + savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false));
+            m_controller_running = savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false);
+            Log.d(TAG, String.format("onCreate: savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING)==%b", m_controller_running));
+            mvstate = MAPVIEW_STATE.ordinal_map.get(savedInstanceState.getInt(SAVE_INSTANCE_ARG__MAPVIEW_STATE, MAPVIEW_STATE.STREAM_CLOSED.ordinal()));
+            Log.d(TAG, String.format("onCreate: savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__MAPVIEW_STATE)==%s", mvstate.name()));
         }
 
         //set title to build version
@@ -507,19 +529,47 @@ public class MainActivity
             () -> {
                 if (savedInstanceState == null || !savedInstanceState.getBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, false))
                     m_controllerClient.controller__start(MainActivity.class.getName());
-                m_controllerClient.mvt_server__query_state__is_running();
-                m_controllerClient.mvt_server__query_state__listen_port();
+                else {
+                    m_controllerClient.mvt_server__query_state__is_running();
+                    m_controllerClient.mvt_server__query_state__listen_port();
+                }
 
                 //reconcile expandable sections UI with initial "expanded" state
                 m_vw_sect_content__mbgl_nfo.callOnClick();
                 m_tv_tegola_console_output__scroll_max();
                 //adjust main scroll view (since expandable sections may or may not have been expanded/collapsed based on initial settings)
                 m_scvw_main__scroll_max();
+
+                switch (mvstate) {
+                    case STREAMING__REMOTE__DRAWER_OPEN: {
+                        m_btn_stream_tiles_from_remote.callOnClick();
+                        break;
+                    }
+                    case STREAMING__REMOTE__DRAWER_CLOSED: {
+                        break;
+                    }
+                    case STREAMING__LOCAL__DRAWER_OPEN: {
+                        break;
+                    }
+                    case STREAMING__LOCAL__DRAWER_CLOSED: {
+                        break;
+                    }
+                    case STREAM_CLOSED:
+                    default: {
+                        break;
+                    }
+                }
             },
             50
         );
+    }
 
-        super.onPostCreate(savedInstanceState);
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, String.format("onSaveInstanceState: outState.putBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, %b) - and mvstate is %s", m_controller_running, mvstate.name()));
+        outState.putBoolean(SAVE_INSTANCE_ARG__CTRLR_RUNNING, m_controller_running);
+        outState.putInt(SAVE_INSTANCE_ARG__MAPVIEW_STATE, mvstate.ordinal());
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -575,7 +625,13 @@ public class MainActivity
         Log.d(TAG, "onStop: entered");
         super.onStop();
 //        GoogleDriveFileDownloadManager.getInstance().disconnect_api_client();
-        //super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "onDestroy: ClientAPI.uninitClient(m_controllerClient)");
+        ClientAPI.uninitClient(m_controllerClient);
+        super.onDestroy();
     }
 
 
@@ -1213,7 +1269,7 @@ public class MainActivity
                     Log.d(TAG, String.format("OnItemSelectedListener__m_spinner_val_remote_tile_server.onItemSelected: skipping change to shared pref setting %s since it is already cleared (value is \"%s\")", SharedPrefsManager.STRING_SHARED_PREF.TM_TILE_SOURCE__REMOTE.toString(), s_cached_sel_canon_remote_tile_server));
                 }
 
-                m_btn_stream_tiles.setEnabled(false);
+                m_btn_stream_tiles_from_remote.setEnabled(false);
 
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.alert_dialog));
                 alertDialogBuilder.setTitle(getString(R.string.no_valid_canonical_remote_tile_server_urls_found));
@@ -1238,14 +1294,14 @@ public class MainActivity
                     Log.d(TAG, String.format("OnItemSelectedListener__m_spinner_val_remote_tile_server.onItemSelected: skipping change to shared pref setting %s value (\"%s\") since new value (\"%s\") is no different", SharedPrefsManager.STRING_SHARED_PREF.TM_TILE_SOURCE__REMOTE.toString(), SharedPrefsManager.STRING_SHARED_PREF.TM_TILE_SOURCE__REMOTE.getValue(), s_sel_val));
                 }
 
-                m_btn_stream_tiles.setEnabled(true);
+                m_btn_stream_tiles_from_remote.setEnabled(true);
             }
         }
 
         @Override
         public void onNothingSelected(AdapterView<?> adapterView) {
             Toast.makeText(getApplicationContext(), "Cleared canonical remote tile server selection", Toast.LENGTH_SHORT).show();
-            m_btn_stream_tiles.setEnabled(false);
+            m_btn_stream_tiles_from_remote.setEnabled(false);
         }
     };
 
@@ -1744,6 +1800,7 @@ public class MainActivity
         if (srvr_started != null && srvr_started == true) {
             String s_srvr_status = m_tv_val_srvr_status.getText().toString() + "\n\t\tlistening on port " + port;
             textview_setColorizedText(m_tv_val_srvr_status, s_srvr_status, getString(R.string.running), Color.GREEN);
+            mvstate = MAPVIEW_STATE.OPENING_STREAM__LOCAL;
             m_controllerClient.mvt_server__get_capabilities(
                 Constants.Strings.INTENT.ACTION.REQUEST.MVT_SERVER.REST_API.GET_JSON.EXTRA_KEY.PURPOSE.VALUE.LOAD_MAP.STRING
             );
@@ -1868,6 +1925,7 @@ public class MainActivity
                     m_drawer_handle.openDrawer();
                 }
             );
+            mvstate = (mvstate == MAPVIEW_STATE.OPENING_STREAM__REMOTE ? MAPVIEW_STATE.STREAMING__REMOTE__DRAWER_OPEN : MAPVIEW_STATE.STREAMING__LOCAL__DRAWER_OPEN);
         } else {
             throw new MapboxConfigurationException();
         }
@@ -1885,7 +1943,7 @@ public class MainActivity
                             if (tegolaCapabilities.parsed.maps.length > 0) {
                                 mbgl_map_start(tegolaCapabilities);
                                 if (!s_tegola_url_root.contains("localhost"))
-                                    m_btn_stream_tiles.setText(getString(R.string.close_tile_stream));
+                                    m_btn_stream_tiles_from_remote.setText(getString(R.string.close_tile_stream));
                             }
                             break;
                         }
@@ -1945,6 +2003,7 @@ public class MainActivity
                     Log.d(TAG, "mbgl_map_stop: detaching drawer handle");
                     m_drawer_handle.detach();
                     m_drawer_handle = null;
+                    mvstate = MAPVIEW_STATE.STREAM_CLOSED;
                 } else {
                     Log.d(TAG, "mbgl_map_stop: no (null) drawerhandle to detach!");
                 }

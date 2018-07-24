@@ -84,7 +84,8 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
      */
     public interface OnFragmentInteractionListener {
         enum E_MBGL_FRAG_ACTION {
-            HIDE
+            HIDE,
+            MAP_LOADED
         }
         void onFragmentInteraction(E_MBGL_FRAG_ACTION e_mbgl_frag_action);
     }
@@ -559,6 +560,7 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
         Log.d(TAG, "(fragment) onCreateView: disabling mb telemetry");
         TelemetryEnabler.updateTelemetryState(TelemetryEnabler.State.DISABLED);
         Telemetry.initialize();
+        Telemetry.disableOnUserRequest();
 
         mapView.getMapAsync(m_OnMapReadyCallback);
         Log.d(TAG, "(fragment) onCreateView: setting mbglstyle url from tegolaCapabilities.parsed.maps[0].mbgl_style_json_url: " + tegolaCapabilities.parsed.maps[0].mbgl_style_json_url);
@@ -654,15 +656,15 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
         if (tilt == null)
             tilt = m_mapboxMap.getCameraPosition().tilt;
         Log.d(TAG, "(fragment) move_camera: setting camera to new pos: "
-                + "lat := " + lat
-                + "; lon := " + lon
-                + "; zoom := " + zoom
-                + "; bearing := " + bearing
-                + "; tilt := " + tilt
+            + "lat := " + lat
+            + "; lon := " + lon
+            + "; zoom := " + zoom
+            + "; bearing := " + bearing
+            + "; tilt := " + tilt
         );
         m_mapboxMap.easeCamera(
             CameraUpdateFactory.newCameraPosition(
-                new CameraPosition.Builder()
+                camera_pos_builder
                     .target(new LatLng(lat, lon))
                     .zoom(zoom)
                     .bearing(bearing)
@@ -679,9 +681,9 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
                 lon = location.getLongitude(),
                 bearing = location.getBearing();
         Log.d(TAG, "(fragment) onBrokerLocationUpdate: received location update from broker - easing camera to: "
-                + "lat: " + lat
-                + "; lon: " + lon
-                + "; bearing: " + bearing
+            + "lat: " + lat
+            + "; lon: " + lon
+            + "; bearing: " + bearing
         );
         m_mapboxMap.easeCamera(
             CameraUpdateFactory.newCameraPosition(
@@ -788,10 +790,22 @@ public class MBGLFragment extends android.support.v4.app.Fragment implements Loc
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        Log.d(TAG, "(fragment) onSaveInstanceState: calling mapView.onSaveInstanceState()...");
+        double
+            lat = m_mapboxMap.getCameraPosition().target.getLatitude(),
+            lon = m_mapboxMap.getCameraPosition().target.getLongitude(),
+            zoom = m_mapboxMap.getCameraPosition().zoom,
+            bearing = m_mapboxMap.getCameraPosition().bearing,
+            tilt = m_mapboxMap.getCameraPosition().tilt;
+        Log.d(TAG, "(fragment) onSaveInstanceState: saving current camera pos: "
+            + "lat := " + lat
+            + "; lon := " + lon
+            + "; zoom := " + zoom
+            + "; bearing := " + bearing
+            + "; tilt := " + tilt
+        );
+        outState.putDoubleArray("MV_CAMERA_POS", new double[]{lat, lon, zoom, bearing, tilt});
         mapView.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
