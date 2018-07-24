@@ -53,6 +53,13 @@
         <item>harare:default</item>
     </string-array>
 
+    <string-array name="remote_tile_servers__canonical">
+        <item>https://osm.tegola.io</item>
+        <item>https://bpqmmr7g4k.execute-api.us-west-2.amazonaws.com/dev</item>
+    </string-array>
+    <string name="no_valid_canonical_remote_tile_server_urls_found">**NO VALID CANONICAL REMOTE TILE SERVER URLs**</string>
+    <string name="no_valid_canonical_remote_tile_server_urls_found__alert_msg">Cannot start maps without any valid canonical remote tile server URLs configured.\n</string>
+
     <string name="open_tile_stream">START MAPS</string>
     <string name="close_tile_stream">STOP MAPS</string>
 </resources>

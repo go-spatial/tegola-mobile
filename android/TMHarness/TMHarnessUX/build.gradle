@@ -81,7 +81,6 @@ android {
     Integer mbgl_http_connect_timeout
     Integer mbgl_http_read_timeout
     Integer mbgl_http_cache_size
-    String mbgl_default_remote_mvt_server_url
     Boolean mbgl_debug_active
     if (mbglPropsFile.canRead()) {
         mbglProps = new Properties()
@@ -112,9 +111,6 @@ android {
         mbgl_http_cache_size = Integer.valueOf(s_mbgl_http_cache_size)
 
         //OPTIONAL PARAMS
-        mbgl_default_remote_mvt_server_url = mbglProps['default_remote_mvt_server_url']
-        if (mbgl_default_remote_mvt_server_url == null)
-            mbgl_default_remote_mvt_server_url = ""
         String s_mbgl_debug_active = mbglProps['debug_active']
         mbgl_debug_active = s_mbgl_debug_active != null ? Boolean.valueOf(s_mbgl_debug_active) : false
     } else
@@ -137,7 +133,6 @@ android {
         buildConfigField "int", "mbgl_http_connect_timeout", mbgl_http_connect_timeout.toString()
         buildConfigField "int", "mbgl_http_read_timeout", mbgl_http_read_timeout.toString()
         buildConfigField "int", "mbgl_http_cache_size", mbgl_http_cache_size.toString()
-        buildConfigField "String", "mbgl_default_remote_mvt_server_url", "\"" + mbgl_default_remote_mvt_server_url + "\""
         buildConfigField "boolean", "mbgl_debug_active", mbgl_debug_active.toString()
     }
 

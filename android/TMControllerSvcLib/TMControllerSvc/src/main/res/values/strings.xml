@@ -26,7 +26,7 @@
     <string name="local_srvr_status">Server Status</string>
 
     <string name="remote_srvr_info">Remote Tile Server Config</string>
-    <string name="remote_srvr_capabilities_url">Address</string>
+    <string name="remote_srvr_capabilities_url">(Canonical Tegola) Remote Tile Server</string>
 
     <string name="start">Start</string>
     <string name="starting">STARTING...</string>
